@@ -1,0 +1,50 @@
+#!/usr/bin/python
+
+import sys
+import os
+
+MyName = sys.argv[0]
+
+def usage(errcode=1):
+    print >>sys.stderr, "Usage: %s picture-dir publish-dir" % MyName
+    sys.exit(errcode)
+
+
+def recursiveDirTree(rootName,dirName):
+    lst = []
+    dirList = os.listdir(os.path.join(rootName,dirName))
+    for d in dirList:
+        if os.path.isdir(os.path.join(rootName,dirName,d)):
+            dName = os.path.join(dirName,d)
+            lst.append(dName)
+            lst.extend(recursiveDirTree(rootName,dName))
+    return lst
+
+
+def dirTree(rootName='.'):
+    '''Return a list of directory names starting from a specified root.
+
+    The root is not included in the returned names.'''
+    lst = []
+    if not os.path.isdir(rootName):
+        return lst
+    thisDirList = os.listdir(rootName)
+    for subd in thisDirList:
+        if os.path.isdir(os.path.join(rootName,subd)):
+            lst.append(subd)
+            lst.extend(recursiveDirTree(rootName,subd))
+    return lst
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 1:
+        for d in sys.argv[1:]:
+            print dirTree(d)
+    else:
+        print(dirTree())
+
+
+
+
+# arch-tag: dbd38a8f-6259-49ca-a125-6b5cd1f48bdb
+
