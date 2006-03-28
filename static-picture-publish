@@ -76,7 +76,7 @@ opt.add_option('-s','--thumbnail-size',
                type='intpair',
                action='store',
                help='Set maximum dimension for thumbnails (default 100x100 pixels)')
-opt.add_option('-V','--verbose',
+opt.add_option('-v','--verbose',
                action='store_true',
                help='Print more information about actions')
 
@@ -91,6 +91,11 @@ def parseOptions():
         options.extensions = ['.jpg','.gif','.png']
     if not options.thumbnail_size:
         options.thumbnail_size = (100,100)
+    options.messageLevel = 1
+    if options.verbose:
+        options.messageLevel = 0
+    if options.quiet:
+        options.messageLevel = 2
     picDir = args[0]
     webDir = args[1]
 
@@ -98,6 +103,11 @@ def parseOptions():
 def usage(errcode=1):
     opt.print_help(sys.stderr)
     sys.exit(errcode)
+
+
+def message(msg, level=1):
+    if level >= options.messageLevel:
+        print msg
 
 
 def dirTree(rootName='.'):
@@ -114,6 +124,7 @@ def dirTree(rootName='.'):
         for d in dirList:
             if os.path.isdir(os.path.join(rootName,dirName,d)):
                 dName = os.path.join(dirName,d)
+                #message("Appending (%s) %s" % (rootName,dName))
                 lst.append(dName)
                 lst.extend(recursiveDirTree(rootName,dName))
         return lst
@@ -121,10 +132,12 @@ def dirTree(rootName='.'):
     lst = []
     if not os.path.isdir(rootName):
         return lst
+    #message("Appending (%s) ." % rootName)
     lst.append('.')
     thisDirList = os.listdir(rootName)
     for subd in thisDirList:
         if os.path.isdir(os.path.join(rootName,subd)):
+            #message("Appending (%s) %s" % (rootName,subd))
             lst.append(subd)
             lst.extend(recursiveDirTree(rootName,subd))
     return lst
@@ -132,22 +145,34 @@ def dirTree(rootName='.'):
 
 def doPictureDirs():
     for d in picTree:
-        picd = os.path.join(picDir, d)
-        webd = os.path.join(webDir, d)
+        # Handle '.' specially.  This is slightly icky.
+        if d == '.':
+            picd = picDir
+            webd = webDir
+        else:
+            picd = os.path.join(picDir, d)
+            webd = os.path.join(webDir, d)
         doOnePictureDir(picd, webd)
 
 
 def doOnePictureDir(picd, webd):
+    '''Create one web dir from one picture dir.
+
+    In here, the paths are full paths to the directories, so files can be
+    opened using those paths, etc.  The roots have already been prepended.'''
+
+    message(picd)
     if not os.path.isdir(webd):
+        message("Creating %s" % webd)
         os.makedirs(webd)
     piclist = os.listdir(picd)
     for pic in piclist:
         if isPicFile(os.path.join(picd,pic)):
+            print "pic=",pic
             doOnePicture(picd, pic, webd)
 
 
 def isPicFile(pic):
-    print "pic=",pic
     for e in options.extensions:
         if pic.endswith(e):
             return True
@@ -169,7 +194,7 @@ if __name__ == '__main__':
     doPictureDirs()
     for p in picTree:
         if not os.path.isdir(os.path.join(webDir,p)):
-            print "Creating %s" % os.path.join(webDir,p)
+            message("Creating %s" % os.path.join(webDir,p))
             #os.makedirs(os.path.join(webDir,p))
 
 
