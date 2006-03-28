@@ -2,15 +2,57 @@
 
 import sys
 import os
+from optparse import OptionParser
 
 MyName = sys.argv[0]
 
+opt = OptionParser(
+version="%prog 0.1",
+usage=
+'Usage: %prog [options] picdir webdir.\n'
+'  Recursively publish pics from picdir into webdir\n'
+'\n'
+'  Directories and pics from picdir will be mirrored into webdir, as\n'
+'  thumbnails and small copies.  Symlinks will be used to point to the\n'
+'  originals in picdir.\n'
+'\n'
+'  %prog can be run multiple times with the same picdir and webdir.\n'
+'  Pre-existing content in picdir that is still current will not have its\n'
+'  webdir output regenerated.  Directories and images from picdir that no\n'
+'  longer exist will have their equivalents removed from webdir.')
+
+opt.add_option('-c','--copy',
+               action='store_true',
+               help='Copy originals instead of symlinking')
+opt.add_option('--css',
+               action='store',
+               metavar="css_file",
+               help='CSS file to use in html')
+opt.add_option('-n','--no-symlink',
+               action='store_true',
+               help='Don\'t symlink originals')
+opt.add_option('-r','--regenerate',
+               action='store_true',
+               help='Force regneration of all output')
+opt.add_option('-s','--thumbnail-size',
+               type='int',
+               action='store',
+               metavar='thumbnail_size',
+               help='Set maximum dimension for thumbnails (default 100 pixels)')
+
 def usage(errcode=1):
-    print >>sys.stderr, "Usage: %s picture-dir publish-dir" % MyName
+    opt.print_help(sys.stderr)
     sys.exit(errcode)
 
 
 def recursiveDirTree(rootName,dirName):
+    '''Return a list of directory names.
+
+    The directories are searched for starting from rootName/dirName.  The
+    "rootName/" prefix is not included in names in the list.  dirName is
+    included in the list.
+
+    This should be an inner function inside dirTree().'''
     lst = []
     dirList = os.listdir(os.path.join(rootName,dirName))
     for d in dirList:
@@ -24,7 +66,7 @@ def recursiveDirTree(rootName,dirName):
 def dirTree(rootName='.'):
     '''Return a list of directory names starting from a specified root.
 
-    The root is not included in the returned names.'''
+    The rootName directory is not included in the returned names.'''
     lst = []
     if not os.path.isdir(rootName):
         return lst
@@ -37,11 +79,11 @@ def dirTree(rootName='.'):
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        for d in sys.argv[1:]:
-            print dirTree(d)
-    else:
-        print(dirTree())
+    (options, args) = opt.parse_args()
+    if len(args) != 2:
+        usage()
+    print dirTree(args[0])
+    print dirTree(args[1])
 
 
 
