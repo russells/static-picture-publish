@@ -16,10 +16,10 @@ usage=
 '  thumbnails and small copies.  Symlinks will be used to point to the\n'
 '  originals in picdir.\n'
 '\n'
-'  %prog can be run multiple times with the same picdir and webdir.\n'
-'  Pre-existing content in picdir that is still current will not have its\n'
-'  webdir output regenerated.  Directories and images from picdir that no\n'
-'  longer exist will have their equivalents removed from webdir.')
+'  %prog can be run multiple times with the same picdir\n'
+'  and webdir.  Pre-existing content in picdir that is still current will\n'
+'  not have its webdir output regenerated.  Directories and images in picdir\n'
+'  that no longer exist will have their equivalents removed from webdir.')
 
 opt.add_option('-c','--copy',
                action='store_true',
