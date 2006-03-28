@@ -100,26 +100,23 @@ def usage(errcode=1):
     sys.exit(errcode)
 
 
-def recursiveDirTree(rootName,dirName):
-    '''Return a list of directory names.
-
-    The directories are searched for starting from rootName/dirName.  The
-    "rootName/" prefix is not included in names in the list.  dirName is
-    included in the list.
-
-    This should be an inner function inside dirTree().'''
-    lst = []
-    dirList = os.listdir(os.path.join(rootName,dirName))
-    for d in dirList:
-        if os.path.isdir(os.path.join(rootName,dirName,d)):
-            dName = os.path.join(dirName,d)
-            lst.append(dName)
-            lst.extend(recursiveDirTree(rootName,dName))
-    return lst
-
-
 def dirTree(rootName='.'):
     '''Return a list of directory names starting from a specified root.'''
+
+    def recursiveDirTree(rootName,dirName):
+        '''Return a list of directory names.
+
+        The directories are searched for starting from rootName/dirName.  The
+        "rootName/" prefix is not included in names in the list.  dirName is
+        included in the list.'''
+        lst = []
+        dirList = os.listdir(os.path.join(rootName,dirName))
+        for d in dirList:
+            if os.path.isdir(os.path.join(rootName,dirName,d)):
+                dName = os.path.join(dirName,d)
+                lst.append(dName)
+                lst.extend(recursiveDirTree(rootName,dName))
+        return lst
 
     lst = []
     if not os.path.isdir(rootName):
