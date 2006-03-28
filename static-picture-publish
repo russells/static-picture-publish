@@ -2,11 +2,42 @@
 
 import sys
 import os
-from optparse import OptionParser
+from optparse import OptionParser, Option, OptionValueError
+from copy import copy
+
+
 
 MyName = sys.argv[0]
 
+
+
+class SppOption(Option):
+    '''Extend OptionParser to parse image dimension specifications (AxB).'''
+
+    def check_intpair(option, opt, value):
+        intstrs = value.split('x')
+        try:
+            if len(intstrs) == 1:
+                i = int(intstrs[0])
+                ints = (i,i)
+            elif len(intstrs) == 2:
+                ints = ( int(intstrs[0]), int(intstrs[1]) )
+            else:
+                raise OptionValueError(
+                    "option %s: Must be one int or two ints AxB: %r" % \
+                    (opt, value))
+        except ValueError,reason:
+            raise OptionValueError(
+                "option %s: not an integer or integer pair: %s" % (opt, value))
+        return ints
+
+    TYPES = Option.TYPES + ("intpair",)
+    TYPE_CHECKER = copy(Option.TYPE_CHECKER)
+    TYPE_CHECKER["intpair"] = check_intpair
+
+
 opt = OptionParser(
+option_class=SppOption,
 version="%prog 0.1",
 usage=
 'Usage: %prog [options] picdir webdir.\n'
@@ -28,17 +59,41 @@ opt.add_option('--css',
                action='store',
                metavar="css_file",
                help='CSS file to use in html')
+opt.add_option('-e','--extensions',
+               action='store',
+               help='Comma-separated list of file extensions to use.  '
+               'Default=".jpg,.gif,.png"')
 opt.add_option('-n','--no-symlink',
                action='store_true',
                help='Don\'t symlink originals')
+opt.add_option('-q','--quiet',
+               action='store_true',
+               help='Don\'t print any output')
 opt.add_option('-r','--regenerate',
                action='store_true',
                help='Force regneration of all output')
 opt.add_option('-s','--thumbnail-size',
-               type='int',
+               type='intpair',
                action='store',
-               metavar='thumbnail_size',
-               help='Set maximum dimension for thumbnails (default 100 pixels)')
+               help='Set maximum dimension for thumbnails (default 100x100 pixels)')
+opt.add_option('-V','--verbose',
+               action='store_true',
+               help='Print more information about actions')
+
+def parseOptions():
+    global options, picDir, webDir, picTree, webTree
+    (options, args) = opt.parse_args()
+    if len(args) != 2:
+        usage()
+    if options.extensions:
+        options.extensions = options.extensions.split(',')
+    else:
+        options.extensions = ['.jpg','.gif','.png']
+    if not options.thumbnail_size:
+        options.thumbnail_size = (100,100)
+    picDir = args[0]
+    webDir = args[1]
+
 
 def usage(errcode=1):
     opt.print_help(sys.stderr)
@@ -64,12 +119,12 @@ def recursiveDirTree(rootName,dirName):
 
 
 def dirTree(rootName='.'):
-    '''Return a list of directory names starting from a specified root.
+    '''Return a list of directory names starting from a specified root.'''
 
-    The rootName directory is not included in the returned names.'''
     lst = []
     if not os.path.isdir(rootName):
         return lst
+    lst.append('.')
     thisDirList = os.listdir(rootName)
     for subd in thisDirList:
         if os.path.isdir(os.path.join(rootName,subd)):
@@ -78,13 +133,47 @@ def dirTree(rootName='.'):
     return lst
 
 
-if __name__ == '__main__':
-    (options, args) = opt.parse_args()
-    if len(args) != 2:
-        usage()
-    print dirTree(args[0])
-    print dirTree(args[1])
+def doPictureDirs():
+    for d in picTree:
+        picd = os.path.join(picDir, d)
+        webd = os.path.join(webDir, d)
+        doOnePictureDir(picd, webd)
 
+
+def doOnePictureDir(picd, webd):
+    if not os.path.isdir(webd):
+        os.makedirs(webd)
+    piclist = os.listdir(picd)
+    for pic in piclist:
+        if isPicFile(os.path.join(picd,pic)):
+            doOnePicture(picd, pic, webd)
+
+
+def isPicFile(pic):
+    print "pic=",pic
+    for e in options.extensions:
+        if pic.endswith(e):
+            return True
+    return False
+
+
+def doOnePicture(picd, pic, webd):
+    print "Copying %s into %s" % (os.path.join(picd,pic), webd)
+
+
+if __name__ == '__main__':
+    global picTree, webTree
+    parseOptions()
+    picTree = dirTree(picDir)
+    webTree = dirTree(webDir)
+    #print "picTree=",picTree
+    #print "webTree=",webTree
+
+    doPictureDirs()
+    for p in picTree:
+        if not os.path.isdir(os.path.join(webDir,p)):
+            print "Creating %s" % os.path.join(webDir,p)
+            #os.makedirs(os.path.join(webDir,p))
 
 
 
