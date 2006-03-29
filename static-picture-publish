@@ -71,7 +71,7 @@ opt.add_option('-q','--quiet',
                help='Don\'t print any output')
 opt.add_option('-r','--regenerate',
                action='store_true',
-               help='Force regneration of all output')
+               help='Force regeneration of all output')
 opt.add_option('-s','--thumbnail-size',
                type='intpair',
                action='store',
@@ -81,7 +81,7 @@ opt.add_option('-v','--verbose',
                help='Print more information about actions')
 
 def parseOptions():
-    global options, picDir, webDir, picTree, webTree
+    global options, picRoot, webRoot, picTree, webTree
     (options, args) = opt.parse_args()
     if len(args) != 2:
         usage()
@@ -96,8 +96,8 @@ def parseOptions():
         options.messageLevel = 0
     if options.quiet:
         options.messageLevel = 2
-    picDir = args[0]
-    webDir = args[1]
+    picRoot = args[0]
+    webRoot = args[1]
 
 
 def usage(errcode=1):
@@ -147,11 +147,11 @@ def doPictureDirs():
     for d in picTree:
         # Handle '.' specially.  This is slightly icky.
         if d == '.':
-            picd = picDir
-            webd = webDir
+            picd = picRoot
+            webd = webRoot
         else:
-            picd = os.path.join(picDir, d)
-            webd = os.path.join(webDir, d)
+            picd = os.path.join(picRoot, d)
+            webd = os.path.join(webRoot, d)
         doOnePictureDir(picd, webd)
 
 
@@ -183,19 +183,51 @@ def doOnePicture(picd, pic, webd):
     print "Copying %s into %s" % (os.path.join(picd,pic), webd)
 
 
+def doWebDirs():
+    for d in webTree:
+        # Handle '.' specially.  This is slightly icky.
+        if d == '.':
+            webd = webRoot
+            picd = picRoot
+        else:
+            webd = os.path.join(webRoot, d)
+            picd = os.path.join(picRoot, d)
+        doOneWebDir(webd, picd)
+
+
+def doOneWebDir(webd, picd):
+    # First check that the directory still exists.
+    if not os.path.isdir(webd):
+        return
+    if not os.path.isdir(picd):
+        # There is no corresponding picture directory, so we recursively delete
+        # the web output dir.
+        deleteDir(webd)
+
+
+def deleteDir(d):
+    '''Recursively delete a whole directory tree.'''
+    lst = os.listdir(d)
+    for e in lst:
+        p = os.path.join(d,e)
+        if os.path.isdir(p):
+            deleteDir(p)
+        else:
+            os.unlink(p)
+    message("Removing directory %s" % d)
+    os.rmdir(d)
+
+
 if __name__ == '__main__':
     global picTree, webTree
     parseOptions()
-    picTree = dirTree(picDir)
-    webTree = dirTree(webDir)
+    picTree = dirTree(picRoot)
+    webTree = dirTree(webRoot)
     #print "picTree=",picTree
     #print "webTree=",webTree
 
     doPictureDirs()
-    for p in picTree:
-        if not os.path.isdir(os.path.join(webDir,p)):
-            message("Creating %s" % os.path.join(webDir,p))
-            #os.makedirs(os.path.join(webDir,p))
+    doWebDirs()
 
 
 
