@@ -4,7 +4,7 @@ import sys
 import os
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
-
+import Image
 
 
 MyName = sys.argv[0]
@@ -168,19 +168,36 @@ def doOnePictureDir(picd, webd):
     piclist = os.listdir(picd)
     for pic in piclist:
         if isPicFile(os.path.join(picd,pic)):
-            print "pic=",pic
+            #print "pic=",pic
             doOnePicture(picd, pic, webd)
 
 
 def isPicFile(pic):
-    for e in options.extensions:
-        if pic.endswith(e):
-            return True
+    (base, ext) = os.path.splitext(pic)
+    if ext in options.extensions:
+        return True
     return False
 
 
 def doOnePicture(picd, pic, webd):
-    print "Copying %s into %s" % (os.path.join(picd,pic), webd)
+    '''Create the thumbnail and html file for one pic.
+
+    '''
+    picpath = os.path.join(picd,pic)
+    print "Copying %s into %s" % (picpath, webd)
+    # Create the thumbnail, if necessary.
+    thumbnailName = makeThumbnailName(webd, pic)
+    im = Image.open(os.path.join(picd, pic))
+    im.thumbnail((128, 128), Image.ANTIALIAS)
+    im.save(thumbnailName)
+
+
+def makeThumbnailName(webd, pic):
+    '''Make up the name of the thumbnail.'''
+    (base, ext) = os.path.splitext(pic)
+    if not ext in options.extensions:
+        raise Exception("Pic with unhandled extension: %s" % pic)
+    return os.path.join(webd, base + "-thumb" + ext)
 
 
 def doWebDirs():
