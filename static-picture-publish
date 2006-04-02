@@ -5,11 +5,11 @@ import os
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
+from errno import ENOENT
+from types import StringType
 
 
-MyName = sys.argv[0]
-
-
+defaultExtensions = '.jpg,.JPG,.gif,.GIF,.png,.PNG'
 
 class SppOption(Option):
     '''Extend OptionParser to parse image dimension specifications (AxB).'''
@@ -62,7 +62,9 @@ opt.add_option('--css',
 opt.add_option('-e','--extensions',
                action='store',
                help='Comma-separated list of file extensions to use.  '
-               'Default=".jpg,.gif,.png"')
+               'Default is "%s".  '
+               'If you modify this, be sure to include upper and lower case '
+               'versions of the extensions.' % defaultExtensions)
 opt.add_option('-n','--no-symlink',
                action='store_true',
                help='Don\'t symlink originals')
@@ -72,10 +74,14 @@ opt.add_option('-q','--quiet',
 opt.add_option('-r','--regenerate',
                action='store_true',
                help='Force regeneration of all output')
-opt.add_option('-s','--thumbnail-size',
+opt.add_option('-s','--image-size',
                type='intpair',
                action='store',
-               help='Set maximum dimension for thumbnails (default 100x100 pixels)')
+               help='Set maximum dimension for images (default 800x800 pixels)')
+opt.add_option('-t','--thumbnail-size',
+               type='intpair',
+               action='store',
+               help='Set maximum dimension for thumbnails (default 128x128 pixels)')
 opt.add_option('-v','--verbose',
                action='store_true',
                help='Print more information about actions')
@@ -88,9 +94,11 @@ def parseOptions():
     if options.extensions:
         options.extensions = options.extensions.split(',')
     else:
-        options.extensions = ['.jpg','.gif','.png']
+        options.extensions = defaultExtensions.split(',')
+    if not options.image_size:
+        options.image_size = (800,800)
     if not options.thumbnail_size:
-        options.thumbnail_size = (100,100)
+        options.thumbnail_size = (128,128)
     options.messageLevel = 1
     if options.verbose:
         options.messageLevel = 0
@@ -163,7 +171,7 @@ def doOnePictureDir(picd, webd):
 
     message(picd)
     if not os.path.isdir(webd):
-        message("Creating %s" % webd)
+        message("  Creating %s" % webd)
         os.makedirs(webd)
     piclist = os.listdir(picd)
     for pic in piclist:
@@ -183,21 +191,56 @@ def doOnePicture(picd, pic, webd):
     '''Create the thumbnail and html file for one pic.
 
     '''
-    picpath = os.path.join(picd,pic)
-    print "Copying %s into %s" % (picpath, webd)
-    # Create the thumbnail, if necessary.
-    thumbnailName = makeThumbnailName(webd, pic)
-    im = Image.open(os.path.join(picd, pic))
-    im.thumbnail((128, 128), Image.ANTIALIAS)
-    im.save(thumbnailName)
-
-
-def makeThumbnailName(webd, pic):
-    '''Make up the name of the thumbnail.'''
     (base, ext) = os.path.splitext(pic)
     if not ext in options.extensions:
         raise Exception("Pic with unhandled extension: %s" % pic)
-    return os.path.join(webd, base + "-thumb" + ext)
+    picPath = os.path.join(picd,pic)
+    if not options.regenerate:
+        picStat = os.stat(picPath)
+
+    im = None
+    # Create the web image, if necessary.
+    imageName = os.path.join(webd, base + "-small" + ext)
+    if options.regenerate or not fileIsNewer(imageName, picStat):
+        print "  %s => %s" % (picPath, imageName)
+        im = Image.open(picPath)
+        imwe = im.copy()
+        imwe.thumbnail(options.image_size, Image.ANTIALIAS)
+        imwe.save(imageName)
+        imwe = None                     # gc
+    # Create the thumbnail, if necessary.
+    thumbnailName = os.path.join(webd, base + "-thumb" + ext)
+    if options.regenerate or not fileIsNewer(thumbnailName, picStat):
+        print "  %s => %s" % (picPath, thumbnailName)
+        if im is None:
+            im = Image.open(picPath)
+        im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
+        im.save(thumbnailName)
+    im = None                           # gc
+
+
+def fileIsNewer(file1, file2):
+    '''Return true if first named file is newer than the second.
+
+    file1 and file2 can be names, or the results of calling os.stat().  If
+    either file does not exist, we return false.'''
+    if isinstance(file1,str):
+        try:
+            file1stat = os.stat(file1)
+        except OSError,reason:
+            if reason.errno == ENOENT: return False
+            else: raise
+    else:
+        file1stat = file1
+    if isinstance(file2,str):
+        try:
+            file2stat = os.stat(file2)
+        except OSError,reason:
+            if reason.errno == ENOENT: return False
+            else: raise
+    else:
+        file2stat = file2
+    return file1stat.st_mtime > file2stat.st_mtime
 
 
 def doWebDirs():
