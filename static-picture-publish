@@ -8,6 +8,7 @@ from copy import copy
 import Image
 from errno import ENOENT
 from urllib import quote, quote_plus
+from StringIO import StringIO
 
 
 defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
@@ -124,6 +125,21 @@ def usage(errcode=1):
 def message(msg, level=1):
     if level <= options.messageLevel:
         print msg
+
+
+entityChars = { '&':"amp", '<':"lt", '>':"gt", '\'':"apos", '"':"quot" }
+
+def entityReplace(s):
+    '''Replace the characters "&<>\'" with html entities.'''
+    r = StringIO()
+    for c in s:
+        if c in entityChars:
+            r.write("&%s;" % entityChars[c])
+        else:
+            r.write(c)
+    s2 = r.getvalue()
+    r.close()
+    return s2
 
 
 class Picture:
@@ -288,13 +304,14 @@ class PictureDir:
             print >>htmlFile, '<a class="uplink" href="..">Up</a><br/>'
         for d in self.subdirList:
             print >>htmlFile, '<a class="dirlink" href="%s">%s</a><br/>' % \
-                  (quote_plus(basename(d.dirName),'/')+'/', basename(d.dirName))
+                  (quote_plus(basename(d.dirName),'/')+'/',
+                   entityReplace(d.dirName))
         for p in self.picList:
             print >>htmlFile, '<a class="piclink" href="%s">' \
                   '<img class="piclinkimg" src="%s" />' \
                   '<span class="piclinkspan">%s</span></a><br/>' % \
                   (quote_plus(p.htmlName,'/'), quote_plus(p.thumbnailName),
-                   quote(p.imageName))
+                   entityReplace(p.imageName))
         print >>htmlFile, "</body></html>"
         htmlFile.close()
 
