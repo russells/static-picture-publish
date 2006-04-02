@@ -173,14 +173,37 @@ def doOnePictureDir(picd, webd):
     if not os.path.isdir(webd):
         message("  Creating %s" % webd)
         os.makedirs(webd)
-    piclist = os.listdir(picd)
-    for pic in piclist:
-        if isPicFile(os.path.join(picd,pic)):
+    picList = os.listdir(picd)
+    picList.sort()
+    imageList = []
+    for pic in picList:
+        picFile = os.path.join(picd,pic)
+        if isPicFile(picFile):
             #print "pic=",pic
-            doOnePicture(picd, pic, webd)
+            names = doOnePicture(picd, pic, webd)
+            imageList.append( (picFile, names[0], names[1]) )
+    createHTML(picd, webd, imageList)
+
+
+def createHTML(picd, webd, imageList):
+    '''Create the html file for a directory.'''
+
+    htmlFileName = os.path.join(webd, "index.html")
+    print "  %s" % htmlFileName
+    htmlFile = file(htmlFileName, "w")
+    print >>htmlFile, "<html><head><title>Pics</title></head><body>"
+    for p in imageList:
+        print >>htmlFile, "<a href='%s'><img src='%s' /></a><br/>" % \
+              (os.path.basename(p[1]), os.path.basename(p[2]))
+    print >>htmlFile, "</body></html>"
 
 
 def isPicFile(pic):
+    '''Determine if a file is a known picture type.
+
+    This currently only looks at the file name (actually the extension).  It
+    should also identify the file contents, perhaps using Image methods?'''
+
     (base, ext) = os.path.splitext(pic)
     if ext in options.extensions:
         return True
@@ -188,9 +211,10 @@ def isPicFile(pic):
 
 
 def doOnePicture(picd, pic, webd):
-    '''Create the thumbnail and html file for one pic.
+    '''Create the thumbnail, image and html file for one pic.
 
-    '''
+    After creating the files, this returns a tuple of web image name and
+    thumbnail name.'''
     (base, ext) = os.path.splitext(pic)
     if not ext in options.extensions:
         raise Exception("Pic with unhandled extension: %s" % pic)
@@ -217,6 +241,7 @@ def doOnePicture(picd, pic, webd):
         im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
         im.save(thumbnailName)
     im = None                           # gc
+    return (imageName, thumbnailName)
 
 
 def fileIsNewer(file1, file2):
