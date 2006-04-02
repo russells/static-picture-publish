@@ -1,15 +1,15 @@
 #!/usr/bin/python
 
-import sys
-import os
+from sys import exit, stderr
+from os import listdir, makedirs, rmdir, stat, unlink
+from os.path import basename, isdir, join, splitext
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
 from errno import ENOENT
-from types import StringType
 
 
-defaultExtensions = '.jpg,.JPG,.gif,.GIF,.png,.PNG'
+defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
 
 class SppOption(Option):
     '''Extend OptionParser to parse image dimension specifications (AxB).'''
@@ -74,7 +74,7 @@ opt.add_option('-n','--no-symlink',
 opt.add_option('-q','--quiet',
                action='store_true',
                help='Don\'t print any output')
-opt.add_option('-r','--regenerate',
+opt.add_option('-r','--regen-all',
                action='store_true',
                help='Force regeneration of all output')
 opt.add_option('-s','--image-size',
@@ -112,13 +112,152 @@ def parseOptions():
 
 
 def usage(errcode=1):
-    opt.print_help(sys.stderr)
-    sys.exit(errcode)
+    opt.print_help(stderr)
+    exit(errcode)
 
 
 def message(msg, level=1):
-    if level >= options.messageLevel:
+    if level <= options.messageLevel:
         print msg
+
+
+class Picture:
+    '''Process one pic.'''
+    def __init__(self, picName, picDirName, webDirName):
+        self.picName = picName
+        self.picDirName = picDirName
+        self.webDirName = webDirName
+        self.picPath = join(picDirName, picName)
+        (base, ext) = splitext(self.picName)
+        self.imageName = base + "-small" + ext
+        self.imagePath = join(webDirName, self.imageName)
+        self.thumbnailName = base + "-thumb" + ext
+        self.thumbnailPath = join(webDirName, self.thumbnailName)
+        self.htmlName = base + ".html"
+        self.htmlPath = join(webDirName, self.htmlName)
+
+    def go(self):
+        ''''''
+
+        if not options.regen_all:
+            picStat = stat(self.picPath)
+
+        modified = False
+        im = None
+        # Create the web image, if necessary.
+        if options.regen_all or not fileIsNewer(self.imagePath, picStat):
+            print "  %s => %s" % (self.picPath, self.imagePath)
+            im = Image.open(self.picPath)
+            imwe = im.copy()
+            imwe.thumbnail(options.image_size, Image.ANTIALIAS)
+            imwe.save(self.imagePath)
+            imwe = None                 # gc
+            modified = True
+        # Create the thumbnail, if necessary.
+        if options.regen_all or not fileIsNewer(self.thumbnailPath, picStat):
+            print "  %s => %s" % (self.picPath, self.thumbnailPath)
+            if im is None:
+                im = Image.open(self.picPath)
+            im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
+            im.save(self.thumbnailPath)
+            modified = True
+            im = None                   # gc
+        return modified
+
+
+class PictureDir:
+    '''Contains information about a picture directory.'''
+    def __init__(self, picRoot, webRoot, dirName='', doUp=False):
+        '''Search through the directory, looking for pictures and
+        sub-directories.  We do not process anything yet, but wait until we
+        know if the subdirs contain anything interesting.'''
+        self.picRoot = picRoot
+        self.webRoot = webRoot
+        self.dirName = dirName          # Relative to picRoot (and webRoot)
+        self.doUp = doUp                # If true, put "Up" link in html
+
+        if self.dirName=='':
+            self.picPath = self.picRoot
+            self.webPath = self.webRoot
+        else:
+            self.picPath = join(self.picRoot, self.dirName)
+            self.webPath = join(self.webRoot, self.dirName)
+        self.subdirList = []
+        self.picList = []
+        # Now create our lists
+        lst = listdir(self.picPath)
+        for l in lst:
+            # If it's a directory, recursively create an instance and process
+            # that directory.
+            subPath = join(self.picPath, l)
+            if isdir(subPath):
+                p = PictureDir(self.picRoot, self.webRoot,
+                               join(self.dirName,l), True)
+                if p.hasPics():
+                    self.subdirList.append(p)
+            elif isPicFile(self.picPath, subPath):
+                self.picList.append(Picture(l, self.picPath, self.webPath))
+        message("  %s" % self, 2)
+
+
+    def __str__(self):
+        s = '<<PictureDir("%s","%s","%s",%s)' % \
+            (self.picRoot, self.webRoot, self.dirName, str(self.doUp))
+        s += ':im=[ '
+        for p in self.picList:
+            s = s + p.picName + ' '
+        s = s + ']'
+        s = s + ':sd[ '
+        for d in self.subdirList:
+            s = s + d.dirName+' '
+        s = s + ']>>'
+        return s
+
+
+    def hasPics(self):
+        return len(self.subdirList) > 0 or len(self.picList) > 0
+
+
+    def go(self):
+        '''Process the pics and sub-directories.'''
+        if not self.hasPics():
+            message("No pics in %s: doing nothing" % self.picPath)
+            return False
+        message("%s" % self.picPath)
+        if not isdir(self.webPath):
+            makedirs(self.webPath)
+        modified = False
+        for pic in self.picList:
+            m = pic.go()
+            if m: modified = True
+        for d in self.subdirList:
+            m = d.go()
+            if m: modified = True
+        if options.regen_all or options.regen_html or modified:
+            # Create our directory index
+            self.createHTML()
+        return modified
+
+
+    def createHTML(self):
+        '''Create the html output for a directory.'''
+
+        htmlFileName = join(self.webPath, "index.html")
+        message("  %s" % htmlFileName, 0)
+        htmlFile = file(htmlFileName, "w")
+        print >>htmlFile, "<html>\n<head>"
+        print >>htmlFile, "<title>Pics - %s</title>" % self.picPath
+        print >>htmlFile, "</head><body>"
+        if self.doUp:
+            print >>htmlFile, "<a href='..'>Up</a><br/>"
+        for d in self.subdirList:
+            print >>htmlFile, "<a href='%s'>%s</a><br/>" % \
+                  (basename(d.dirName)+"/", basename(d.dirName))
+        for p in self.picList:
+            print >>htmlFile, "<a href='%s'><img src='%s' /></a><br/>" % \
+                  (p.imageName, p.thumbnailName)
+        print >>htmlFile, "</body></html>"
+        htmlFile.close()
 
 
 def dirTree(rootName='.'):
@@ -131,134 +270,39 @@ def dirTree(rootName='.'):
         "rootName/" prefix is not included in names in the list.  dirName is
         included in the list.'''
         lst = []
-        dirList = os.listdir(os.path.join(rootName,dirName))
+        dirList = listdir(join(rootName,dirName))
         for d in dirList:
-            if os.path.isdir(os.path.join(rootName,dirName,d)):
-                dName = os.path.join(dirName,d)
+            if isdir(join(rootName,dirName,d)):
+                dName = join(dirName,d)
                 #message("Appending (%s) %s" % (rootName,dName))
                 lst.append(dName)
                 lst.extend(recursiveDirTree(rootName,dName))
         return lst
 
     lst = []
-    if not os.path.isdir(rootName):
+    if not isdir(rootName):
         return lst
     #message("Appending (%s) ." % rootName)
     lst.append('.')
-    thisDirList = os.listdir(rootName)
+    thisDirList = listdir(rootName)
     for subd in thisDirList:
-        if os.path.isdir(os.path.join(rootName,subd)):
+        if isdir(join(rootName,subd)):
             #message("Appending (%s) %s" % (rootName,subd))
             lst.append(subd)
             lst.extend(recursiveDirTree(rootName,subd))
     return lst
 
 
-def doPictureDirs():
-    for d in picTree:
-        # Handle '.' specially.  This is slightly icky.
-        if d == '.':
-            picd = picRoot
-            webd = webRoot
-        else:
-            picd = os.path.join(picRoot, d)
-            webd = os.path.join(webRoot, d)
-        doOnePictureDir(picd, webd)
-
-
-def doOnePictureDir(picd, webd):
-    '''Create one web dir from one picture dir.
-
-    In here, the paths are full paths to the directories, so files can be
-    opened using those paths, etc.  The roots have already been prepended.'''
-
-    message(picd)
-    if not os.path.isdir(webd):
-        message("  Creating %s" % webd)
-        os.makedirs(webd)
-    picList = os.listdir(picd)
-    picList.sort()
-    imageList = []
-    dirList = []
-    modified = False
-    for p in picList:
-        picFile = os.path.join(picd,p)
-        if os.path.isdir(picFile):
-            dirList.append(p)
-        elif isPicFile(picFile):
-            #print "pic=",pic
-            onepic = doOnePicture(picd, p, webd)
-            imageList.append( (picFile, onepic[1], onepic[2]) )
-            if onepic[0]: modified = True
-    if modified or options.regenerate or options.regen_html:
-        createHTML(picd, webd, dirList, imageList)
-
-
-def createHTML(picd, webd, dirList, imageList):
-    '''Create the html file for a directory.'''
-
-    htmlFileName = os.path.join(webd, "index.html")
-    print "  %s" % htmlFileName
-    htmlFile = file(htmlFileName, "w")
-    print >>htmlFile, "<html><head><title>Pics</title></head><body>"
-    print >>htmlFile, "<a href='..'>Up</a><br/>"
-    for d in dirList:
-        print >>htmlFile, "<a href='%s'>%s</a><br/>" % \
-              (os.path.basename(d)+"/", os.path.basename(d))
-    for p in imageList:
-        print >>htmlFile, "<a href='%s'><img src='%s' /></a><br/>" % \
-              (os.path.basename(p[1]), os.path.basename(p[2]))
-    print >>htmlFile, "</body></html>"
-    htmlFile.close()
-
-
-def isPicFile(pic):
+def isPicFile(path, pic):
     '''Determine if a file is a known picture type.
 
     This currently only looks at the file name (actually the extension).  It
     should also identify the file contents, perhaps using Image methods?'''
 
-    (base, ext) = os.path.splitext(pic)
+    (base, ext) = splitext(pic)
     if ext in options.extensions:
         return True
     return False
-
-
-def doOnePicture(picd, pic, webd):
-    '''Create the thumbnail, image and html file for one pic.
-
-    After creating the files, this returns a tuple of web image name and
-    thumbnail name.'''
-    (base, ext) = os.path.splitext(pic)
-    if not ext in options.extensions:
-        raise Exception("Pic with unhandled extension: %s" % pic)
-    picPath = os.path.join(picd,pic)
-    if not options.regenerate:
-        picStat = os.stat(picPath)
-
-    modified = False
-    im = None
-    # Create the web image, if necessary.
-    imageName = os.path.join(webd, base + "-small" + ext)
-    if options.regenerate or not fileIsNewer(imageName, picStat):
-        print "  %s => %s" % (picPath, imageName)
-        im = Image.open(picPath)
-        imwe = im.copy()
-        imwe.thumbnail(options.image_size, Image.ANTIALIAS)
-        imwe.save(imageName)
-        imwe = None                     # gc
-        modified = True
-    # Create the thumbnail, if necessary.
-    thumbnailName = os.path.join(webd, base + "-thumb" + ext)
-    if options.regenerate or not fileIsNewer(thumbnailName, picStat):
-        print "  %s => %s" % (picPath, thumbnailName)
-        if im is None:
-            im = Image.open(picPath)
-        im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
-        im.save(thumbnailName)
-        modified = True
-    im = None                           # gc
-    return (modified, imageName, thumbnailName)
 
 
 def fileIsNewer(file1, file2):
@@ -268,7 +312,7 @@ def fileIsNewer(file1, file2):
     either file does not exist, we return false.'''
     if isinstance(file1,str):
         try:
-            file1stat = os.stat(file1)
+            file1stat = stat(file1)
         except OSError,reason:
             if reason.errno == ENOENT: return False
             else: raise
@@ -276,7 +320,7 @@ def fileIsNewer(file1, file2):
         file1stat = file1
     if isinstance(file2,str):
         try:
-            file2stat = os.stat(file2)
+            file2stat = stat(file2)
         except OSError,reason:
             if reason.errno == ENOENT: return False
             else: raise
@@ -292,16 +336,16 @@ def doWebDirs():
             webd = webRoot
             picd = picRoot
         else:
-            webd = os.path.join(webRoot, d)
-            picd = os.path.join(picRoot, d)
+            webd = join(webRoot, d)
+            picd = join(picRoot, d)
         doOneWebDir(webd, picd)
 
 
 def doOneWebDir(webd, picd):
     # First check that the directory still exists.
-    if not os.path.isdir(webd):
+    if not isdir(webd):
         return
-    if not os.path.isdir(picd):
+    if not isdir(picd):
         # There is no corresponding picture directory, so we recursively delete
         # the web output dir.
         deleteDir(webd)
@@ -309,29 +353,26 @@ def doOneWebDir(webd, picd):
 
 def deleteDir(d):
     '''Recursively delete a whole directory tree.'''
-    lst = os.listdir(d)
+    lst = listdir(d)
     for e in lst:
-        p = os.path.join(d,e)
-        if os.path.isdir(p):
+        p = join(d,e)
+        if isdir(p):
             deleteDir(p)
         else:
-            os.unlink(p)
+            unlink(p)
     message("Removing directory %s" % d)
-    os.rmdir(d)
+    rmdir(d)
 
 
 if __name__ == '__main__':
     global picTree, webTree
     parseOptions()
-    picTree = dirTree(picRoot)
+
+    pd = PictureDir(picRoot, webRoot)
+    pd.go()
+
     webTree = dirTree(webRoot)
-    #print "picTree=",picTree
-    #print "webTree=",webTree
-
-    doPictureDirs()
     doWebDirs()
-
-
 
 # arch-tag: dbd38a8f-6259-49ca-a125-6b5cd1f48bdb
 
