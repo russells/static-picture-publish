@@ -7,6 +7,7 @@ from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
 from errno import ENOENT
+from urllib import quote_plus
 
 
 defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
@@ -81,13 +82,17 @@ opt.add_option('-s','--image-size',
                type='intpair',
                action='store',
                help='Set maximum dimension for images (default 800x800 pixels)')
-opt.add_option('-t','--thumbnail-size',
-               type='intpair',
+opt.add_option('-t','--title',
+               type='string',
                action='store',
-               help='Set maximum dimension for thumbnails (default 128x128 pixels)')
+               help='Set the HTML title')
 opt.add_option('-v','--verbose',
                action='store_true',
                help='Print more information about actions')
+opt.add_option('-z','--thumbnail-size',
+               type='intpair',
+               action='store',
+               help='Set maximum dimension for thumbnails (default 128x128 pixels)')
 
 def parseOptions():
     global options, picRoot, webRoot, picTree, webTree
@@ -245,17 +250,24 @@ class PictureDir:
         htmlFileName = join(self.webPath, "index.html")
         message("  %s" % htmlFileName, 0)
         htmlFile = file(htmlFileName, "w")
-        print >>htmlFile, "<html>\n<head>"
-        print >>htmlFile, "<title>Pics - %s</title>" % self.picPath
+        print >>htmlFile, '<!DOCTYPE html ' \
+              'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
+              '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+        print >>htmlFile, \
+              "<html xmlns='http://www.w3.org/1999/xhtml'>\n<head>"
+        if self.dirName == '': title = "Pics"
+        else:                  title = "Pics - %s" % self.dirName
+        print >>htmlFile, "<title>%s</title>" % title
         print >>htmlFile, "</head><body>"
+        print >>htmlFile, "<h1 class=\"maintitle\">%s</h1>" % title
         if self.doUp:
-            print >>htmlFile, "<a href='..'>Up</a><br/>"
+            print >>htmlFile, "<a class='uplink' href='..'>Up</a><br/>"
         for d in self.subdirList:
-            print >>htmlFile, "<a href='%s'>%s</a><br/>" % \
-                  (basename(d.dirName)+"/", basename(d.dirName))
+            print >>htmlFile, "<a class='dirlink' href='%s'>%s</a><br/>" % \
+                  (quote_plus(basename(d.dirName),'/')+"/", basename(d.dirName))
         for p in self.picList:
-            print >>htmlFile, "<a href='%s'><img src='%s' /></a><br/>" % \
-                  (p.imageName, p.thumbnailName)
+            print >>htmlFile, "<a class='piclink' href='%s'><img src='%s' /></a><br/>" % \
+                  (quote_plus(p.imageName,'/'), p.thumbnailName)
         print >>htmlFile, "</body></html>"
         htmlFile.close()
 
