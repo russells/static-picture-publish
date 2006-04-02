@@ -65,6 +65,9 @@ opt.add_option('-e','--extensions',
                'Default is "%s".  '
                'If you modify this, be sure to include upper and lower case '
                'versions of the extensions.' % defaultExtensions)
+opt.add_option('-g','--regen-html',
+               action='store_true',
+               help='Force regeneration of HTML output')
 opt.add_option('-n','--no-symlink',
                action='store_true',
                help='Don\'t symlink originals')
@@ -176,26 +179,37 @@ def doOnePictureDir(picd, webd):
     picList = os.listdir(picd)
     picList.sort()
     imageList = []
-    for pic in picList:
-        picFile = os.path.join(picd,pic)
-        if isPicFile(picFile):
+    dirList = []
+    modified = False
+    for p in picList:
+        picFile = os.path.join(picd,p)
+        if os.path.isdir(picFile):
+            dirList.append(p)
+        elif isPicFile(picFile):
             #print "pic=",pic
-            names = doOnePicture(picd, pic, webd)
-            imageList.append( (picFile, names[0], names[1]) )
-    createHTML(picd, webd, imageList)
+            onepic = doOnePicture(picd, p, webd)
+            imageList.append( (picFile, onepic[1], onepic[2]) )
+            if onepic[0]: modified = True
+    if modified or options.regenerate or options.regen_html:
+        createHTML(picd, webd, dirList, imageList)
 
 
-def createHTML(picd, webd, imageList):
+def createHTML(picd, webd, dirList, imageList):
     '''Create the html file for a directory.'''
 
     htmlFileName = os.path.join(webd, "index.html")
     print "  %s" % htmlFileName
     htmlFile = file(htmlFileName, "w")
     print >>htmlFile, "<html><head><title>Pics</title></head><body>"
+    print >>htmlFile, "<a href='..'>Up</a><br/>"
+    for d in dirList:
+        print >>htmlFile, "<a href='%s'>%s</a><br/>" % \
+              (os.path.basename(d)+"/", os.path.basename(d))
     for p in imageList:
         print >>htmlFile, "<a href='%s'><img src='%s' /></a><br/>" % \
               (os.path.basename(p[1]), os.path.basename(p[2]))
     print >>htmlFile, "</body></html>"
+    htmlFile.close()
 
 
 def isPicFile(pic):
@@ -222,6 +236,7 @@ def doOnePicture(picd, pic, webd):
     if not options.regenerate:
         picStat = os.stat(picPath)
 
+    modified = False
     im = None
     # Create the web image, if necessary.
     imageName = os.path.join(webd, base + "-small" + ext)
@@ -232,6 +247,7 @@ def doOnePicture(picd, pic, webd):
         imwe.thumbnail(options.image_size, Image.ANTIALIAS)
         imwe.save(imageName)
         imwe = None                     # gc
+        modified = True
     # Create the thumbnail, if necessary.
     thumbnailName = os.path.join(webd, base + "-thumb" + ext)
     if options.regenerate or not fileIsNewer(thumbnailName, picStat):
@@ -240,8 +256,9 @@ def doOnePicture(picd, pic, webd):
             im = Image.open(picPath)
         im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
         im.save(thumbnailName)
+        modified = True
     im = None                           # gc
-    return (imageName, thumbnailName)
+    return (modified, imageName, thumbnailName)
 
 
 def fileIsNewer(file1, file2):
