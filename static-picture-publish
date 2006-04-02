@@ -134,15 +134,16 @@ class Picture:
         self.webDirName = webDirName
         self.picPath = join(picDirName, picName)
         (base, ext) = splitext(self.picName)
-        self.imageName = base + "-small" + ext
+        self.imageName = picName
+        self.fullImageName = base + "-full" + ext
         self.imagePath = join(webDirName, self.imageName)
         self.thumbnailName = base + "-thumb" + ext
         self.thumbnailPath = join(webDirName, self.thumbnailName)
         self.htmlName = base + ".html"
         self.htmlPath = join(webDirName, self.htmlName)
 
-    def go(self):
-        ''''''
+    def go(self, prevPic, nextPic):
+        '''Create the output files (thumbnail, image and html).'''
 
         if not options.regen_all:
             picStat = stat(self.picPath)
@@ -167,7 +168,25 @@ class Picture:
             im.save(self.thumbnailPath)
             modified = True
             im = None                   # gc
+        self.createHTML(prevPic, nextPic)
         return modified
+
+    def createHTML(self, prevPic, nextPic):
+        '''Make the HTML file for one picture.
+
+        This includes links to the previous and next pictures.'''
+
+        htmlFile = file(self.htmlPath, "w")
+        print >>htmlFile, '<!DOCTYPE html ' \
+              'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
+              '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
+        print >>htmlFile, \
+              "<html xmlns='http://www.w3.org/1999/xhtml'>\n<head>"
+        print >>htmlFile, "<title>%s</title>" % self.picName
+        print >>htmlFile, "</head><body>"
+        print >>htmlFile, "<img src='%s'/>" % quote_plus(self.picName,'/')
+        print >>htmlFile, "</body></html>"
+        htmlFile.close()
 
 
 class PictureDir:
@@ -232,8 +251,13 @@ class PictureDir:
         if not isdir(self.webPath):
             makedirs(self.webPath)
         modified = False
-        for pic in self.picList:
-            m = pic.go()
+        for i in range(len(self.picList)):
+            pic = self.picList[i]
+            if i > 0: prevPic = self.picList[i-1]
+            else: prevPic = None
+            if i < len(self.picList)-1: nextPic = self.picList[i+1]
+            else: nextPic = None
+            m = pic.go(prevPic, nextPic)
             if m: modified = True
         for d in self.subdirList:
             m = d.go()
@@ -254,20 +278,22 @@ class PictureDir:
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
               '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
         print >>htmlFile, \
-              "<html xmlns='http://www.w3.org/1999/xhtml'>\n<head>"
+              '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>'
         if self.dirName == '': title = "Pics"
         else:                  title = "Pics - %s" % self.dirName
-        print >>htmlFile, "<title>%s</title>" % title
-        print >>htmlFile, "</head><body>"
-        print >>htmlFile, "<h1 class=\"maintitle\">%s</h1>" % title
+        print >>htmlFile, '<title>%s</title>' % title
+        print >>htmlFile, '</head><body>'
+        print >>htmlFile, '<h1 class=\"maintitle\">%s</h1>' % title
         if self.doUp:
-            print >>htmlFile, "<a class='uplink' href='..'>Up</a><br/>"
+            print >>htmlFile, '<a class="uplink" href="..">Up</a><br/>'
         for d in self.subdirList:
-            print >>htmlFile, "<a class='dirlink' href='%s'>%s</a><br/>" % \
-                  (quote_plus(basename(d.dirName),'/')+"/", basename(d.dirName))
+            print >>htmlFile, '<a class="dirlink" href="%s">%s</a><br/>' % \
+                  (quote_plus(basename(d.dirName),'/')+'/', basename(d.dirName))
         for p in self.picList:
-            print >>htmlFile, "<a class='piclink' href='%s'><img src='%s' /></a><br/>" % \
-                  (quote_plus(p.imageName,'/'), p.thumbnailName)
+            print >>htmlFile, '<a class="piclink" href="%s">' \
+                  '<img class="piclinkimg" src="%s" />' \
+                  '<span class="piclinkspan">%s</span></a><br/>' % \
+                  (quote_plus(p.htmlName,'/'), p.thumbnailName, quote_plus(p.imageName))
         print >>htmlFile, "</body></html>"
         htmlFile.close()
 
