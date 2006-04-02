@@ -7,7 +7,7 @@ from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
 from errno import ENOENT
-from urllib import quote_plus
+from urllib import quote, quote_plus
 
 
 defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
@@ -181,11 +181,11 @@ class Picture:
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
               '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
         print >>htmlFile, \
-              "<html xmlns='http://www.w3.org/1999/xhtml'>\n<head>"
-        print >>htmlFile, "<title>%s</title>" % self.picName
-        print >>htmlFile, "</head><body>"
-        print >>htmlFile, "<img src='%s'/>" % quote_plus(self.picName,'/')
-        print >>htmlFile, "</body></html>"
+              '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>'
+        print >>htmlFile, '<title>%s</title>' % self.picName
+        print >>htmlFile, '</head><body>'
+        print >>htmlFile, '<img src="%s"/>' % quote_plus(self.picName,'/')
+        print >>htmlFile, '</body></html>'
         htmlFile.close()
 
 
@@ -283,7 +283,7 @@ class PictureDir:
         else:                  title = "Pics - %s" % self.dirName
         print >>htmlFile, '<title>%s</title>' % title
         print >>htmlFile, '</head><body>'
-        print >>htmlFile, '<h1 class=\"maintitle\">%s</h1>' % title
+        print >>htmlFile, '<h1 class="maintitle">%s</h1>' % title
         if self.doUp:
             print >>htmlFile, '<a class="uplink" href="..">Up</a><br/>'
         for d in self.subdirList:
@@ -293,7 +293,8 @@ class PictureDir:
             print >>htmlFile, '<a class="piclink" href="%s">' \
                   '<img class="piclinkimg" src="%s" />' \
                   '<span class="piclinkspan">%s</span></a><br/>' % \
-                  (quote_plus(p.htmlName,'/'), p.thumbnailName, quote_plus(p.imageName))
+                  (quote_plus(p.htmlName,'/'), quote_plus(p.thumbnailName),
+                   quote(p.imageName))
         print >>htmlFile, "</body></html>"
         htmlFile.close()
 
@@ -403,12 +404,12 @@ def deleteDir(d):
 
 
 if __name__ == '__main__':
-    global picTree, webTree
     parseOptions()
 
     pd = PictureDir(picRoot, webRoot)
     pd.go()
 
+    global webTree
     webTree = dirTree(webRoot)
     doWebDirs()
 
