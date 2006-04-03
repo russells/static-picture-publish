@@ -166,24 +166,29 @@ class Picture:
 
         modified = False
         im = None
-        # Create the web image, if necessary.
-        if options.regen_all or not fileIsNewer(self.imagePath, picStat):
-            print "  %s => %s" % (self.picPath, self.imagePath)
-            im = Image.open(self.picPath)
-            imwe = im.copy()
-            imwe.thumbnail(options.image_size, Image.ANTIALIAS)
-            imwe.save(self.imagePath)
-            imwe = None                 # gc
-            modified = True
-        # Create the thumbnail, if necessary.
-        if options.regen_all or not fileIsNewer(self.thumbnailPath, picStat):
-            print "  %s => %s" % (self.picPath, self.thumbnailPath)
-            if im is None:
+        try:
+            # Create the web image, if necessary.
+            if options.regen_all or not fileIsNewer(self.imagePath, picStat):
+                message("  %s => %s" % (self.picPath, self.imagePath))
                 im = Image.open(self.picPath)
-            im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
-            im.save(self.thumbnailPath)
-            modified = True
-            im = None                   # gc
+                imwe = im.copy()
+                imwe.thumbnail(options.image_size, Image.ANTIALIAS)
+                imwe.save(self.imagePath)
+                imwe = None                 # gc
+                modified = True
+            # Create the thumbnail, if necessary.
+            if options.regen_all \
+                   or not fileIsNewer(self.thumbnailPath, picStat):
+                message("  %s => %s" % (self.picPath, self.thumbnailPath))
+                if im is None:
+                    im = Image.open(self.picPath)
+                im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
+                im.save(self.thumbnailPath)
+                modified = True
+                im = None                   # gc
+        except IOError, reason:
+            print >>stderr, "Error processing %s: %s" % \
+                  (self.picPath, str(reason.args))
         self.createHTML(prevPic, nextPic)
         return modified
 
@@ -192,6 +197,7 @@ class Picture:
 
         This includes links to the previous and next pictures.'''
 
+        message("  %s => %s" % (self.picPath, self.htmlPath))
         htmlFile = file(self.htmlPath, "w")
         print >>htmlFile, '<!DOCTYPE html ' \
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
