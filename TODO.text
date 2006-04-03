@@ -1,0 +1,30 @@
+Things to do... -*- outline -*-
+
+* Content
+
+** Create XML files.
+
+Instead of HTML files.  Need to make sure that the XSLT stuff works as
+expected.
+
+** Look at CSS.
+
+** Work out if we need tables in the output, or if CSS can do it.
+
+Thinking mainly about making the thumbnail "cells" all the same size.  This
+may need tables to enforce the regular layout.
+
+* Code
+
+** Ensure that Pictures and PictureDirs are being sorted correctly.
+
+Check up on the __eq__() etc methods.
+
+** Create the images from one source.
+
+ie Full -> web -> thumbnail, instead of full -> web, full -> thumbnail.
+
+
+
+# arch-tag: d7862aaa-4514-4f8d-b5eb-80826533fee9
+
