@@ -2,16 +2,23 @@
 
 from sys import exit, stderr
 from os import listdir, makedirs, rmdir, stat, unlink
-from os.path import basename, isdir, join, splitext
+from os.path import basename, isdir, join as pathjoin, splitext
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
 from errno import ENOENT
 from urllib import quote, quote_plus
 from StringIO import StringIO
+from string import join as stringjoin
 
 
 defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
+
+
+inlineCSS = \
+'''div.thumbnaildiv.p3                  { float:right; }\n''' \
+'''div.thumbnaildiv.p3+div.thumbnaildiv { float:left;  }'''
+
 
 class SppOption(Option):
     '''Extend OptionParser to parse image dimension specifications (AxB).'''
@@ -148,15 +155,15 @@ class Picture:
         self.picName = picName
         self.picDirName = picDirName
         self.webDirName = webDirName
-        self.picPath = join(picDirName, picName)
+        self.picPath = pathjoin(picDirName, picName)
         (base, ext) = splitext(self.picName)
         self.imageName = picName
         self.fullImageName = base + "-full" + ext
-        self.imagePath = join(webDirName, self.imageName)
+        self.imagePath = pathjoin(webDirName, self.imageName)
         self.thumbnailName = base + "-thumb" + ext
-        self.thumbnailPath = join(webDirName, self.thumbnailName)
+        self.thumbnailPath = pathjoin(webDirName, self.thumbnailName)
         self.htmlName = base + ".html"
-        self.htmlPath = join(webDirName, self.htmlName)
+        self.htmlPath = pathjoin(webDirName, self.htmlName)
 
     def go(self, prevPic, nextPic):
         '''Create the output files (thumbnail, image and html).'''
@@ -226,8 +233,8 @@ class PictureDir:
             self.picPath = self.picRoot
             self.webPath = self.webRoot
         else:
-            self.picPath = join(self.picRoot, self.dirName)
-            self.webPath = join(self.webRoot, self.dirName)
+            self.picPath = pathjoin(self.picRoot, self.dirName)
+            self.webPath = pathjoin(self.webRoot, self.dirName)
         self.subdirList = []
         self.picList = []
         # Now create our lists
@@ -235,16 +242,16 @@ class PictureDir:
         for l in lst:
             # If it's a directory, recursively create an instance and process
             # that directory.
-            subPath = join(self.picPath, l)
+            subPath = pathjoin(self.picPath, l)
             if isdir(subPath):
                 p = PictureDir(self.picRoot, self.webRoot,
-                               join(self.dirName,l), True)
+                               pathjoin(self.dirName,l), True)
                 if p.hasPics():
                     self.subdirList.append(p)
             elif isPicFile(self.picPath, subPath):
                 self.picList.append(Picture(l, self.picPath, self.webPath))
-        message("  %s" % self, 2)
-
+        self.picList.sort()
+        self.subdirList.sort()
 
     def __str__(self):
         s = '<<PictureDir("%s","%s","%s",%s)' % \
@@ -289,11 +296,12 @@ class PictureDir:
             self.createHTML()
         return modified
 
+    numberClasses = { 2:'p2', 3:'p3', 4:'p4', 5:'p5' }
 
     def createHTML(self):
         '''Create the html output for a directory.'''
 
-        htmlFileName = join(self.webPath, "index.html")
+        htmlFileName = pathjoin(self.webPath, "index.html")
         message("  %s" % htmlFileName, 0)
         htmlFile = file(htmlFileName, "w")
         print >>htmlFile, '<!DOCTYPE html ' \
@@ -304,6 +312,9 @@ class PictureDir:
         if self.dirName == '': title = "Pics"
         else:                  title = "Pics - %s" % self.dirName
         print >>htmlFile, '<title>%s</title>' % title
+        print >>htmlFile, '<style type="text/css">'
+        print >>htmlFile, inlineCSS
+        print >>htmlFile, '</style>'
         print >>htmlFile, '</head><body>'
         print >>htmlFile, '<h1 class="maintitle">%s</h1>' % title
         if self.doUp:
@@ -312,11 +323,20 @@ class PictureDir:
             print >>htmlFile, '<a class="dirlink" href="%s">%s</a><br/>' % \
                   (quote_plus(basename(d.dirName),'/')+'/',
                    entityReplace(d.dirName))
-        for p in self.picList:
-            print >>htmlFile, '<a class="piclink" href="%s">' \
+        for i in range(len(self.picList)):
+            p = self.picList[i]
+            divClass = ['thumbnaildiv']
+            for nth in range(2,6):
+                if i%nth==nth-1:
+                    divClass.append(self.numberClasses[nth])
+            print >>htmlFile, \
+                  '<div class="%s">' \
+                  '<a class="piclink" href="%s">' \
                   '<img class="piclinkimg" src="%s" />' \
-                  '<span class="piclinkspan">%s</span></a><br/>' % \
-                  (quote_plus(p.htmlName,'/'), quote_plus(p.thumbnailName),
+                  '<span class="piclinkspan">%s</span></a>' \
+                  '</div>' % \
+                  (stringjoin(divClass),
+                   quote_plus(p.htmlName,'/'), quote_plus(p.thumbnailName),
                    entityReplace(p.imageName))
         print >>htmlFile, "</body></html>"
         htmlFile.close()
@@ -332,10 +352,10 @@ def dirTree(rootName='.'):
         "rootName/" prefix is not included in names in the list.  dirName is
         included in the list.'''
         lst = []
-        dirList = listdir(join(rootName,dirName))
+        dirList = listdir(pathjoin(rootName,dirName))
         for d in dirList:
-            if isdir(join(rootName,dirName,d)):
-                dName = join(dirName,d)
+            if isdir(pathjoin(rootName,dirName,d)):
+                dName = pathjoin(dirName,d)
                 #message("Appending (%s) %s" % (rootName,dName))
                 lst.append(dName)
                 lst.extend(recursiveDirTree(rootName,dName))
@@ -348,7 +368,7 @@ def dirTree(rootName='.'):
     lst.append('.')
     thisDirList = listdir(rootName)
     for subd in thisDirList:
-        if isdir(join(rootName,subd)):
+        if isdir(pathjoin(rootName,subd)):
             #message("Appending (%s) %s" % (rootName,subd))
             lst.append(subd)
             lst.extend(recursiveDirTree(rootName,subd))
@@ -398,8 +418,8 @@ def doWebDirs():
             webd = webRoot
             picd = picRoot
         else:
-            webd = join(webRoot, d)
-            picd = join(picRoot, d)
+            webd = pathjoin(webRoot, d)
+            picd = pathjoin(picRoot, d)
         doOneWebDir(webd, picd)
 
 
@@ -417,7 +437,7 @@ def deleteDir(d):
     '''Recursively delete a whole directory tree.'''
     lst = listdir(d)
     for e in lst:
-        p = join(d,e)
+        p = pathjoin(d,e)
         if isdir(p):
             deleteDir(p)
         else:
