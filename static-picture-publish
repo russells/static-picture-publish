@@ -7,7 +7,7 @@ from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
 from errno import ENOENT
-from urllib import quote, quote_plus
+#from urllib import quote, quote_plus
 from StringIO import StringIO
 from string import join as stringjoin
 
@@ -16,8 +16,7 @@ defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
 
 
 inlineCSS = \
-'''div.thumbnaildiv.p3                  { float:right; }\n''' \
-'''div.thumbnaildiv.p3+div.thumbnaildiv { float:left;  }'''
+'''div.thumbnaildiv                  { display:inline; }\n'''
 
 
 class SppOption(Option):
@@ -86,6 +85,10 @@ opt.add_option('-q','--quiet',
 opt.add_option('-r','--regen-all',
                action='store_true',
                help='Force regeneration of all output')
+opt.add_option('--row',
+               type='int',
+               action='store',
+               help='Number of images per row in HTML. (default 3)')
 opt.add_option('-s','--image-size',
                type='intpair',
                action='store',
@@ -97,6 +100,10 @@ opt.add_option('-t','--title',
 opt.add_option('-v','--verbose',
                action='store_true',
                help='Print more information about actions')
+opt.add_option('-x','--xml',
+               action='store_true',
+               help='Create XML files, that will be transformed with XSLT '
+               'in the browser, instead of plain HTML. (unimplemented)')
 opt.add_option('-z','--thumbnail-size',
                type='intpair',
                action='store',
@@ -120,6 +127,8 @@ def parseOptions():
         options.messageLevel = 0
     if options.quiet:
         options.messageLevel = 2
+    if not options.row:
+        options.row = 3
     picRoot = args[0]
     webRoot = args[1]
 
@@ -205,17 +214,39 @@ class Picture:
         This includes links to the previous and next pictures.'''
 
         message("  %s => %s" % (self.picPath, self.htmlPath))
-        htmlFile = file(self.htmlPath, "w")
-        print >>htmlFile, '<!DOCTYPE html ' \
+        h = file(self.htmlPath, "w")
+        print >>h, '<!DOCTYPE html ' \
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
               '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-        print >>htmlFile, \
+        print >>h, \
               '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>'
-        print >>htmlFile, '<title>%s</title>' % self.picName
-        print >>htmlFile, '</head><body>'
-        print >>htmlFile, '<img src="%s"/>' % quote_plus(self.picName,'/')
-        print >>htmlFile, '</body></html>'
-        htmlFile.close()
+        print >>h, '<meta http-equiv="Content-type" ' \
+              'content="text/html; charset=UTF-8" />'
+        print >>h, '<title>%s</title>' % self.picName
+        print >>h, '</head><body>'
+        print >>h, '<h1 class="picheading">%s</h1>' % entityReplace(self.picName)
+        print >>h, '<div class="prevnextlinks">'
+        if prevPic is not None:
+            print >>h, '<a class="prevlink" href="%s">Previous (%s)</a>' % \
+                  (entityReplace(prevPic.htmlName),
+                   entityReplace(prevPic.picName))
+        print >>h, '<a class="indexlink" href=".">Index</a>'
+        if nextPic is not None:
+            print >>h, '<a class="nextlink" href="%s">Next (%s)</a>' % \
+                  (entityReplace(nextPic.htmlName),
+                   entityReplace(nextPic.picName))
+        print >>h, '</div>'
+        print >>h, '<img class="pic" src="%s" alt="%s" />' % \
+              (entityReplace(self.picName), entityReplace(self.picName))
+        print >>h, '</body></html>'
+        h.close()
+
+    def __eq__(self, other): return self.picName == other.picName
+    def __ne__(self, other): return self.picName != other.picName
+    def __gt__(self, other): return self.picName >  other.picName
+    def __lt__(self, other): return self.picName <  other.picName
+    def __ge__(self, other): return self.picName >= other.picName
+    def __le__(self, other): return self.picName <= other.picName
 
 
 class PictureDir:
@@ -227,6 +258,7 @@ class PictureDir:
         self.picRoot = picRoot
         self.webRoot = webRoot
         self.dirName = dirName          # Relative to picRoot (and webRoot)
+        self.dirBasename = basename(dirName)
         self.doUp = doUp                # If true, put "Up" link in html
 
         if self.dirName=='':
@@ -303,43 +335,63 @@ class PictureDir:
 
         htmlFileName = pathjoin(self.webPath, "index.html")
         message("  %s" % htmlFileName, 0)
-        htmlFile = file(htmlFileName, "w")
-        print >>htmlFile, '<!DOCTYPE html ' \
+        h = file(htmlFileName, "w")
+        print >>h, '<!DOCTYPE html ' \
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
               '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-        print >>htmlFile, \
+        print >>h, \
               '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>'
         if self.dirName == '': title = "Pics"
         else:                  title = "Pics - %s" % self.dirName
-        print >>htmlFile, '<title>%s</title>' % title
-        print >>htmlFile, '<style type="text/css">'
-        print >>htmlFile, inlineCSS
-        print >>htmlFile, '</style>'
-        print >>htmlFile, '</head><body>'
-        print >>htmlFile, '<h1 class="maintitle">%s</h1>' % title
+        print >>h, '<meta http-equiv="Content-type" ' \
+              'content="text/html; charset=UTF-8" />'
+        print >>h, '<title>%s</title>' % title
+        print >>h, '<style type="text/css">'
+        print >>h, inlineCSS
+        print >>h, '</style>'
+        print >>h, '</head><body>'
+        print >>h, '<h1 class="maintitle">%s</h1>' % title
         if self.doUp:
-            print >>htmlFile, '<a class="uplink" href="..">Up</a><br/>'
+            print >>h, '<a class="uplink" href="..">Up</a><br/>'
         for d in self.subdirList:
-            print >>htmlFile, '<a class="dirlink" href="%s">%s</a><br/>' % \
-                  (quote_plus(basename(d.dirName),'/')+'/',
-                   entityReplace(d.dirName))
+            print >>h, '<a class="dirlink" href="%s">%s</a><br/>' % \
+                  (entityReplace(d.dirBasename)+'/',
+                   entityReplace(d.dirBasename))
         for i in range(len(self.picList)):
             p = self.picList[i]
             divClass = ['thumbnaildiv']
             for nth in range(2,6):
                 if i%nth==nth-1:
                     divClass.append(self.numberClasses[nth])
-            print >>htmlFile, \
+            if i%options.row == 0:
+                print >>h, '<div class="thumbnailrow">'
+            print >>h, \
                   '<div class="%s">' \
                   '<a class="piclink" href="%s">' \
-                  '<img class="piclinkimg" src="%s" />' \
+                  '<img class="piclinkimg" src="%s"' \
+                  ' alt="%s" />' \
                   '<span class="piclinkspan">%s</span></a>' \
                   '</div>' % \
                   (stringjoin(divClass),
-                   quote_plus(p.htmlName,'/'), quote_plus(p.thumbnailName),
-                   entityReplace(p.imageName))
-        print >>htmlFile, "</body></html>"
-        htmlFile.close()
+                   entityReplace(p.htmlName), entityReplace(p.thumbnailName),
+                   entityReplace(p.imageName), entityReplace(p.imageName))
+            if i % options.row == options.row - 1:
+                print >>h, '</div>'
+        # Ensure the last div is closed.
+        if len(self.picList) % options.row != 0:
+            print >>h, '</div>'
+        print >>h, "</body></html>"
+        h.close()
+
+
+    # Comparisons assume that all the dirs compared are siblings (ie direct
+    # children of one parent directory.)
+    def __eq__(self, other): return self.dirBasename == other.dirBasename
+    def __ne__(self, other): return self.dirBasename != other.dirBasename
+    def __gt__(self, other): return self.dirBasename >  other.dirBasename
+    def __lt__(self, other): return self.dirBasename <  other.dirBasename
+    def __ge__(self, other): return self.dirBasename >= other.dirBasename
+    def __le__(self, other): return self.dirBasename <= other.dirBasename
 
 
 def dirTree(rootName='.'):
