@@ -1,4 +1,4 @@
-Things to do... -*- outline -*-
+Things to do... -*- mode:outline; fill-column:79 -*-
 
 * Content
 
@@ -7,20 +7,25 @@ Things to do... -*- outline -*-
 Instead of HTML files.  Need to make sure that the XSLT stuff works as
 expected.
 
+** Investigate DTDs in xml output.
+
+Find out what web browsers do if an XML file contains a DTD but does not
+conform to the DTD.
+
 ** Look at CSS.
 
 ** Work out if we need tables in the output, or if CSS can do it.
 
-Thinking mainly about making the thumbnail "cells" all the same size.  This
-may need tables to enforce the regular layout.
+Thinking mainly about making the thumbnail "cells" all the same size.  This may
+need tables to enforce the regular layout.
 
 * Code
 
-** Ensure that Pictures and PictureDirs are being sorted correctly.
+** Ensure that Pictures and PictureDirs are being sorted correctly.  DONE.
 
 Check up on the __eq__() etc methods.
 
-** Create the images from one source.
+** Create the images from one source.  DONE.
 
 ie Full -> web -> thumbnail, instead of full -> web, full -> thumbnail.
 

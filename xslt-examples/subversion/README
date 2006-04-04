@@ -1,3 +1,5 @@
+               -*- mode:outline; fill-column:79 -*-
+
 Subversion produces XML output, with XSL transformations and CSS stylesheets.
 This is an example (from https://emu.freenetproject.org/svn/trunk/).
 
@@ -6,4 +8,6 @@ from "/svnindex.xsl" so that xsltproc could find the xsl file, and running
 
   xsltproc index.xml > index.html
 
-
+index.xml contains a DTD.  Removing that makes no difference to the output from
+xsltproc.  Modifying the DTD so that the document does not conform to it also
+makes no difference.
