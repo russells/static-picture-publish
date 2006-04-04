@@ -1,0 +1,9 @@
+Subversion produces XML output, with XSL transformations and CSS stylesheets.
+This is an example (from https://emu.freenetproject.org/svn/trunk/).
+
+The file index.html was produced by editing index.xml to remove the leading '/'
+from "/svnindex.xsl" so that xsltproc could find the xsl file, and running
+
+  xsltproc index.xml > index.html
+
+
