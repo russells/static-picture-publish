@@ -10,6 +10,7 @@ from errno import ENOENT
 #from urllib import quote, quote_plus
 from StringIO import StringIO
 from string import join as stringjoin
+from time import time
 
 
 defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
@@ -124,9 +125,9 @@ def parseOptions():
         options.thumbnail_size = (128,128)
     options.messageLevel = 1
     if options.verbose:
-        options.messageLevel = 0
-    if options.quiet:
         options.messageLevel = 2
+    if options.quiet:
+        options.messageLevel = 0
     if not options.row:
         options.row = 3
     picRoot = args[0]
@@ -141,6 +142,9 @@ def usage(errcode=1):
 def message(msg, level=1):
     if level <= options.messageLevel:
         print msg
+
+def verboseMessage(msg):
+    message(msg, 2)
 
 
 entityChars = { '&':"amp", '<':"lt", '>':"gt", '\'':"apos", '"':"quot" }
@@ -186,20 +190,27 @@ class Picture:
             # Create the web image, if necessary.
             if options.regen_all or not fileIsNewer(self.imagePath, picStat):
                 message("  %s => %s" % (self.picPath, self.imagePath))
+                starttime = time()
                 im = Image.open(self.picPath)
-                imwe = im.copy()
-                imwe.thumbnail(options.image_size, Image.ANTIALIAS)
-                imwe.save(self.imagePath)
-                imwe = None                 # gc
+                #imwe = im.copy()
+                im.thumbnail(options.image_size, Image.ANTIALIAS)
+                im.save(self.imagePath)
+                endtime = time()
+                verboseMessage("  Image time for %s: %.2f" % \
+                               (self.picPath, endtime-starttime), 2)
                 modified = True
             # Create the thumbnail, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self.thumbnailPath, picStat):
                 message("  %s => %s" % (self.picPath, self.thumbnailPath))
+                starttime = time()
                 if im is None:
                     im = Image.open(self.picPath)
                 im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
                 im.save(self.thumbnailPath)
+                endtime = time()
+                verboseMessage("  Thumbnail time %s: %.2f" % \
+                               (self.picPath, endtime-starttime), 2)
                 modified = True
                 im = None                   # gc
         except IOError, reason:
@@ -334,7 +345,7 @@ class PictureDir:
         '''Create the html output for a directory.'''
 
         htmlFileName = pathjoin(self.webPath, "index.html")
-        message("  %s" % htmlFileName, 0)
+        message("  %s" % htmlFileName)
         h = file(htmlFileName, "w")
         print >>h, '<!DOCTYPE html ' \
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
