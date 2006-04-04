@@ -189,7 +189,7 @@ class Picture:
         try:
             # Create the web image, if necessary.
             if options.regen_all or not fileIsNewer(self.imagePath, picStat):
-                message("  %s => %s" % (self.picPath, self.imagePath))
+                verboseMessage("  %s => %s" % (self.picPath, self.imagePath))
                 starttime = time()
                 im = Image.open(self.picPath)
                 #imwe = im.copy()
@@ -197,12 +197,12 @@ class Picture:
                 im.save(self.imagePath)
                 endtime = time()
                 verboseMessage("  Image time for %s: %.2f" % \
-                               (self.picPath, endtime-starttime), 2)
+                               (self.picPath, endtime-starttime))
                 modified = True
             # Create the thumbnail, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self.thumbnailPath, picStat):
-                message("  %s => %s" % (self.picPath, self.thumbnailPath))
+                verboseMessage("  %s => %s" % (self.picPath, self.thumbnailPath))
                 starttime = time()
                 if im is None:
                     im = Image.open(self.picPath)
@@ -210,7 +210,7 @@ class Picture:
                 im.save(self.thumbnailPath)
                 endtime = time()
                 verboseMessage("  Thumbnail time %s: %.2f" % \
-                               (self.picPath, endtime-starttime), 2)
+                               (self.picPath, endtime-starttime))
                 modified = True
                 im = None                   # gc
         except IOError, reason:
@@ -224,7 +224,7 @@ class Picture:
 
         This includes links to the previous and next pictures.'''
 
-        message("  %s => %s" % (self.picPath, self.htmlPath))
+        verboseMessage("  %s => %s" % (self.picPath, self.htmlPath))
         h = file(self.htmlPath, "w")
         print >>h, '<!DOCTYPE html ' \
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
@@ -345,7 +345,7 @@ class PictureDir:
         '''Create the html output for a directory.'''
 
         htmlFileName = pathjoin(self.webPath, "index.html")
-        message("  %s" % htmlFileName)
+        verboseMessage("  %s" % htmlFileName)
         h = file(htmlFileName, "w")
         print >>h, '<!DOCTYPE html ' \
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
