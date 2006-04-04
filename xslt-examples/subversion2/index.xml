@@ -1,0 +1,51 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="../subversion/svnindex.xsl"?>
+<!DOCTYPE svn [
+  <!ELEMENT svn   (index)>
+  <!ATTLIST svn   version CDATA #REQUIRED
+                  href    CDATA #REQUIRED>
+  <!ELEMENT index (updir?, (file | dir)*)>
+  <!ATTLIST index name    CDATA #IMPLIED
+                  path    CDATA #IMPLIED
+                  rev     CDATA #IMPLIED>
+  <!ELEMENT updir EMPTY>
+  <!ELEMENT file  (prop)*>
+  <!ATTLIST file  name    CDATA #REQUIRED
+                  href    CDATA #REQUIRED>
+  <!ELEMENT dir   (prop)*>
+  <!ATTLIST dir   name    CDATA #REQUIRED
+                  href    CDATA #REQUIRED>
+  <!ELEMENT prop  (#PCDATA)>
+  <!ATTLIST prop  name    CDATA #REQUIRED>
+]>
+<svn version="1.2.3 (r15833)"
+     href="http://subversion.tigris.org/">
+  <index rev="8451" path="/trunk/docs">
+    <updir />
+    <file name="Makefile" href="Makefile"></file>
+    <file name="README" href="README"></file>
+    <file name="blocks.xsl" href="blocks.xsl"></file>
+    <file name="build.xml" href="build.xml"></file>
+    <file name="buildman.sh" href="buildman.sh"></file>
+    <dir name="dtd" href="dtd/"></dir>
+    <file name="exec_summary.txt" href="exec_summary.txt"></file>
+    <file name="faq.xml" href="faq.xml"></file>
+    <file name="faq.xsl" href="faq.xsl"></file>
+    <file name="fnet.tex" href="fnet.tex"></file>
+    <file name="freenet.css" href="freenet.css"></file>
+    <dir name="incoming" href="incoming/"></dir>
+    <file name="inlines.xsl" href="inlines.xsl"></file>
+    <file name="install.html" href="install.html"></file>
+    <file name="lists.xsl" href="lists.xsl"></file>
+    <file name="proto-spec-1.0.inc" href="proto-spec-1.0.inc"></file>
+    <file name="protocol.xml" href="protocol.xml"></file>
+    <file name="protocol.xsl" href="protocol.xsl"></file>
+    <dir name="scripts" href="scripts/"></dir>
+    <dir name="sources" href="sources/"></dir>
+    <file name="strip.awk" href="strip.awk"></file>
+    <file name="todo04.txt" href="todo04.txt"></file>
+    <dir name="vegas05" href="vegas05/"></dir>
+    <file name="web.xsl" href="web.xsl"></file>
+    <dir name="xsl" href="xsl/"></dir>
+  </index>
+</svn>
