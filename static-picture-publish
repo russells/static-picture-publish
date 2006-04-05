@@ -2,7 +2,8 @@
 
 from sys import exit, stderr
 from os import listdir, makedirs, rmdir, stat, unlink
-from os.path import basename, isdir, join as pathjoin, splitext
+from os.path import basename, isdir, join as pathjoin, \
+     split as pathsplit, splitext
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
@@ -79,7 +80,7 @@ opt.add_option('-g','--regen-markup',
                help='Force regeneration of HTML or XML output')
 opt.add_option('-H','--html',
                action='store_true',
-               help='Output HTML. (Default)')
+               help='Output HTML.')
 opt.add_option('-n','--no-symlink',
                action='store_true',
                help='Don\'t symlink originals')
@@ -107,10 +108,15 @@ opt.add_option('-v','--verbose',
 opt.add_option('-X','--xml',
                action='store_true',
                help='Create XML files, that will be transformed with XSLT '
-               'in the browser, instead of plain HTML. (unimplemented)')
-opt.add_option('--xsl',
+               'in the browser, instead of plain HTML.  (Default)')
+opt.add_option('--xsl-dir',
                action='store',
-               help='XSLT file to use for XML output. (Default inbuilt)')
+               help='XSLT file to use for directory XML output. '
+               '(Default inbuilt)')
+opt.add_option('--xsl-image',
+               action='store',
+               help='XSLT file to use for image XML output. '
+               '(Default inbuilt)')
 opt.add_option('-z','--thumbnail-size',
                type='intpair',
                action='store',
@@ -135,6 +141,10 @@ def parseOptions():
         exit(1)
     elif not options.xml and not options.html:
         options.html = True
+    if not options.xsl_dir:
+        options.xsl_dir = "spp-dir.xsl"
+    if not options.xsl_image:
+        options.xsl_image = "spp-image.xsl"
     options.messageLevel = 1
     if options.verbose:
         options.messageLevel = 2
@@ -176,10 +186,11 @@ def entityReplace(s):
 
 class Picture:
     '''Process one pic.'''
-    def __init__(self, picName, picDirName, webDirName):
-        self.picName = picName
-        self.picDirName = picDirName
-        self.webDirName = webDirName
+    def __init__(self, picName, picDirName, webDirName, dirName):
+        self.picName = picName          # file name only
+        self.picDirName = picDirName    # path to pic dir
+        self.webDirName = webDirName    # path to web dir
+        self.dirName = dirName          # path to either dir, relative to root
         self.picPath = pathjoin(picDirName, picName)
         (base, ext) = splitext(self.picName)
         self.imageName = picName
@@ -189,10 +200,25 @@ class Picture:
         self.thumbnailPath = pathjoin(webDirName, self.thumbnailName)
         self.htmlName = base + ".html"
         self.htmlPath = pathjoin(webDirName, self.htmlName)
+        self.xmlName = base + ".xml"
+        self.xmlPath = pathjoin(webDirName, self.xmlName)
         if options.html:
             self.createMarkup = self.createHTML
         elif options.xml:
             self.createMarkup = self.createXML
+            if self.dirName == '':
+                self.xslPath = '%s' % options.xsl_image
+            else:
+                self.xslPath = '../%s' % options.xsl_image
+                ht = pathsplit(self.dirName)[0]
+                print "self.dirName == %s" % self.dirName
+                while len(ht) != 0 and ht != '/':
+                    print 'ht is %s' % str(ht)
+                    self.xslPath = '../' + self.xslPath
+                    ht = pathsplit(ht)[0]
+                self.xslPath = self.xslPath + options.xsl_image
+        self.picNameBase = base
+        self.picNameExt = ext
 
     def go(self, prevPic, nextPic):
         '''Create the output files (thumbnail, image and html).'''
@@ -271,7 +297,27 @@ class Picture:
         h.close()
 
     def createXML(self, prevPic, nextPic):
-        raise NotImplementedError("We don't do XML yet.")
+        x = file(self.xmlPath, "w")
+        print >>x, '<?xml version="1.0"?>'
+        print >>x, '<?xml-stylesheet type="text/xsl" href="%s"?>' % \
+              self.xslPath
+        print >>x, '<picinfo>'
+        print >>x, ' <this>'
+        print >>x, '  <name>%s</name>' % entityReplace(self.picNameBase)
+        print >>x, '  <ext>%s</ext>' % entityReplace(self.picNameExt)
+        print >>x, ' </this>'
+        if prevPic is not None:
+            print >>x, ' <prev>'
+            print >>x, '  <name>%s</name>' % entityReplace(prevPic.picNameBase)
+            print >>x, '  <ext>%s</ext>' % entityReplace(prevPic.picNameExt)
+            print >>x, ' </prev>'
+        if nextPic is not None:
+            print >>x, ' <next>'
+            print >>x, '  <name>%s</name>' % entityReplace(nextPic.picNameBase)
+            print >>x, '  <ext>%s</ext>' % entityReplace(nextPic.picNameExt)
+            print >>x, ' </next>'
+        print >>x, '</picinfo>'
+        x.close()
 
 
     def __eq__(self, other): return self.picName == other.picName
@@ -300,6 +346,17 @@ class PictureDir:
         else:
             self.picPath = pathjoin(self.picRoot, self.dirName)
             self.webPath = pathjoin(self.webRoot, self.dirName)
+        self.htmlPath = pathjoin(self.webPath, "index.html")
+        self.xmlPath = pathjoin(self.webPath, "index.xml")
+        if self.dirName == '':
+            self.xslPath = '%s' % options.xsl_dir
+        else:
+            self.xslPath = '../%s' % options.xsl_dir
+            ht = pathsplit(self.dirName)[0]
+            while ht != '':
+                self.xslPath = '../'+self.xslPath
+                ht = pathsplit(ht)[0]
+
         self.subdirList = []
         self.picList = []
         # Now create our lists
@@ -314,7 +371,8 @@ class PictureDir:
                 if p.hasPics():
                     self.subdirList.append(p)
             elif isPicFile(self.picPath, subPath):
-                self.picList.append(Picture(l, self.picPath, self.webPath))
+                self.picList.append(Picture(l, self.picPath, self.webPath,
+                                            dirName))
         self.picList.sort()
         self.subdirList.sort()
         if options.html:
@@ -370,9 +428,8 @@ class PictureDir:
     def createHTML(self):
         '''Create the html output for a directory.'''
 
-        htmlFileName = pathjoin(self.webPath, "index.html")
-        verboseMessage("  %s" % htmlFileName)
-        h = file(htmlFileName, "w")
+        verboseMessage("  %s" % self.htmlPath)
+        h = file(self.htmlPath, "w")
         print >>h, '<!DOCTYPE html ' \
               'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
               '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
@@ -420,8 +477,29 @@ class PictureDir:
         print >>h, "</body></html>"
         h.close()
 
-    def createXML(self, prevPic, nextPic):
-        raise NotImplementedError("We don't do XML yet.")
+    def createXML(self):
+        x = file(self.xmlPath, "w")
+        print >>x, '<?xml version="1.0"?>'
+        print >>x, '<?xml-stylesheet type="text/xsl" href="%s"?>' % \
+              self.xslPath
+        print >>x, '<picturedir>'
+        if self.dirBasename == '':
+            print >>x, ' <name>Pics</name>'
+            print >>x, ' <path>Pics</path>'
+        else:
+            print >>x, ' <name>%s</name>' % self.dirBasename
+            print >>x, ' <path>%s</path>' % self.dirName
+        for d in self.subdirList:
+            print >>x, ' <dir>'
+            print >>x, '  <name>%s</name>' % d.dirBasename
+            print >>x, '  <path>%s</path>' % d.dirName
+            print >>x, ' </dir>'
+        for f in self.picList:
+            print >>x, ' <image>'
+            print >>x, '  <name>%s</name>' % f.picNameBase
+            print >>x, '  <ext>%s</ext>' % f.picNameExt
+            print >>x, ' </image>'
+        print >>x, '</picturedir>'
 
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
