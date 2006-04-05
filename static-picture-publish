@@ -211,12 +211,11 @@ class Picture:
             else:
                 self.xslPath = '../%s' % options.xsl_image
                 ht = pathsplit(self.dirName)[0]
-                print "self.dirName == %s" % self.dirName
+                #print "self.dirName == %s" % self.dirName
                 while len(ht) != 0 and ht != '/':
-                    print 'ht is %s' % str(ht)
+                    #print 'ht is %s' % str(ht)
                     self.xslPath = '../' + self.xslPath
                     ht = pathsplit(ht)[0]
-                self.xslPath = self.xslPath + options.xsl_image
         self.picNameBase = base
         self.picNameExt = ext
 
@@ -269,54 +268,65 @@ class Picture:
 
         verboseMessage("  %s => %s" % (self.picPath, self.htmlPath))
         h = file(self.htmlPath, "w")
-        print >>h, '<!DOCTYPE html ' \
-              'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
-              '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-        print >>h, \
-              '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>'
-        print >>h, '<meta http-equiv="Content-type" ' \
-              'content="text/html; charset=UTF-8" />'
-        print >>h, '<title>%s</title>' % self.picName
-        print >>h, '</head><body>'
-        print >>h, '<h1 class="picheading">%s</h1>' % \
-              entityReplace(self.picName)
-        print >>h, '<div class="prevnextlinks">'
+        s = StringIO()
+        s.write(
+            '<!DOCTYPE html ' \
+            'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
+            '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n' \
+            '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>\n' \
+            '<meta http-equiv="Content-type" ' \
+            'content="text/html; charset=UTF-8" />\n')
+        s.write(
+            '<title>%s</title>\n' % self.picName +\
+            '</head><body>\n' \
+            '<h1 class="picheading">%s</h1>\n' % entityReplace(self.picName) +\
+            '<div class="prevnextlinks">\n')
         if prevPic is not None:
-            print >>h, '<a class="prevlink" href="%s">Previous (%s)</a>' % \
-                  (entityReplace(prevPic.htmlName),
-                   entityReplace(prevPic.picName))
-        print >>h, '<a class="indexlink" href=".">Index</a>'
+            s.write(
+                '<a class="prevlink" href="%s">Previous (%s)</a>\n' % \
+                (entityReplace(prevPic.htmlName),
+                   entityReplace(prevPic.picName)))
+        s.write('<a class="indexlink" href=".">Index</a>\n')
         if nextPic is not None:
-            print >>h, '<a class="nextlink" href="%s">Next (%s)</a>' % \
-                  (entityReplace(nextPic.htmlName),
-                   entityReplace(nextPic.picName))
-        print >>h, '</div>'
-        print >>h, '<img class="pic" src="%s" alt="%s" />' % \
-              (entityReplace(self.picName), entityReplace(self.picName))
-        print >>h, '</body></html>'
+            s.write(
+                '<a class="nextlink" href="%s">Next (%s)</a>\n' % \
+                (entityReplace(nextPic.htmlName),
+                 entityReplace(nextPic.picName)))
+        s.write(
+            '</div>\n'
+            '<img class="pic" src="%s" alt="%s" />\n' % \
+            (entityReplace(self.picName), entityReplace(self.picName)) +\
+            '</body></html>\n')
+        h.write(s.getvalue())
+        s.close()
         h.close()
 
     def createXML(self, prevPic, nextPic):
         x = file(self.xmlPath, "w")
-        print >>x, '<?xml version="1.0"?>'
-        print >>x, '<?xml-stylesheet type="text/xsl" href="%s"?>' % \
-              self.xslPath
-        print >>x, '<picinfo>'
-        print >>x, ' <this>'
-        print >>x, '  <name>%s</name>' % entityReplace(self.picNameBase)
-        print >>x, '  <ext>%s</ext>' % entityReplace(self.picNameExt)
-        print >>x, ' </this>'
+        s = StringIO()
+        s.write(
+            '<?xml version="1.0"?>\n'+\
+            '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath+\
+            '<picinfo>\n'+\
+            ' <this>\n'+\
+            '  <name>%s</name>\n' % entityReplace(self.picNameBase)+\
+            '  <ext>%s</ext>\n' % entityReplace(self.picNameExt)+\
+            ' </this>\n')
         if prevPic is not None:
-            print >>x, ' <prev>'
-            print >>x, '  <name>%s</name>' % entityReplace(prevPic.picNameBase)
-            print >>x, '  <ext>%s</ext>' % entityReplace(prevPic.picNameExt)
-            print >>x, ' </prev>'
+            s.write(
+                ' <prev>\n'+\
+                '  <name>%s</name>\n' % entityReplace(prevPic.picNameBase)+\
+                '  <ext>%s</ext>\n' % entityReplace(prevPic.picNameExt)+\
+                ' </prev>\n')
         if nextPic is not None:
-            print >>x, ' <next>'
-            print >>x, '  <name>%s</name>' % entityReplace(nextPic.picNameBase)
-            print >>x, '  <ext>%s</ext>' % entityReplace(nextPic.picNameExt)
-            print >>x, ' </next>'
-        print >>x, '</picinfo>'
+            s.write(
+                ' <next>\n'+\
+                '  <name>%s</name>\n' % entityReplace(nextPic.picNameBase)+\
+                '  <ext>%s</ext>\n' % entityReplace(nextPic.picNameExt)+\
+                ' </next>\n')
+        s.write('</picinfo>\n')
+        x.write(s.getvalue())
+        s.close()
         x.close()
 
 
@@ -430,27 +440,30 @@ class PictureDir:
 
         verboseMessage("  %s" % self.htmlPath)
         h = file(self.htmlPath, "w")
-        print >>h, '<!DOCTYPE html ' \
-              'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
-              '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">'
-        print >>h, \
-              '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>'
+        s = StringIO()
+        s.write(
+            '<!DOCTYPE html ' \
+            'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
+            '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n' \
+            '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>\n' \
+            '<meta http-equiv="Content-type" ' \
+            'content="text/html; charset=UTF-8" />\n')
         if self.dirName == '': title = "Pics"
         else:                  title = "Pics - %s" % self.dirName
-        print >>h, '<meta http-equiv="Content-type" ' \
-              'content="text/html; charset=UTF-8" />'
-        print >>h, '<title>%s</title>' % title
-        print >>h, '<style type="text/css">'
-        print >>h, inlineCSS
-        print >>h, '</style>'
-        print >>h, '</head><body>'
-        print >>h, '<h1 class="maintitle">%s</h1>' % title
+        s.write(
+            '<title>%s</title>\n' % title +\
+            '<style type="text/css">\n' +\
+            inlineCSS +\
+            '</style>\n' \
+            '</head>\n<body>\n' \
+            '<h1 class="maintitle">%s</h1>\n' % title)
         if self.doUp:
-            print >>h, '<a class="uplink" href="..">Up</a><br/>'
+            s.write('<a class="uplink" href="..">Up</a><br/>\n')
         for d in self.subdirList:
-            print >>h, '<a class="dirlink" href="%s">%s</a><br/>' % \
-                  (entityReplace(d.dirBasename)+'/',
-                   entityReplace(d.dirBasename))
+            s.write(
+                '<a class="dirlink" href="%s">%s</a><br/>\n' % \
+                (entityReplace(d.dirBasename)+'/',
+                 entityReplace(d.dirBasename)))
         for i in range(len(self.picList)):
             p = self.picList[i]
             divClass = ['thumbnaildiv']
@@ -458,48 +471,57 @@ class PictureDir:
                 if i%nth==nth-1:
                     divClass.append(self.numberClasses[nth])
             if i%options.row == 0:
-                print >>h, '<div class="thumbnailrow">'
-            print >>h, \
-                  '<div class="%s">' \
-                  '<a class="piclink" href="%s">' \
-                  '<img class="piclinkimg" src="%s"' \
-                  ' alt="%s" />' \
-                  '<span class="piclinkspan">%s</span></a>' \
-                  '</div>' % \
-                  (stringjoin(divClass),
-                   entityReplace(p.htmlName), entityReplace(p.thumbnailName),
-                   entityReplace(p.imageName), entityReplace(p.imageName))
+                s.write('<div class="thumbnailrow">\n')
+            s.write(
+                '<div class="%s">' \
+                '<a class="piclink" href="%s">' \
+                '<img class="piclinkimg" src="%s"' \
+                ' alt="%s" />' \
+                '<span class="piclinkspan">%s</span></a>' \
+                '</div>\n' % \
+                (stringjoin(divClass),
+                 entityReplace(p.htmlName), entityReplace(p.thumbnailName),
+                 entityReplace(p.imageName), entityReplace(p.imageName)))
             if i % options.row == options.row - 1:
-                print >>h, '</div>'
+                s.write('</div>\n')
         # Ensure the last div is closed.
         if len(self.picList) % options.row != 0:
-            print >>h, '</div>'
-        print >>h, "</body></html>"
+            s.write('</div>\n')
+        s.write('</body></html>\n')
+        h.write(s.getvalue())
+        s.close()
         h.close()
 
     def createXML(self):
+        verboseMessage("  %s" % self.xmlPath)
         x = file(self.xmlPath, "w")
-        print >>x, '<?xml version="1.0"?>'
-        print >>x, '<?xml-stylesheet type="text/xsl" href="%s"?>' % \
-              self.xslPath
-        print >>x, '<picturedir>'
+        s = StringIO()
+        s.write(
+            '<?xml version="1.0"?>\n' \
+            '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath +\
+            '<picturedir>\n')
         if self.dirBasename == '':
-            print >>x, ' <name>Pics</name>'
-            print >>x, ' <path>Pics</path>'
+            s.write(' <name>Pics</name>\n <path>Pics</path>\n')
         else:
-            print >>x, ' <name>%s</name>' % self.dirBasename
-            print >>x, ' <path>%s</path>' % self.dirName
+            s.write(
+                ' <name>%s</name>\n' % self.dirBasename +\
+                ' <path>%s</path>\n' % self.dirName)
         for d in self.subdirList:
-            print >>x, ' <dir>'
-            print >>x, '  <name>%s</name>' % d.dirBasename
-            print >>x, '  <path>%s</path>' % d.dirName
-            print >>x, ' </dir>'
+            s.write(
+                ' <dir>\n' \
+                '  <name>%s</name>\n' % d.dirBasename +\
+                '  <path>%s</path>\n' % d.dirName +\
+                ' </dir>\n')
         for f in self.picList:
-            print >>x, ' <image>'
-            print >>x, '  <name>%s</name>' % f.picNameBase
-            print >>x, '  <ext>%s</ext>' % f.picNameExt
-            print >>x, ' </image>'
-        print >>x, '</picturedir>'
+            s.write(
+                ' <image>\n' \
+                '  <name>%s</name>\n' % f.picNameBase +\
+                '  <ext>%s</ext>\n' % f.picNameExt +\
+                ' </image>\n')
+        s.write('</picturedir>\n')
+        x.write(s.getvalue())
+        s.close()
+        x.close()
 
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
