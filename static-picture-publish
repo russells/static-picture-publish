@@ -67,16 +67,19 @@ opt.add_option('-c','--copy',
 opt.add_option('--css',
                action='store',
                metavar="css_file",
-               help='CSS file to use in html')
+               help='CSS file to use in HTML or XML output. (Default inbuilt)')
 opt.add_option('-e','--extensions',
                action='store',
                help='Comma-separated list of file extensions to use.  '
-               'Default is "%s".  '
+               '(Default is "%s").  '
                'If you modify this, be sure to include upper and lower case '
                'versions of the extensions.' % defaultExtensions)
-opt.add_option('-g','--regen-html',
+opt.add_option('-g','--regen-markup',
                action='store_true',
-               help='Force regeneration of HTML output')
+               help='Force regeneration of HTML or XML output')
+opt.add_option('-H','--html',
+               action='store_true',
+               help='Output HTML. (Default)')
 opt.add_option('-n','--no-symlink',
                action='store_true',
                help='Don\'t symlink originals')
@@ -89,11 +92,11 @@ opt.add_option('-r','--regen-all',
 opt.add_option('--row',
                type='int',
                action='store',
-               help='Number of images per row in HTML. (default 3)')
+               help='Number of images per row in HTML. (Default 3)')
 opt.add_option('-s','--image-size',
                type='intpair',
                action='store',
-               help='Set maximum dimension for images (default 800x800 pixels)')
+               help='Set maximum dimension for images (Default 800x800 pixels)')
 opt.add_option('-t','--title',
                type='string',
                action='store',
@@ -101,14 +104,18 @@ opt.add_option('-t','--title',
 opt.add_option('-v','--verbose',
                action='store_true',
                help='Print more information about actions')
-opt.add_option('-x','--xml',
+opt.add_option('-X','--xml',
                action='store_true',
                help='Create XML files, that will be transformed with XSLT '
                'in the browser, instead of plain HTML. (unimplemented)')
+opt.add_option('--xsl',
+               action='store',
+               help='XSLT file to use for XML output. (Default inbuilt)')
 opt.add_option('-z','--thumbnail-size',
                type='intpair',
                action='store',
-               help='Set maximum dimension for thumbnails (default 128x128 pixels)')
+               help='Set maximum dimension for thumbnails '
+               '(Default 128x128 pixels)')
 
 def parseOptions():
     global options, picRoot, webRoot, picTree, webTree
@@ -123,6 +130,11 @@ def parseOptions():
         options.image_size = (800,800)
     if not options.thumbnail_size:
         options.thumbnail_size = (128,128)
+    if options.xml and options.html:
+        print >>stderr, "Can't produce both XML and HTML"
+        exit(1)
+    elif not options.xml and not options.html:
+        options.html = True
     options.messageLevel = 1
     if options.verbose:
         options.messageLevel = 2
@@ -177,6 +189,10 @@ class Picture:
         self.thumbnailPath = pathjoin(webDirName, self.thumbnailName)
         self.htmlName = base + ".html"
         self.htmlPath = pathjoin(webDirName, self.htmlName)
+        if options.html:
+            self.createMarkup = self.createHTML
+        elif options.xml:
+            self.createMarkup = self.createXML
 
     def go(self, prevPic, nextPic):
         '''Create the output files (thumbnail, image and html).'''
@@ -202,7 +218,8 @@ class Picture:
             # Create the thumbnail, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self.thumbnailPath, picStat):
-                verboseMessage("  %s => %s" % (self.picPath, self.thumbnailPath))
+                verboseMessage("  %s => %s" % (self.picPath,
+                                               self.thumbnailPath))
                 starttime = time()
                 if im is None:
                     im = Image.open(self.picPath)
@@ -216,7 +233,7 @@ class Picture:
         except IOError, reason:
             print >>stderr, "Error processing %s: %s" % \
                   (self.picPath, str(reason.args))
-        self.createHTML(prevPic, nextPic)
+        self.createMarkup(prevPic, nextPic)
         return modified
 
     def createHTML(self, prevPic, nextPic):
@@ -235,7 +252,8 @@ class Picture:
               'content="text/html; charset=UTF-8" />'
         print >>h, '<title>%s</title>' % self.picName
         print >>h, '</head><body>'
-        print >>h, '<h1 class="picheading">%s</h1>' % entityReplace(self.picName)
+        print >>h, '<h1 class="picheading">%s</h1>' % \
+              entityReplace(self.picName)
         print >>h, '<div class="prevnextlinks">'
         if prevPic is not None:
             print >>h, '<a class="prevlink" href="%s">Previous (%s)</a>' % \
@@ -251,6 +269,10 @@ class Picture:
               (entityReplace(self.picName), entityReplace(self.picName))
         print >>h, '</body></html>'
         h.close()
+
+    def createXML(self, prevPic, nextPic):
+        raise NotImplementedError("We don't do XML yet.")
+
 
     def __eq__(self, other): return self.picName == other.picName
     def __ne__(self, other): return self.picName != other.picName
@@ -295,6 +317,10 @@ class PictureDir:
                 self.picList.append(Picture(l, self.picPath, self.webPath))
         self.picList.sort()
         self.subdirList.sort()
+        if options.html:
+            self.createMarkup = self.createHTML
+        elif options.xml:
+            self.createMarkup = self.createXML
 
     def __str__(self):
         s = '<<PictureDir("%s","%s","%s",%s)' % \
@@ -334,9 +360,9 @@ class PictureDir:
         for d in self.subdirList:
             m = d.go()
             if m: modified = True
-        if options.regen_all or options.regen_html or modified:
+        if options.regen_all or options.regen_markup or modified:
             # Create our directory index
-            self.createHTML()
+            self.createMarkup()
         return modified
 
     numberClasses = { 2:'p2', 3:'p3', 4:'p4', 5:'p5' }
@@ -393,6 +419,9 @@ class PictureDir:
             print >>h, '</div>'
         print >>h, "</body></html>"
         h.close()
+
+    def createXML(self, prevPic, nextPic):
+        raise NotImplementedError("We don't do XML yet.")
 
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
