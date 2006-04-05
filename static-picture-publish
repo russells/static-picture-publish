@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-from sys import exit, stderr
+from sys import argv, exit, stderr
 from os import listdir, makedirs, rmdir, stat, unlink
 from os.path import basename, isdir, join as pathjoin, \
      split as pathsplit, splitext
@@ -137,7 +137,7 @@ def parseOptions():
     if not options.thumbnail_size:
         options.thumbnail_size = (128,128)
     if options.xml and options.html:
-        print >>stderr, "Can't produce both XML and HTML"
+        print >>stderr, "%s: can't produce both XML and HTML" % argv[0]
         exit(1)
     elif not options.xml and not options.html:
         options.html = True
@@ -150,7 +150,12 @@ def parseOptions():
         options.messageLevel = 2
     if options.quiet:
         options.messageLevel = 0
-    if not options.row:
+    if options.row:
+        if options.xml:
+            print >>stderr, "%s: cannot set both --row and --xml" % argv[0]
+            print >>stderr, "  (Layout is done by XSL for XML output)"
+            exit(1)
+    else:
         options.row = 3
     picRoot = args[0]
     webRoot = args[1]
@@ -256,8 +261,8 @@ class Picture:
                 modified = True
                 im = None                   # gc
         except IOError, reason:
-            print >>stderr, "Error processing %s: %s" % \
-                  (self.picPath, str(reason.args))
+            print >>stderr, "%s: error processing %s: %s" % \
+                  (argv[0], self.picPath, str(reason.args))
         self.createMarkup(prevPic, nextPic)
         return modified
 
