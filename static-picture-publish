@@ -216,9 +216,9 @@ class Picture:
         elif options.xml:
             self.createMarkup = self.createXML
             if self.dirName == '':
-                self.xslPath = '%s' % options.xsl_image
+                self.xslPath = 'spp-image.xsl'
             else:
-                self.xslPath = '../%s' % options.xsl_image
+                self.xslPath = '../spp-image.xsl'
                 ht = pathsplit(self.dirName)[0]
                 #print "self.dirName == %s" % self.dirName
                 while len(ht) != 0 and ht != '/':
