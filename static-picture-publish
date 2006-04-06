@@ -1,8 +1,8 @@
 #!/usr/bin/python
 
-from sys import argv, exit, stderr
-from os import listdir, makedirs, rmdir, stat, unlink
-from os.path import basename, isdir, join as pathjoin, \
+from sys import argv, exit, path as syspath, stderr
+from os import getcwd, listdir, makedirs, rmdir, stat, unlink
+from os.path import basename, exists as pathexists, isdir, join as pathjoin, \
      split as pathsplit, splitext
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
@@ -12,6 +12,7 @@ from errno import ENOENT
 from StringIO import StringIO
 from string import join as stringjoin
 from time import time
+from shutil import copyfile
 
 
 defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
@@ -67,7 +68,7 @@ opt.add_option('-c','--copy',
                help='Copy originals instead of symlinking')
 opt.add_option('--css',
                action='store',
-               metavar="css_file",
+               #metavar="css_file",
                help='CSS file to use in HTML or XML output. (Default inbuilt)')
 opt.add_option('-e','--extensions',
                action='store',
@@ -141,10 +142,13 @@ def parseOptions():
         exit(1)
     elif not options.xml and not options.html:
         options.html = True
-    if not options.xsl_dir:
-        options.xsl_dir = "spp-dir.xsl"
-    if not options.xsl_image:
-        options.xsl_image = "spp-image.xsl"
+    if not options.css:
+        options.css = "css/spp.css"
+    if options.xml:
+        if not options.xsl_dir:
+            options.xsl_dir = "xsl/spp-dir.xsl"
+        if not options.xsl_image:
+            options.xsl_image = "xsl/spp-image.xsl"
     options.messageLevel = 1
     if options.verbose:
         options.messageLevel = 2
@@ -643,11 +647,70 @@ def deleteDir(d):
     rmdir(d)
 
 
+def searchForFile(path, type, filename):
+    '''Look for a file in the python search path, with a couple of optional
+    prefixes.'''
+    #print >>stderr, "searchfor  (%s, %s)" % (path,filename)
+    p = pathjoin(path, filename)
+    pe = pathjoin(path, type, filename)
+    pme = pathjoin(path, 'makediary', type, filename)
+    #print >>stderr, "Looking for %s, cwd is %s" % (p, getcwd())
+    if pathexists(pme):
+        #print "Found %s" % pme
+        return pme
+    elif pathexists(pe):
+        #print "Found %s" % pe
+        return pe
+    elif pathexists(p):
+        #print "Found %s" % p
+        return p
+    else:
+        return None
+
+
+def findFile(filename, filetype):
+    filepathname = None
+    # If we are given a full or relative-to-pwd path to the file, use that.
+    if filename.startswith('/') or filename.startswith('./') \
+           or filename.startswith('../'):
+        filepathname = filename
+    else:
+        # Otherwise, construct the full path to the file.  If we are running
+        # from the development directory, or otherwise not from a full path
+        # name, look at relative locations first.
+        if argv[0].startswith('.'):
+            searchpath = ['.', '..', '../..']
+            for p in syspath:
+                searchpath.append(p)
+        else:
+            searchpath = syspath
+        #print >>sys.stderr, "searchpath is %s" % str(searchpath)
+        for path in searchpath:
+            filepathname = searchForFile(path, filetype, filename)
+            if filepathname:
+                break
+    return filepathname
+
+
+def sppCopyFile(filename, destfilename, filetype):
+    f = findFile(filename, "css")
+    if f is None:
+        print >>stderr, "%s: cannot find %s" % (argv[0], filename)
+        return
+    copyfile(f, pathjoin(webRoot, destfilename))
+
+
 if __name__ == '__main__':
     parseOptions()
 
     pd = PictureDir(picRoot, webRoot)
     pd.go()
+
+    # Copy in the XSL and CSS files.
+    sppCopyFile(options.css, "spp.css", "css")
+    if options.xml:
+        sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl")
+        sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl")
 
     global webTree
     webTree = dirTree(webRoot)
