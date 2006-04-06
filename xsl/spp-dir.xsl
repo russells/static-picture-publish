@@ -5,21 +5,33 @@
   directive is used. -->
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
-  <xsl:output method="html"/>
+  <xsl:output method="xml"/>
 
   <xsl:template match="*"/>
 
-  <xsl:template match="svn">
+  <xsl:template match="/picturedir">
     <html>
       <head>
         <title>
-          <xsl:if test="string-length(index/@name) != 0">
-            <xsl:value-of select="index/@name"/>
+          <xsl:if test="string-length(@name) != 0">
+            <xsl:value-of select="@name"/>
             <xsl:text>: </xsl:text>
           </xsl:if>
           <xsl:value-of select="index/@path"/>
         </title>
-        <link rel="stylesheet" type="text/css" href="/svnindex.css"/>
+	<xsl:if test="string-length(@css) != 0">
+          <xsl:element name="link">
+	    <xsl:attribute name="rel">
+	      <xsl:text>stylesheet</xsl:text>
+	    </xsl:attribute>
+	    <xsl:attribute name="type">
+	      <xsl:text>text/css</xsl:text>
+	    </xsl:attribute>
+	    <xsl:attribute name="href">
+	      <xsl:value-of select="@css"/>
+	    </xsl:attribute>
+	  </xsl:element>
+	</xsl:if>
       </head>
       <body>
         <div class="svn">
@@ -86,13 +98,35 @@
     <!-- <xsl:apply-templates/ -->
   </xsl:template>
 
-  <xsl:template match="file">
-    <div class="file">
-      <xsl:element name="a">
-        <xsl:attribute name="href">
-          <xsl:value-of select="@href"/>
+  <xsl:template match="image">
+    <div class="thumbnail">
+      <xsl:element name="div">
+        <xsl:attribute name="class">
+	  <xsl:text>thumbnailtext</xsl:text>
         </xsl:attribute>
-        <xsl:value-of select="@name"/>
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="name"/>
+	    <xsl:text>.xml</xsl:text>
+          </xsl:attribute>
+          <xsl:value-of select="name"/>
+        </xsl:element>
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="name"/>
+	    <xsl:text>.xml</xsl:text>
+          </xsl:attribute>
+          <xsl:element name="img">
+	    <xsl:attribute name="src">
+	      <xsl:value-of select="name"/>
+	      <xsl:value-of select="ext"/>
+	    </xsl:attribute>
+	    <xsl:attribute name="alt">
+	      <xsl:value-of select="name"/>
+	      <xsl:value-of select="ext"/>
+	    </xsl:attribute>
+	  </xsl:element>
+        </xsl:element>
       </xsl:element>
     </div>
     <!-- xsl:apply-templates/ -->

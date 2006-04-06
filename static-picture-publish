@@ -141,7 +141,7 @@ def parseOptions():
         print >>stderr, "%s: can't produce both XML and HTML" % argv[0]
         exit(1)
     elif not options.xml and not options.html:
-        options.html = True
+        options.xml = True
     if not options.css:
         options.css = "css/spp.css"
     if options.xml:
@@ -368,12 +368,15 @@ class PictureDir:
         self.htmlPath = pathjoin(self.webPath, "index.html")
         self.xmlPath = pathjoin(self.webPath, "index.xml")
         if self.dirName == '':
-            self.xslPath = '%s' % options.xsl_dir
+            self.xslPath = 'spp-dir.xsl'
+            self.cssPath = 'spp.css'
         else:
-            self.xslPath = '../%s' % options.xsl_dir
+            self.xslPath = '../spp-dir.xsl'
+            self.cssPath = '../spp.css'
             ht = pathsplit(self.dirName)[0]
             while ht != '':
                 self.xslPath = '../'+self.xslPath
+                self.cssPath = '../'+self.cssPath
                 ht = pathsplit(ht)[0]
 
         self.subdirList = []
@@ -508,7 +511,7 @@ class PictureDir:
         s.write(
             '<?xml version="1.0"?>\n' \
             '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath +\
-            '<picturedir>\n')
+            '<picturedir css="%s">\n' % self.cssPath)
         if self.dirBasename == '':
             s.write(' <name>Pics</name>\n <path>Pics</path>\n')
         else:

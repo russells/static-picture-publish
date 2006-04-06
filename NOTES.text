@@ -1,0 +1,11 @@
+Notes about stuff... -*- mode:outline; fill-column:79 -*-
+
+* HTML Tidy
+
+Produce neat xhtml output from xml with:
+
+  xsltproc index.xml | tidy -i -q -asxhtml
+
+
+
+# arch-tag: 74cf4b9c-7504-4009-b7f6-97279278bab8
