@@ -6,6 +6,9 @@ Produce neat xhtml output from xml with:
 
   xsltproc index.xml | tidy -i -q -asxhtml
 
+* XSLT Tutorial
+
+http://www.zvon.org/xxl/XSLTutorial/Books/Output/contents.html
 
 
 # arch-tag: 74cf4b9c-7504-4009-b7f6-97279278bab8
