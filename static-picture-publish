@@ -15,7 +15,7 @@ from time import time
 from shutil import copyfile
 
 
-defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
+defaultExtensions = '.jpg,.jpeg,.gif,.png,'
 
 
 class SppOption(Option):
@@ -625,7 +625,7 @@ def isPicFile(path, pic):
     should also identify the file contents, perhaps using Image methods?'''
 
     (base, ext) = splitext(pic)
-    if ext in options.extensions:
+    if ext.lower() in options.extensions:
         return True
     return False
 

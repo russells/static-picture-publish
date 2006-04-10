@@ -1,4 +1,4 @@
-<?xml version="1.0"?> <!-- -*- mode:sgml indent-tabs-mode:nil -*- -->
+<?xml version="1.0"?> <!-- -*- mode:sgml; indent-tabs-mode:nil -*- -->
 
 <!-- Directory display for static-picture-publish. -->
 <!-- Russell Steicke, 2006 -->
@@ -110,6 +110,9 @@ being able to display the translated html.
         </xsl:attribute>
         <xsl:value-of select="path"/><xsl:text>/</xsl:text>
       </xsl:element>
+      <xsl:if test="dir[3]">
+        <br/>
+      </xsl:if>
     </div>
     <!-- <xsl:apply-templates/ -->
   </xsl:template>
