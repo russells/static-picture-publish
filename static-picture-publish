@@ -31,7 +31,7 @@ class SppOption(Option):
                 ints = ( int(intstrs[0]), int(intstrs[1]) )
             else:
                 raise OptionValueError(
-                    "option %s: Must be one int or two ints AxB: %r" % \
+                    "option %s: Must be an integer or integer pair AxB: %r" % \
                     (opt, value))
         except ValueError,reason:
             raise OptionValueError(

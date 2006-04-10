@@ -46,6 +46,11 @@ Check up on the __eq__() etc methods.
 
 ie Full -> web -> thumbnail, instead of full -> web, full -> thumbnail.
 
+** Use a single list of extensions, compare with folded case.
+
+if ext.lower() in options.extensions:
+    stuff
+
 
 
 # arch-tag: d7862aaa-4514-4f8d-b5eb-80826533fee9
