@@ -1,6 +1,8 @@
-<?xml version="1.0"?>
+<?xml version="1.0"?> <!-- -*- mode:sgml indent-tabs-mode:nil -*- -->
 
 <!-- Directory display for static-picture-publish. -->
+<!-- Russell Steicke, 2006 -->
+<!-- http://adelie.cx/static-picture-publish -->
 
 <xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
 
@@ -22,35 +24,44 @@ being able to display the translated html.
         <title>
           <xsl:if test="string-length(@name) != 0">
             <xsl:value-of select="@name"/>
-            <xsl:text>: </xsl:text>
           </xsl:if>
-          <xsl:value-of select="index/@path"/>
+          <xsl:if test="string-length(@path) != 0">
+            <xsl:if test="string-length(@name) != 0">
+              <xsl:text>: </xsl:text>
+            </xsl:if>
+          </xsl:if>
+          <xsl:if test="string-length(@path) != 0">
+            <xsl:value-of select="@path"/>
+          </xsl:if>
         </title>
-	<xsl:if test="string-length(@css) != 0">
+        <xsl:if test="string-length(@css) != 0">
           <xsl:element name="link">
-	    <xsl:attribute name="rel">
-	      <xsl:text>stylesheet</xsl:text>
-	    </xsl:attribute>
-	    <xsl:attribute name="type">
-	      <xsl:text>text/css</xsl:text>
-	    </xsl:attribute>
-	    <xsl:attribute name="href">
-	      <xsl:value-of select="@css"/>
-	    </xsl:attribute>
-	  </xsl:element>
-	</xsl:if>
+            <xsl:attribute name="rel">
+              <xsl:text>stylesheet</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="type">
+              <xsl:text>text/css</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="href">
+              <xsl:value-of select="@css"/>
+            </xsl:attribute>
+          </xsl:element>
+        </xsl:if>
       </head>
       <body>
-        <div class="svn">
+        <div class="picturedir">
           <xsl:apply-templates/>
         </div>
         <div class="footer">
           <xsl:text>Powered by </xsl:text>
           <xsl:element name="a">
             <xsl:attribute name="href">
-              <xsl:value-of select="@href"/>
+              <xsl:text>http://adelie.cx/static-picture-publish/</xsl:text>
             </xsl:attribute>
-            <xsl:text>Subversion</xsl:text>
+            <xsl:attribute name="target">
+              <xsl:text>_blank</xsl:text>
+            </xsl:attribute>
+            <xsl:text>SPP</xsl:text>
           </xsl:element>
           <xsl:text> </xsl:text>
           <xsl:value-of select="@version"/>
@@ -58,7 +69,6 @@ being able to display the translated html.
       </body>
     </html>
   </xsl:template>
-
   <xsl:template match="index">
     <div class="rev">
       <xsl:if test="string-length(@name) != 0">
@@ -96,10 +106,9 @@ being able to display the translated html.
     <div class="dir">
       <xsl:element name="a">
         <xsl:attribute name="href">
-          <xsl:value-of select="@href"/>
+          <xsl:value-of select="name"/>
         </xsl:attribute>
-        <xsl:value-of select="@name"/>
-        <xsl:text>/</xsl:text>
+        <xsl:value-of select="path"/><xsl:text>/</xsl:text>
       </xsl:element>
     </div>
     <!-- <xsl:apply-templates/ -->
@@ -109,31 +118,34 @@ being able to display the translated html.
     <div class="thumbnail">
       <xsl:element name="div">
         <xsl:attribute name="class">
-	  <xsl:text>thumbnailtext</xsl:text>
+          <xsl:text>text</xsl:text>
         </xsl:attribute>
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
-	    <xsl:text>.xml</xsl:text>
+            <xsl:text>.xml</xsl:text>
           </xsl:attribute>
           <xsl:value-of select="name"/>
         </xsl:element>
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
-	    <xsl:text>.xml</xsl:text>
+            <xsl:text>.xml</xsl:text>
           </xsl:attribute>
           <xsl:element name="img">
-	    <xsl:attribute name="src">
-	      <xsl:value-of select="name"/>
-	      <xsl:text>-thumb</xsl:text>
-	      <xsl:value-of select="ext"/>
-	    </xsl:attribute>
-	    <xsl:attribute name="alt">
-	      <xsl:value-of select="name"/>
-	      <xsl:value-of select="ext"/>
-	    </xsl:attribute>
-	  </xsl:element>
+            <xsl:attribute name="src">
+              <xsl:value-of select="name"/>
+              <xsl:text>-thumb</xsl:text>
+              <xsl:value-of select="ext"/>
+            </xsl:attribute>
+            <xsl:attribute name="alt">
+              <xsl:value-of select="name"/>
+              <xsl:value-of select="ext"/>
+            </xsl:attribute>
+            <xsl:attribute name="class">
+              <xsl:text>image</xsl:text>
+            </xsl:attribute>
+          </xsl:element>
         </xsl:element>
       </xsl:element>
     </div>

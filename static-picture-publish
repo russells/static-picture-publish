@@ -2,8 +2,8 @@
 
 from sys import argv, exit, path as syspath, stderr
 from os import getcwd, listdir, makedirs, rmdir, stat, unlink
-from os.path import basename, exists as pathexists, isdir, join as pathjoin, \
-     split as pathsplit, splitext
+from os.path import abspath, basename, exists as pathexists, isdir, \
+     join as pathjoin, split as pathsplit, splitext
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
@@ -16,10 +16,6 @@ from shutil import copyfile
 
 
 defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
-
-
-inlineCSS = \
-'''div.thumbnaildiv                  { display:inline; }\n'''
 
 
 class SppOption(Option):
@@ -137,6 +133,10 @@ def parseOptions():
         options.image_size = (800,800)
     if not options.thumbnail_size:
         options.thumbnail_size = (128,128)
+    if options.thumbnail_size[0] > options.image_size[0] or \
+       options.thumbnail_size[1] > options.image_size[1]:
+        print >>stderr, "%s: warning: thumbnail (%s) is bigger than image (%s)"\
+              % (str(options.thumbnail_size), str(options.image_size))
     if options.xml and options.html:
         print >>stderr, "%s: can't produce both XML and HTML" % argv[0]
         exit(1)
@@ -163,6 +163,10 @@ def parseOptions():
         options.row = 3
     picRoot = args[0]
     webRoot = args[1]
+    if abspath(picRoot) == abspath(webRoot):
+        print >>stderr, "%s: cannot publish into source directory: %s" \
+              % (argv[0], abspath(picRoot))
+        exit(1)
 
 
 def usage(errcode=1):
@@ -235,40 +239,68 @@ class Picture:
             picStat = stat(self.picPath)
 
         modified = False
-        im = None
+        image = None
         try:
             # Create the web image, if necessary.
-            if options.regen_all or not fileIsNewer(self.imagePath, picStat):
-                verboseMessage("  %s => %s" % (self.picPath, self.imagePath))
-                starttime = time()
-                im = Image.open(self.picPath)
-                #imwe = im.copy()
-                im.thumbnail(options.image_size, Image.ANTIALIAS)
-                im.save(self.imagePath)
-                endtime = time()
-                verboseMessage("  Image time for %s: %.2f" % \
-                               (self.picPath, endtime-starttime))
+            if options.regen_all \
+                   or not fileIsNewer(self.imagePath, picStat) \
+                   or not self.imageSizeCheck(self.imagePath,
+                                              options.image_size):
+                #print "Regenerating %s" % self.imagePath
+                image = self.generateImage(self.imagePath,
+                                           options.image_size, image)
                 modified = True
             # Create the thumbnail, if necessary.
             if options.regen_all \
-                   or not fileIsNewer(self.thumbnailPath, picStat):
-                verboseMessage("  %s => %s" % (self.picPath,
-                                               self.thumbnailPath))
-                starttime = time()
-                if im is None:
-                    im = Image.open(self.picPath)
-                im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
-                im.save(self.thumbnailPath)
-                endtime = time()
-                verboseMessage("  Thumbnail time %s: %.2f" % \
-                               (self.picPath, endtime-starttime))
+                   or not fileIsNewer(self.thumbnailPath, picStat) \
+                   or not self.imageSizeCheck(self.thumbnailPath,
+                                              options.thumbnail_size):
+                #print "Regenerating %s" % self.thumbnailPath
+                image = self.generateImage(self.thumbnailPath,
+                                           options.thumbnail_size, image)
                 modified = True
-                im = None                   # gc
+                image = None            # gc
         except IOError, reason:
             print >>stderr, "%s: error processing %s: %s" % \
                   (argv[0], self.picPath, str(reason.args))
         self.createMarkup(prevPic, nextPic)
         return modified
+
+    def imageSizeCheck(self, imagePath, requiredSize):
+        '''Check to see if the output image is the correct size.
+
+        Return True if the size is correct, false otherwise.'''
+        try:
+            smallimage = Image.open(imagePath)
+            if  smallimage.size[0] > requiredSize[0] or \
+                smallimage.size[1] > requiredSize[1] or \
+                (smallimage.size[0] < requiredSize[0] and \
+                 smallimage.size[1] < requiredSize[1]):
+                flag = False
+            else:
+                flag = True
+        except IOError, reason:
+            print >>stderr, "%s: error opening %s, it will be regenerated" % \
+                  (argv[0], imagePath)
+            print >>stderr, "%s" % str(reason.args)
+            flag = False
+        #print "%s: size:%s required:%s flag:%s" % (imagePath, str(smallimage.size), str(requiredSize), str(flag))
+        smallimage = None
+        return flag
+
+    def generateImage(self, imagePath, imageSize, image):
+        '''Make an output image.'''
+        verboseMessage("  %s => %s" % (self.picPath, imagePath))
+        starttime = time()
+        if image is None:
+            image = Image.open(self.picPath)
+        image.thumbnail(imageSize, Image.ANTIALIAS)
+        image.save(imagePath)
+        endtime = time()
+        verboseMessage("  generation time %s: %.2f" % \
+                       (imagePath, endtime-starttime))
+        modified = True
+        return image
 
     def createHTML(self, prevPic, nextPic):
         '''Make the HTML file for one picture.
@@ -508,28 +540,35 @@ class PictureDir:
         verboseMessage("  %s" % self.xmlPath)
         x = file(self.xmlPath, "w")
         s = StringIO()
+        if self.dirBasename == '':
+            dname = 'Pics'
+            dpath = 'Pics'
+        else:
+            dname = self.dirBasename
+            dpath = self.dirName
         s.write(
             '<?xml version="1.0"?>\n' \
             '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath +\
-            '<picturedir css="%s">\n' % self.cssPath)
-        if self.dirBasename == '':
-            s.write(' <name>Pics</name>\n <path>Pics</path>\n')
-        else:
-            s.write(
-                ' <name>%s</name>\n' % self.dirBasename +\
-                ' <path>%s</path>\n' % self.dirName)
+            '<picturedir name="%s" path="%s" css="%s">\n' % (dname, dpath,
+                                                             self.cssPath))
+        if self.doUp:
+            s.write('  <updir/>\n')
+        s.write(
+            '  <thumbnails>\n'
+            '    <x>%s</x>\n    <y>%s</y>\n' % options.thumbnail_size+\
+            '  </thumbnails>\n')
         for d in self.subdirList:
             s.write(
-                ' <dir>\n' \
-                '  <name>%s</name>\n' % d.dirBasename +\
-                '  <path>%s</path>\n' % d.dirName +\
-                ' </dir>\n')
+                '  <dir>\n' \
+                '    <name>%s</name>\n' % d.dirBasename +\
+                '    <path>%s</path>\n' % d.dirName +\
+                '  </dir>\n')
         for f in self.picList:
             s.write(
-                ' <image>\n' \
-                '  <name>%s</name>\n' % f.picNameBase +\
-                '  <ext>%s</ext>\n' % f.picNameExt +\
-                ' </image>\n')
+                '  <image>\n' \
+                '    <name>%s</name>\n' % f.picNameBase +\
+                '    <ext>%s</ext>\n' % f.picNameExt +\
+                '  </image>\n')
         s.write('</picturedir>\n')
         x.write(s.getvalue())
         s.close()
