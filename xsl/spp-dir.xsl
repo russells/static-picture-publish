@@ -18,6 +18,9 @@ being able to display the translated html.
 
   <xsl:template match="*"/>
 
+  <!-- Can we pass this in as a stylesheet argument? -->
+  <xsl:param name="nTableCells">4</xsl:param>
+
   <xsl:template match="/picturedir">
     <html>
       <head>
@@ -111,10 +114,13 @@ being able to display the translated html.
   </xsl:template>
 
   <xsl:template match="/picturedir/images">
-    <table class="thumbnailtable">
-      <xsl:for-each select="image[ position() mod 3 = 1 ]">
-        <tr>
-          <xsl:for-each select=". | following-sibling::image[position()&lt;3]">
+    <table class="thumbnail-table">
+      <xsl:attribute name="summary">
+        <xsl:text>Thumbnails!</xsl:text>
+      </xsl:attribute>
+      <xsl:for-each select="image[ position() mod $nTableCells = 1 ]">
+        <tr class="thumbnail-table-row">
+          <xsl:for-each select=". | following-sibling::image[position()&lt;$nTableCells]">
             <xsl:call-template name="imagetemplate">
               <!-- <xsl:with-param name="p"><xsl:value-of select="position()"/></xsl:with-param> -->
             </xsl:call-template>
@@ -127,9 +133,12 @@ being able to display the translated html.
 
   <xsl:template name="imagetemplate">
     <xsl:element name="td">
+      <xsl:attribute name="class">
+        <xsl:text>thumbnail-table-cell</xsl:text>
+      </xsl:attribute>
       <xsl:element name="div">
         <xsl:attribute name="class">
-          <xsl:text>thumbnailimage</xsl:text>
+          <xsl:text>thumbnail-image</xsl:text>
         </xsl:attribute>
         <xsl:element name="a">
           <xsl:attribute name="href">
@@ -154,7 +163,7 @@ being able to display the translated html.
       </xsl:element>
       <xsl:element name="p">
         <xsl:attribute name="class">
-          <xsl:text>thumbnailtext</xsl:text>
+          <xsl:text>thumbnail-text</xsl:text>
         </xsl:attribute>
         <xsl:element name="a">
           <xsl:attribute name="href">

@@ -11,26 +11,28 @@ a {
   color: navy;
 }
 
-.thumbnailrow
+.thumbnail-table
 {
-  margin-left: 6em;
-  margin-right: 3em;
   width: 100%;
 }
 
-.thumbnailcol1
+.thumbnail-tbody
 {
-  width: 33%;
 }
 
-.thumbnailcol2
+.thumbnail-table-row
 {
   width: 33%;
+  margin-left: 6em;
+  margin-right: 6em;
 }
 
-.thumbnailcol3
+.thumbnail-table-cell
 {
-  width: 34%;
+  text-align: center;
+  border-width: 2px;
+  border-style: solid;
+  padding: 5px;
 }
 
 .thumbnail
@@ -39,11 +41,14 @@ a {
   width: 33%;
 }
 
-.thumbnail .thumbnailtext
+.thumbnail-text
 {
-  display: inline;
-  clear: both;
-  vertical-align: bottom;
+  text-align: center;
+}
+
+.thumbnailimage
+{
+  position: center;
 }
 
 .thumbnail .thumbnailtext a:link,

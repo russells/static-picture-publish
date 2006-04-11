@@ -543,8 +543,8 @@ class PictureDir:
             dname = 'Pics'
             dpath = 'Pics'
         else:
-            dname = self.dirBasename
-            dpath = self.dirName
+            dname = entityReplace(self.dirBasename)
+            dpath = entityReplace(self.dirName)
         s.write(
             '<?xml version="1.0"?>\n' \
             '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath +\
