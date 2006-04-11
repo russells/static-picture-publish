@@ -11,25 +11,25 @@ a {
   color: navy;
 }
 
-div.thumbnailrow
+div.thumbnail-row
 {
   clear: both;
   text-align: centre;
 }
 
-div.trp-1
+div.thumbnail-col-1
 {
   position: relative;
   left: 25%;
 }
 
-div.trp-2
+div.thumbnail-col-2
 {
   position: relative;
   left: 50%;
 }
 
-div.trp-3
+div.thumbnail-col-3
 {
   position: relative;
   left: 75%;
@@ -55,7 +55,7 @@ div.thumbnail div.text a:visited
   display: inline;
 }
 
-div.thumbnail div.image-div
+div.thumbnail div.thumbnail-div
 {
   margin: 5px;
   border-color: rgb(50,50,50);
