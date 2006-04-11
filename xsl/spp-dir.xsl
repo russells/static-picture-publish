@@ -69,33 +69,13 @@ being able to display the translated html.
       </body>
     </html>
   </xsl:template>
-  <xsl:template match="index">
-    <div class="rev">
-      <xsl:if test="string-length(@name) != 0">
-        <xsl:value-of select="@name"/>
-        <xsl:if test="string-length(@rev) != 0">
-          <xsl:text> &#8212; </xsl:text>
-        </xsl:if>
-      </xsl:if>
-      <xsl:if test="string-length(@rev) != 0">
-        <xsl:text>Revision </xsl:text>
-        <xsl:value-of select="@rev"/>
-      </xsl:if>
-    </div>
-    <div class="path">
-      <xsl:value-of select="@path"/>
-    </div>
-    <xsl:apply-templates select="updir"/>
-    <xsl:apply-templates select="dir"/>
-    <xsl:apply-templates select="file"/>
-  </xsl:template>
 
   <xsl:template match="updir">
     <div class="updir">
       <xsl:text>[</xsl:text>
       <xsl:element name="a">
         <xsl:attribute name="href">..</xsl:attribute>
-        <xsl:text>Parent Directory</xsl:text>
+        <xsl:text>Up...</xsl:text>
       </xsl:element>
       <xsl:text>]</xsl:text>
     </div>
@@ -118,7 +98,7 @@ being able to display the translated html.
     <xsl:param name="p">0</xsl:param>
     <xsl:element name="div">
       <xsl:attribute name="class">
-        <xsl:text>dir dir-col-</xsl:text><xsl:value-of select="$p"/>
+        <xsl:text>dir dircol</xsl:text><xsl:value-of select="$p"/>
       </xsl:attribute>
       <xsl:element name="a">
         <xsl:attribute name="href">
@@ -131,28 +111,25 @@ being able to display the translated html.
   </xsl:template>
 
   <xsl:template match="/picturedir/images">
-    <xsl:for-each select="image[ position() mod 3 = 1 ]">
-      <div class="thumbnail-row">
-        <xsl:for-each select=". | following-sibling::image[position()&lt;3]">
-          <xsl:call-template name="imagetemplate">
-            <xsl:with-param name="p"><xsl:value-of select="position()"/></xsl:with-param>
-          </xsl:call-template>
-        </xsl:for-each>
-      </div>
-    </xsl:for-each>
+    <table class="thumbnailtable">
+      <xsl:for-each select="image[ position() mod 3 = 1 ]">
+        <tr>
+          <xsl:for-each select=". | following-sibling::image[position()&lt;3]">
+            <xsl:call-template name="imagetemplate">
+              <!-- <xsl:with-param name="p"><xsl:value-of select="position()"/></xsl:with-param> -->
+            </xsl:call-template>
+          </xsl:for-each>
+        </tr>
+      </xsl:for-each>
+    </table>
   </xsl:template>
 
 
   <xsl:template name="imagetemplate">
-    <xsl:param name="p">0</xsl:param>
-    <xsl:element name="div">
-      <xsl:attribute name="class">
-        <xsl:text>thumbnail thumbnail-col-</xsl:text>
-        <xsl:value-of select="$p" />
-      </xsl:attribute>
+    <xsl:element name="td">
       <xsl:element name="div">
         <xsl:attribute name="class">
-          <xsl:text>thumbnail-div</xsl:text>
+          <xsl:text>thumbnailimage</xsl:text>
         </xsl:attribute>
         <xsl:element name="a">
           <xsl:attribute name="href">
@@ -175,10 +152,9 @@ being able to display the translated html.
           </xsl:element>
         </xsl:element>
       </xsl:element>
-      <br/>
-      <xsl:element name="div">
+      <xsl:element name="p">
         <xsl:attribute name="class">
-          <xsl:text>text</xsl:text>
+          <xsl:text>thumbnailtext</xsl:text>
         </xsl:attribute>
         <xsl:element name="a">
           <xsl:attribute name="href">

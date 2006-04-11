@@ -11,51 +11,51 @@ a {
   color: navy;
 }
 
-div.thumbnail-row
+.thumbnailrow
 {
-  clear: both;
-  text-align: centre;
+  margin-left: 6em;
+  margin-right: 3em;
+  width: 100%;
 }
 
-div.thumbnail-col-1
+.thumbnailcol1
 {
-  position: relative;
-  left: 25%;
+  width: 33%;
 }
 
-div.thumbnail-col-2
+.thumbnailcol2
 {
-  position: relative;
-  left: 50%;
+  width: 33%;
 }
 
-div.thumbnail-col-3
+.thumbnailcol3
 {
-  position: relative;
-  left: 75%;
+  width: 34%;
 }
 
-div.thumbnail
+.thumbnail
 {
   display: inline;
+  width: 33%;
 }
 
-div.thumbnail div.text
+.thumbnail .thumbnailtext
 {
   display: inline;
   clear: both;
+  vertical-align: bottom;
 }
 
-div.thumbnail div.text a:link,
-div.thumbnail div.text a:visited
+.thumbnail .thumbnailtext a:link,
+.thumbnail .thumbnailtext a:visited
 {
   color: red;
   text-decoration: none;
   font-weight: bold;
-  display: inline;
+  /* display: inline; */
 }
 
-div.thumbnail div.thumbnail-div
+.thumbnail .thumbnailimage
 {
   margin: 5px;
   border-color: rgb(50,50,50);
