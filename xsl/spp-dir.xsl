@@ -110,26 +110,30 @@ being able to display the translated html.
         </xsl:attribute>
         <xsl:value-of select="path"/><xsl:text>/</xsl:text>
       </xsl:element>
-      <xsl:if test="dir[3]">
-        <br/>
-      </xsl:if>
     </div>
     <!-- <xsl:apply-templates/ -->
   </xsl:template>
 
-  <xsl:template match="image">
-    <div class="thumbnail">
+  <xsl:template match="/picturedir/images">
+    <xsl:for-each select="image[ position() mod 3 = 1 ]">
+      <div name="thumbnaillrow">
+        <xsl:for-each select=". | following-sibling::image[position()&lt;3]">
+          <xsl:call-template name="imagetemplate">
+            <xsl:with-param name="p"><xsl:value-of select="position()"/></xsl:with-param>
+          </xsl:call-template>
+        </xsl:for-each>
+      </div>
+    </xsl:for-each>
+  </xsl:template>
+
+
+  <xsl:template name="imagetemplate">
+    <xsl:param name="p">0</xsl:param>
+    <div class="thumbnail trp-$p">
       <xsl:element name="div">
         <xsl:attribute name="class">
-          <xsl:text>text</xsl:text>
+          <xsl:text>image-div</xsl:text>
         </xsl:attribute>
-        <xsl:element name="a">
-          <xsl:attribute name="href">
-            <xsl:value-of select="name"/>
-            <xsl:text>.xml</xsl:text>
-          </xsl:attribute>
-          <xsl:value-of select="name"/>
-        </xsl:element>
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
@@ -149,6 +153,19 @@ being able to display the translated html.
               <xsl:text>image</xsl:text>
             </xsl:attribute>
           </xsl:element>
+        </xsl:element>
+      </xsl:element>
+      <br/>
+      <xsl:element name="div">
+        <xsl:attribute name="class">
+          <xsl:text>text</xsl:text>
+        </xsl:attribute>
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="name"/>
+            <xsl:text>.xml</xsl:text>
+          </xsl:attribute>
+          <xsl:value-of select="name"/>
         </xsl:element>
       </xsl:element>
     </div>

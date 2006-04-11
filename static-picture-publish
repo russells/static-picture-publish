@@ -15,7 +15,7 @@ from time import time
 from shutil import copyfile
 
 
-defaultExtensions = '.jpg,.jpeg,.gif,.png,'
+defaultExtensions = '.jpg,.jpeg,.gif,.png'
 
 
 class SppOption(Option):
@@ -69,9 +69,8 @@ opt.add_option('--css',
 opt.add_option('-e','--extensions',
                action='store',
                help='Comma-separated list of file extensions to use.  '
-               '(Default is "%s").  '
-               'If you modify this, be sure to include upper and lower case '
-               'versions of the extensions.' % defaultExtensions)
+               'These are compared case-insenstiively.  '
+               '(Default is "%s").  ' % defaultExtensions)
 opt.add_option('-g','--regen-markup',
                action='store_true',
                help='Force regeneration of HTML or XML output')
@@ -557,18 +556,22 @@ class PictureDir:
             '  <thumbnails>\n'
             '    <x>%s</x>\n    <y>%s</y>\n' % options.thumbnail_size+\
             '  </thumbnails>\n')
+        s.write('  <dirs>\n')
         for d in self.subdirList:
             s.write(
-                '  <dir>\n' \
-                '    <name>%s</name>\n' % d.dirBasename +\
-                '    <path>%s</path>\n' % d.dirName +\
-                '  </dir>\n')
+                '    <dir>\n' \
+                '      <name>%s</name>\n' % d.dirBasename +\
+                '      <path>%s</path>\n' % d.dirName +\
+                '    </dir>\n')
+        s.write('  </dirs>\n')
+        s.write('  <images>\n')
         for f in self.picList:
             s.write(
-                '  <image>\n' \
-                '    <name>%s</name>\n' % f.picNameBase +\
-                '    <ext>%s</ext>\n' % f.picNameExt +\
-                '  </image>\n')
+                '    <image>\n' \
+                '      <name>%s</name>\n' % f.picNameBase +\
+                '      <ext>%s</ext>\n' % f.picNameExt +\
+                '    </image>\n')
+        s.write('  </images>\n')
         s.write('</picturedir>\n')
         x.write(s.getvalue())
         s.close()
