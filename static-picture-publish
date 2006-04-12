@@ -199,15 +199,20 @@ class Picture:
         self.htmlPath = pathjoin(webDirName, self.htmlName)
         self.xmlName = base + ".xml"
         self.xmlPath = pathjoin(webDirName, self.xmlName)
+        self.htmlName = base + ".html"
+        self.htmlPath = pathjoin(webDirName, self.htmlName)
         if self.dirName == '':
             self.xslPath = 'spp-image.xsl'
+            self.cssPath = 'spp.css'
         else:
             self.xslPath = '../spp-image.xsl'
+            self.cssPath = '../spp.css'
             ht = pathsplit(self.dirName)[0]
             #print "self.dirName == %s" % self.dirName
             while len(ht) != 0 and ht != '/':
                 #print 'ht is %s' % str(ht)
                 self.xslPath = '../' + self.xslPath
+                self.cssPath = '../' + self.cssPath
                 ht = pathsplit(ht)[0]
         self.picNameBase = base
         self.picNameExt = ext
@@ -289,7 +294,7 @@ class Picture:
         s.write(
             '<?xml version="1.0"?>\n'+\
             '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath+\
-            '<picinfo>\n'+\
+            '<picinfo css="%s">\n' % self.cssPath +\
             ' <this>\n'+\
             '  <name>%s</name>\n' % entityReplace(self.picNameBase)+\
             '  <ext>%s</ext>\n' % entityReplace(self.picNameExt)+\
@@ -310,6 +315,14 @@ class Picture:
         x.write(s.getvalue())
         s.close()
         x.close()
+        if not options.no_html:
+            verboseMessage('Creating %s' % \
+                           pathjoin(self.webDirName, self.htmlName))
+            cmd = 'cd %s && xsltproc %s > %s' % (shellEscape(self.webDirName),
+                                                 shellEscape(self.xmlName),
+                                                 shellEscape(self.htmlName))
+            verboseMessage('Command: %s' % cmd)
+            system(cmd)
 
 
     def __eq__(self, other): return self.picName == other.picName
@@ -434,14 +447,17 @@ class PictureDir:
             '[ <!ATTLIST xsl:stylesheet id ID #REQUIRED> ]>\n' \
             '<picturedir name="%s" path="%s" css="%s">\n' % (dname, dpath,
                                                              self.cssPath))
+        # xsl:import must be before xsl:param.  But the param here has
+        # precedence because there's an import tree.  Weird, but true.
         s.write('<xsl:stylesheet id="stylesheet"\n'
                 '   version="1.0"\n'
                 '   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">\n'
-                # '  <!-- import must be before param -->\n'
                 '  <xsl:import href="%s"/>\n' % self.xslPath +\
                 '  <xsl:param name="nTableCells">%d</xsl:param>\n' % \
-                options.row +\
-                '</xsl:stylesheet>\n')
+                options.row)
+        if options.no_html:
+            s.write('  <xsl:param name="nohtml">yes</xsl:param>\n')
+        s.write('</xsl:stylesheet>\n')
 
         if self.doUp:
             s.write('  <updir/>\n')
@@ -453,16 +469,16 @@ class PictureDir:
         for d in self.subdirList:
             s.write(
                 '    <dir>\n' \
-                '      <name>%s</name>\n' % d.dirBasename +\
-                '      <path>%s</path>\n' % d.dirName +\
+                '      <name>%s</name>\n' % entityReplace(d.dirBasename) +\
+                '      <path>%s</path>\n' % entityReplace(d.dirName) +\
                 '    </dir>\n')
         s.write('  </dirs>\n')
         s.write('  <images>\n')
         for f in self.picList:
             s.write(
                 '    <image>\n' \
-                '      <name>%s</name>\n' % f.picNameBase +\
-                '      <ext>%s</ext>\n' % f.picNameExt +\
+                '      <name>%s</name>\n' % entityReplace(f.picNameBase) +\
+                '      <ext>%s</ext>\n' % entityReplace(f.picNameExt) +\
                 '    </image>\n')
         s.write('  </images>\n')
         s.write('</picturedir>\n')
@@ -472,8 +488,10 @@ class PictureDir:
         if not options.no_html:
             verboseMessage('Creating %s' % \
                            pathjoin(self.webRoot, self.dirName, 'index.html'))
-            system('cd "%s" && xsltproc index.xml > index.html' % \
-                   pathjoin(self.webRoot, self.dirName))
+            cmd = 'cd %s && xsltproc index.xml > index.html' % \
+                  shellEscape(pathjoin(self.webRoot, self.dirName))
+            verboseMessage('Command: %s' % cmd)
+            system(cmd)
 
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
@@ -485,6 +503,24 @@ class PictureDir:
     def __ge__(self, other): return self.dirBasename >= other.dirBasename
     def __le__(self, other): return self.dirBasename <= other.dirBasename
 
+
+# Characters that can be included in shell commands without escaping.
+shellOKChars = 'abcdefghijklmnopqrstuvwxyz' \
+               'ABCDEFGHIJKLMNOPQRSTUVWXYZ' \
+               '0123456789' \
+               '.@+-_,/'
+
+def shellEscape(sin):
+    '''Return a string escaped to protect it from the shell.'''
+    sout = StringIO()
+    for c in sin:
+        if c in shellOKChars:
+            sout.write(c)
+        else:
+            sout.write('\\'+c)
+    r = sout.getvalue()
+    sout.close()
+    return r
 
 def dirTree(rootName='.'):
     '''Return a list of directory names starting from a specified root.'''
