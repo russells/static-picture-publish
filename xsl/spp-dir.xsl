@@ -136,6 +136,9 @@ being able to display the translated html.
       <xsl:attribute name="class">
         <xsl:text>thumbnail-table-cell</xsl:text>
       </xsl:attribute>
+      <xsl:attribute name="width">
+        <xsl:value-of select="100 div $nTableCells" /><xsl:text>%</xsl:text>
+      </xsl:attribute>
       <xsl:element name="div">
         <xsl:attribute name="class">
           <xsl:text>thumbnail-image</xsl:text>
