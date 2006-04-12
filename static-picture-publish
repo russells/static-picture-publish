@@ -1,13 +1,13 @@
 #!/usr/bin/python
 
 from sys import argv, exit, path as syspath, stderr
-from os import getcwd, listdir, makedirs, rmdir, stat, unlink
-from os.path import basename, exists as pathexists, isdir, join as pathjoin, \
-     split as pathsplit, splitext
+from os import getcwd, listdir, makedirs, rmdir, stat, system, unlink
+from os.path import abspath, basename, exists as pathexists, isdir, \
+     join as pathjoin, split as pathsplit, splitext
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
-from errno import ENOENT
+from errno import EEXIST, ENOENT
 #from urllib import quote, quote_plus
 from StringIO import StringIO
 from string import join as stringjoin
@@ -15,11 +15,7 @@ from time import time
 from shutil import copyfile
 
 
-defaultExtensions = '.jpg,.JPG,.jpeg,.JPEG,.gif,.GIF,.png,.PNG'
-
-
-inlineCSS = \
-'''div.thumbnaildiv                  { display:inline; }\n'''
+defaultExtensions = '.jpg,.jpeg,.gif,.png'
 
 
 class SppOption(Option):
@@ -35,7 +31,7 @@ class SppOption(Option):
                 ints = ( int(intstrs[0]), int(intstrs[1]) )
             else:
                 raise OptionValueError(
-                    "option %s: Must be one int or two ints AxB: %r" % \
+                    "option %s: Must be an integer or integer pair AxB: %r" % \
                     (opt, value))
         except ValueError,reason:
             raise OptionValueError(
@@ -73,18 +69,17 @@ opt.add_option('--css',
 opt.add_option('-e','--extensions',
                action='store',
                help='Comma-separated list of file extensions to use.  '
-               '(Default is "%s").  '
-               'If you modify this, be sure to include upper and lower case '
-               'versions of the extensions.' % defaultExtensions)
+               'These are compared case-insenstiively.  '
+               '(Default is "%s").  ' % defaultExtensions)
 opt.add_option('-g','--regen-markup',
                action='store_true',
                help='Force regeneration of HTML or XML output')
-opt.add_option('-H','--html',
-               action='store_true',
-               help='Output HTML.')
 opt.add_option('-n','--no-symlink',
                action='store_true',
                help='Don\'t symlink originals')
+opt.add_option('-N','--no-html',
+               action='store_true',
+               help='Don\'t create HTML from XML')
 opt.add_option('-q','--quiet',
                action='store_true',
                help='Don\'t print any output')
@@ -106,10 +101,6 @@ opt.add_option('-t','--title',
 opt.add_option('-v','--verbose',
                action='store_true',
                help='Print more information about actions')
-opt.add_option('-X','--xml',
-               action='store_true',
-               help='Create XML files, that will be transformed with XSLT '
-               'in the browser, instead of plain HTML.  (Default)')
 opt.add_option('--xsl-dir',
                action='store',
                help='XSLT file to use for directory XML output. '
@@ -137,32 +128,29 @@ def parseOptions():
         options.image_size = (800,800)
     if not options.thumbnail_size:
         options.thumbnail_size = (128,128)
-    if options.xml and options.html:
-        print >>stderr, "%s: can't produce both XML and HTML" % argv[0]
-        exit(1)
-    elif not options.xml and not options.html:
-        options.xml = True
+    if options.thumbnail_size[0] > options.image_size[0] or \
+       options.thumbnail_size[1] > options.image_size[1]:
+        print >>stderr, "%s: warning: thumbnail (%s) is bigger than image (%s)"\
+              % (str(options.thumbnail_size), str(options.image_size))
     if not options.css:
         options.css = "css/spp.css"
-    if options.xml:
-        if not options.xsl_dir:
-            options.xsl_dir = "xsl/spp-dir.xsl"
-        if not options.xsl_image:
-            options.xsl_image = "xsl/spp-image.xsl"
+    if not options.xsl_dir:
+        options.xsl_dir = "xsl/spp-dir.xsl"
+    if not options.xsl_image:
+        options.xsl_image = "xsl/spp-image.xsl"
     options.messageLevel = 1
     if options.verbose:
         options.messageLevel = 2
     if options.quiet:
         options.messageLevel = 0
-    if options.row:
-        if options.xml:
-            print >>stderr, "%s: cannot set both --row and --xml" % argv[0]
-            print >>stderr, "  (Layout is done by XSL for XML output)"
-            exit(1)
-    else:
+    if not options.row:
         options.row = 3
     picRoot = args[0]
     webRoot = args[1]
+    if abspath(picRoot) == abspath(webRoot):
+        print >>stderr, "%s: cannot publish into source directory: %s" \
+              % (argv[0], abspath(picRoot))
+        exit(1)
 
 
 def usage(errcode=1):
@@ -211,20 +199,16 @@ class Picture:
         self.htmlPath = pathjoin(webDirName, self.htmlName)
         self.xmlName = base + ".xml"
         self.xmlPath = pathjoin(webDirName, self.xmlName)
-        if options.html:
-            self.createMarkup = self.createHTML
-        elif options.xml:
-            self.createMarkup = self.createXML
-            if self.dirName == '':
-                self.xslPath = 'spp-image.xsl'
-            else:
-                self.xslPath = '../spp-image.xsl'
-                ht = pathsplit(self.dirName)[0]
-                #print "self.dirName == %s" % self.dirName
-                while len(ht) != 0 and ht != '/':
-                    #print 'ht is %s' % str(ht)
-                    self.xslPath = '../' + self.xslPath
-                    ht = pathsplit(ht)[0]
+        if self.dirName == '':
+            self.xslPath = 'spp-image.xsl'
+        else:
+            self.xslPath = '../spp-image.xsl'
+            ht = pathsplit(self.dirName)[0]
+            #print "self.dirName == %s" % self.dirName
+            while len(ht) != 0 and ht != '/':
+                #print 'ht is %s' % str(ht)
+                self.xslPath = '../' + self.xslPath
+                ht = pathsplit(ht)[0]
         self.picNameBase = base
         self.picNameExt = ext
 
@@ -235,82 +219,71 @@ class Picture:
             picStat = stat(self.picPath)
 
         modified = False
-        im = None
+        image = None
         try:
             # Create the web image, if necessary.
-            if options.regen_all or not fileIsNewer(self.imagePath, picStat):
-                verboseMessage("  %s => %s" % (self.picPath, self.imagePath))
-                starttime = time()
-                im = Image.open(self.picPath)
-                #imwe = im.copy()
-                im.thumbnail(options.image_size, Image.ANTIALIAS)
-                im.save(self.imagePath)
-                endtime = time()
-                verboseMessage("  Image time for %s: %.2f" % \
-                               (self.picPath, endtime-starttime))
+            if options.regen_all \
+                   or not fileIsNewer(self.imagePath, picStat) \
+                   or not self.imageSizeCheck(self.imagePath,
+                                              options.image_size):
+                #print "Regenerating %s" % self.imagePath
+                image = self.generateImage(self.imagePath,
+                                           options.image_size, image)
                 modified = True
             # Create the thumbnail, if necessary.
             if options.regen_all \
-                   or not fileIsNewer(self.thumbnailPath, picStat):
-                verboseMessage("  %s => %s" % (self.picPath,
-                                               self.thumbnailPath))
-                starttime = time()
-                if im is None:
-                    im = Image.open(self.picPath)
-                im.thumbnail(options.thumbnail_size, Image.ANTIALIAS)
-                im.save(self.thumbnailPath)
-                endtime = time()
-                verboseMessage("  Thumbnail time %s: %.2f" % \
-                               (self.picPath, endtime-starttime))
+                   or not fileIsNewer(self.thumbnailPath, picStat) \
+                   or not self.imageSizeCheck(self.thumbnailPath,
+                                              options.thumbnail_size):
+                #print "Regenerating %s" % self.thumbnailPath
+                image = self.generateImage(self.thumbnailPath,
+                                           options.thumbnail_size, image)
                 modified = True
-                im = None                   # gc
+                image = None            # gc
         except IOError, reason:
             print >>stderr, "%s: error processing %s: %s" % \
                   (argv[0], self.picPath, str(reason.args))
         self.createMarkup(prevPic, nextPic)
         return modified
 
-    def createHTML(self, prevPic, nextPic):
-        '''Make the HTML file for one picture.
+    def imageSizeCheck(self, imagePath, requiredSize):
+        '''Check to see if the output image is the correct size.
 
-        This includes links to the previous and next pictures.'''
+        Return True if the size is correct, false otherwise.'''
+        try:
+            smallimage = Image.open(imagePath)
+            if  smallimage.size[0] > requiredSize[0] or \
+                smallimage.size[1] > requiredSize[1] or \
+                (smallimage.size[0] < requiredSize[0] and \
+                 smallimage.size[1] < requiredSize[1]):
+                flag = False
+            else:
+                flag = True
+        except IOError, reason:
+            print >>stderr, "%s: error opening %s, it will be regenerated" % \
+                  (argv[0], imagePath)
+            print >>stderr, "%s" % str(reason.args)
+            flag = False
+        #print "%s: size:%s required:%s flag:%s" % (imagePath, str(smallimage.size), str(requiredSize), str(flag))
+        smallimage = None
+        return flag
 
-        verboseMessage("  %s => %s" % (self.picPath, self.htmlPath))
-        h = file(self.htmlPath, "w")
-        s = StringIO()
-        s.write(
-            '<!DOCTYPE html ' \
-            'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
-            '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n' \
-            '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>\n' \
-            '<meta http-equiv="Content-type" ' \
-            'content="text/html; charset=UTF-8" />\n')
-        s.write(
-            '<title>%s</title>\n' % self.picName +\
-            '</head><body>\n' \
-            '<h1 class="picheading">%s</h1>\n' % entityReplace(self.picName) +\
-            '<div class="prevnextlinks">\n')
-        if prevPic is not None:
-            s.write(
-                '<a class="prevlink" href="%s">Previous (%s)</a>\n' % \
-                (entityReplace(prevPic.htmlName),
-                   entityReplace(prevPic.picName)))
-        s.write('<a class="indexlink" href=".">Index</a>\n')
-        if nextPic is not None:
-            s.write(
-                '<a class="nextlink" href="%s">Next (%s)</a>\n' % \
-                (entityReplace(nextPic.htmlName),
-                 entityReplace(nextPic.picName)))
-        s.write(
-            '</div>\n'
-            '<img class="pic" src="%s" alt="%s" />\n' % \
-            (entityReplace(self.picName), entityReplace(self.picName)) +\
-            '</body></html>\n')
-        h.write(s.getvalue())
-        s.close()
-        h.close()
+    def generateImage(self, imagePath, imageSize, image):
+        '''Make an output image.'''
+        verboseMessage("  %s => %s" % (self.picPath, imagePath))
+        starttime = time()
+        if image is None:
+            image = Image.open(self.picPath)
+        image.thumbnail(imageSize, Image.ANTIALIAS)
+        image.save(imagePath)
+        endtime = time()
+        verboseMessage("  generation time %s: %.2f" % \
+                       (imagePath, endtime-starttime))
+        modified = True
+        return image
 
-    def createXML(self, prevPic, nextPic):
+
+    def createMarkup(self, prevPic, nextPic):
         x = file(self.xmlPath, "w")
         s = StringIO()
         s.write(
@@ -397,10 +370,6 @@ class PictureDir:
                                             dirName))
         self.picList.sort()
         self.subdirList.sort()
-        if options.html:
-            self.createMarkup = self.createHTML
-        elif options.xml:
-            self.createMarkup = self.createXML
 
     def __str__(self):
         s = '<<PictureDir("%s","%s","%s",%s)' % \
@@ -447,93 +416,63 @@ class PictureDir:
 
     numberClasses = { 2:'p2', 3:'p3', 4:'p4', 5:'p5' }
 
-    def createHTML(self):
-        '''Create the html output for a directory.'''
 
-        verboseMessage("  %s" % self.htmlPath)
-        h = file(self.htmlPath, "w")
-        s = StringIO()
-        s.write(
-            '<!DOCTYPE html ' \
-            'PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" ' \
-            '"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">\n' \
-            '<html xmlns="http://www.w3.org/1999/xhtml">\n<head>\n' \
-            '<meta http-equiv="Content-type" ' \
-            'content="text/html; charset=UTF-8" />\n')
-        if self.dirName == '': title = "Pics"
-        else:                  title = "Pics - %s" % self.dirName
-        s.write(
-            '<title>%s</title>\n' % title +\
-            '<style type="text/css">\n' +\
-            inlineCSS +\
-            '</style>\n' \
-            '</head>\n<body>\n' \
-            '<h1 class="maintitle">%s</h1>\n' % title)
-        if self.doUp:
-            s.write('<a class="uplink" href="..">Up</a><br/>\n')
-        for d in self.subdirList:
-            s.write(
-                '<a class="dirlink" href="%s">%s</a><br/>\n' % \
-                (entityReplace(d.dirBasename)+'/',
-                 entityReplace(d.dirBasename)))
-        for i in range(len(self.picList)):
-            p = self.picList[i]
-            divClass = ['thumbnaildiv']
-            for nth in range(2,6):
-                if i%nth==nth-1:
-                    divClass.append(self.numberClasses[nth])
-            if i%options.row == 0:
-                s.write('<div class="thumbnailrow">\n')
-            s.write(
-                '<div class="%s">' \
-                '<a class="piclink" href="%s">' \
-                '<img class="piclinkimg" src="%s"' \
-                ' alt="%s" />' \
-                '<span class="piclinkspan">%s</span></a>' \
-                '</div>\n' % \
-                (stringjoin(divClass),
-                 entityReplace(p.htmlName), entityReplace(p.thumbnailName),
-                 entityReplace(p.imageName), entityReplace(p.imageName)))
-            if i % options.row == options.row - 1:
-                s.write('</div>\n')
-        # Ensure the last div is closed.
-        if len(self.picList) % options.row != 0:
-            s.write('</div>\n')
-        s.write('</body></html>\n')
-        h.write(s.getvalue())
-        s.close()
-        h.close()
-
-    def createXML(self):
+    def createMarkup(self):
         verboseMessage("  %s" % self.xmlPath)
         x = file(self.xmlPath, "w")
         s = StringIO()
+        if self.dirBasename == '':
+            dname = 'Pics'
+            dpath = 'Pics'
+        else:
+            dname = entityReplace(self.dirBasename)
+            dpath = entityReplace(self.dirName)
         s.write(
             '<?xml version="1.0"?>\n' \
-            '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath +\
-            '<picturedir css="%s">\n' % self.cssPath)
-        if self.dirBasename == '':
-            s.write(' <name>Pics</name>\n <path>Pics</path>\n')
-        else:
-            s.write(
-                ' <name>%s</name>\n' % self.dirBasename +\
-                ' <path>%s</path>\n' % self.dirName)
+            '<?xml-stylesheet type="text/xsl" href="#stylesheet"?>\n' \
+            '<!DOCTYPE picturedir ' \
+            '[ <!ATTLIST xsl:stylesheet id ID #REQUIRED> ]>\n' \
+            '<picturedir name="%s" path="%s" css="%s">\n' % (dname, dpath,
+                                                             self.cssPath))
+        s.write('<xsl:stylesheet id="stylesheet"\n'
+                '   version="1.0"\n'
+                '   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">\n'
+                # '  <!-- import must be before param -->\n'
+                '  <xsl:import href="%s"/>\n'
+                '  <xsl:param name="nTableCells">5</xsl:param>\n'
+                '</xsl:stylesheet>\n' % self.xslPath)
+
+        if self.doUp:
+            s.write('  <updir/>\n')
+        s.write(
+            '  <thumbnails>\n'
+            '    <x>%s</x>\n    <y>%s</y>\n' % options.thumbnail_size+\
+            '  </thumbnails>\n')
+        s.write('  <dirs>\n')
         for d in self.subdirList:
             s.write(
-                ' <dir>\n' \
-                '  <name>%s</name>\n' % d.dirBasename +\
-                '  <path>%s</path>\n' % d.dirName +\
-                ' </dir>\n')
+                '    <dir>\n' \
+                '      <name>%s</name>\n' % d.dirBasename +\
+                '      <path>%s</path>\n' % d.dirName +\
+                '    </dir>\n')
+        s.write('  </dirs>\n')
+        s.write('  <images>\n')
         for f in self.picList:
             s.write(
-                ' <image>\n' \
-                '  <name>%s</name>\n' % f.picNameBase +\
-                '  <ext>%s</ext>\n' % f.picNameExt +\
-                ' </image>\n')
+                '    <image>\n' \
+                '      <name>%s</name>\n' % f.picNameBase +\
+                '      <ext>%s</ext>\n' % f.picNameExt +\
+                '    </image>\n')
+        s.write('  </images>\n')
         s.write('</picturedir>\n')
         x.write(s.getvalue())
         s.close()
         x.close()
+        if not options.no_html:
+            verboseMessage('Creating %s' % \
+                           pathjoin(self.webRoot, self.dirName, 'index.html'))
+            system('cd "%s" && xsltproc index.xml > index.html' % \
+                   pathjoin(self.webRoot, self.dirName))
 
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
@@ -586,7 +525,7 @@ def isPicFile(path, pic):
     should also identify the file contents, perhaps using Image methods?'''
 
     (base, ext) = splitext(pic)
-    if ext in options.extensions:
+    if ext.lower() in options.extensions:
         return True
     return False
 
@@ -707,13 +646,23 @@ if __name__ == '__main__':
     parseOptions()
 
     pd = PictureDir(picRoot, webRoot)
-    pd.go()
-
+    # Create the output directory.
+    try:
+        makedirs(webRoot)
+    except OSError, reason:
+        if reason.errno == EEXIST and isdir(webRoot):
+            pass
+        else:
+            print >>stderr, "%s: error creating %s: %s" % \
+                  (argv[0], webRoot, str(reason.args))
+            exit(1)
     # Copy in the XSL and CSS files.
     sppCopyFile(options.css, "spp.css", "css")
-    if options.xml:
-        sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl")
-        sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl")
+    sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl")
+    sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl")
+    # Now create thumbnails and markup.
+    pd.go()
+
 
     global webTree
     webTree = dirTree(webRoot)
