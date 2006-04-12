@@ -11,9 +11,38 @@ a {
   color: navy;
 }
 
+.page-title
+{
+  font-size: 1.9em;
+}
+
+.dir-list-title,
+.thumbnail-list-title
+{
+  font-size: 1.5em;
+}
+
+.page-title,
+.dir-list-title,
+.thumbnail-list-title
+{
+  width: 94%;
+  margin-left: 3%;
+  margin-right: 3%;
+  margin-top: 0.5em;
+  margin-bottom: 0.5em;
+  display: block;
+  text-decoration: bold;
+  text-align: center;
+}
+
+.updir-table,
+.dir-table,
 .thumbnail-table
 {
-  width: 100%;
+  width: 94%;
+  margin-left: 3%;
+  margin-right: 3%;
 }
 
 .thumbnail-tbody
@@ -27,12 +56,15 @@ a {
   margin-right: 6em;
 }
 
+.updir-table-cell,
+.dir-table-cell,
 .thumbnail-table-cell
 {
   text-align: center;
   border-width: 2px;
   border-style: solid;
   padding: 5px;
+  background: #eee;
 }
 
 .thumbnail

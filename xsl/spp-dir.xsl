@@ -52,6 +52,7 @@ being able to display the translated html.
         </xsl:if>
       </head>
       <body>
+        <span class="page-title">Images in <xsl:value-of select="@path"/></span>
         <div class="picturedir">
           <xsl:apply-templates/>
         </div>
@@ -74,34 +75,48 @@ being able to display the translated html.
   </xsl:template>
 
   <xsl:template match="updir">
-    <div class="updir">
-      <xsl:text>[</xsl:text>
-      <xsl:element name="a">
-        <xsl:attribute name="href">..</xsl:attribute>
-        <xsl:text>Up...</xsl:text>
-      </xsl:element>
-      <xsl:text>]</xsl:text>
-    </div>
+    <table class="updir-table">
+      <tr>
+        <td width="100%" class="updir-table-cell">
+          <xsl:text>[</xsl:text>
+          <xsl:element name="a">
+            <xsl:attribute name="href">..</xsl:attribute>
+            <xsl:text>Go up one folder</xsl:text>
+          </xsl:element>
+          <xsl:text>]</xsl:text>
+        </td>
+      </tr>
+    </table>
     <!-- xsl:apply-templates/ -->
   </xsl:template>
 
   <xsl:template match="/picturedir/dirs">
-    <xsl:for-each select="dir[ position() mod 3 = 1 ]">
-      <div class="dir-row">
-        <xsl:for-each select=". | following-sibling::dir[position()&lt;3]">
-          <xsl:call-template name="dirtemplate">
-            <xsl:with-param name="p"><xsl:value-of select="position()"/></xsl:with-param>
-          </xsl:call-template>
-        </xsl:for-each>
-      </div>
-    </xsl:for-each>
+    <xsl:if test="count(dir) != 0">
+      <span class="dir-list-title">Folders</span>
+    </xsl:if>
+    <table class="dir-table">
+      <xsl:attribute name="summary">
+        <xsl:text>Directories</xsl:text>
+      </xsl:attribute>
+      <xsl:for-each select="dir[ position() mod $nTableCells = 1 ]">
+        <tr class="dir-table-row">
+          <xsl:for-each select=". | following-sibling::dir[position()&lt;$nTableCells]">
+            <xsl:call-template name="dirtemplate">
+              <!-- <xsl:with-param name="p"><xsl:value-of select="position()"/></xsl:with-param> -->
+            </xsl:call-template>
+          </xsl:for-each>
+        </tr>
+      </xsl:for-each>
+    </table>
   </xsl:template>
 
   <xsl:template name="dirtemplate">
-    <xsl:param name="p">0</xsl:param>
-    <xsl:element name="div">
+    <xsl:element name="td">
       <xsl:attribute name="class">
-        <xsl:text>dir dircol</xsl:text><xsl:value-of select="$p"/>
+        <xsl:text>dir-table-cell</xsl:text>
+      </xsl:attribute>
+      <xsl:attribute name="width">
+        <xsl:value-of select="100 div $nTableCells" /><xsl:text>%</xsl:text>
       </xsl:attribute>
       <xsl:element name="a">
         <xsl:attribute name="href">
@@ -114,6 +129,9 @@ being able to display the translated html.
   </xsl:template>
 
   <xsl:template match="/picturedir/images">
+    <xsl:if test="count(image) != 0">
+      <span class="thumbnail-list-title">Images</span>
+    </xsl:if>
     <table class="thumbnail-table">
       <xsl:attribute name="summary">
         <xsl:text>Thumbnails!</xsl:text>

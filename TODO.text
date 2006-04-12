@@ -14,12 +14,12 @@ conform to the DTD.
 
 ** Look at CSS.
 
-** Work out if we need tables in the output, or if CSS can do it.
+** Work out if we need tables in the output, or if CSS can do it.  DONE.
 
 Thinking mainly about making the thumbnail "cells" all the same size.  This may
 need tables to enforce the regular layout.
 
-** Decide whether to keep the HTML output code.
+** Decide whether to keep the HTML output code.  DONE (translate XML to HTML).
 
 Might not be needed if all the targeted clients can use XML.
 
