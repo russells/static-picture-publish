@@ -437,10 +437,11 @@ class PictureDir:
             '[ <!ATTLIST xsl:stylesheet id ID #REQUIRED> ]>\n' \
             '<picturedir name="%s" path="%s" css="%s">\n' % (dname, dpath,
                                                              self.cssPath))
+        # xsl:import must be before xsl:param.  But the param here has
+        # precedence because there's an import tree.  Weird, but true.
         s.write('<xsl:stylesheet id="stylesheet"\n'
                 '   version="1.0"\n'
                 '   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">\n'
-                # '  <!-- import must be before param -->\n'
                 '  <xsl:import href="%s"/>\n' % self.xslPath +\
                 '  <xsl:param name="nTableCells">%d</xsl:param>\n' % \
                 options.row +\
@@ -456,16 +457,16 @@ class PictureDir:
         for d in self.subdirList:
             s.write(
                 '    <dir>\n' \
-                '      <name>%s</name>\n' % d.dirBasename +\
-                '      <path>%s</path>\n' % d.dirName +\
+                '      <name>%s</name>\n' % entityReplace(d.dirBasename) +\
+                '      <path>%s</path>\n' % entityReplace(d.dirName) +\
                 '    </dir>\n')
         s.write('  </dirs>\n')
         s.write('  <images>\n')
         for f in self.picList:
             s.write(
                 '    <image>\n' \
-                '      <name>%s</name>\n' % f.picNameBase +\
-                '      <ext>%s</ext>\n' % f.picNameExt +\
+                '      <name>%s</name>\n' % entityReplace(f.picNameBase) +\
+                '      <ext>%s</ext>\n' % entityReplace(f.picNameExt) +\
                 '    </image>\n')
         s.write('  </images>\n')
         s.write('</picturedir>\n')
