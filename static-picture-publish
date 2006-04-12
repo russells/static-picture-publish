@@ -547,9 +547,19 @@ class PictureDir:
             dpath = entityReplace(self.dirName)
         s.write(
             '<?xml version="1.0"?>\n' \
-            '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath +\
+            '<?xml-stylesheet type="text/xsl" href="#stylesheet"?>\n' \
+            '<!DOCTYPE picturedir ' \
+            '[ <!ATTLIST xsl:stylesheet id ID #REQUIRED> ]>\n' \
             '<picturedir name="%s" path="%s" css="%s">\n' % (dname, dpath,
                                                              self.cssPath))
+        s.write('<xsl:stylesheet id="stylesheet"\n'
+                '   version="1.0"\n'
+                '   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">\n'
+                # '  <!-- import must be before param -->\n'
+                '  <xsl:import href="%s"/>\n'
+                '  <xsl:param name="nTableCells">5</xsl:param>\n'
+                '</xsl:stylesheet>\n' % self.xslPath)
+
         if self.doUp:
             s.write('  <updir/>\n')
         s.write(
