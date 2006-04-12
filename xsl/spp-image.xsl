@@ -10,17 +10,26 @@
 
   <xsl:template match="*"/>
 
-  <xsl:template match="svn">
+  <xsl:template match="picinfo">
     <html>
       <head>
         <title>
-          <xsl:if test="string-length(index/@name) != 0">
-            <xsl:value-of select="index/@name"/>
-            <xsl:text>: </xsl:text>
+          <xsl:if test="string-length(this/name) != 0">
+            <xsl:value-of select="this/name"/>
           </xsl:if>
           <xsl:value-of select="index/@path"/>
         </title>
-        <link rel="stylesheet" type="text/css" href="/svnindex.css"/>
+        <xsl:element name="link">
+          <xsl:attribute name="rel">
+            <xsl:text>stylesheet</xsl:text>
+          </xsl:attribute>
+          <xsl:attribute name="type">
+            <xsl:text>text/css</xsl:text>
+          </xsl:attribute>
+          <xsl:attribute name="href">
+            <xsl:value-of select="@css" />
+          </xsl:attribute>
+        </xsl:element>
       </head>
       <body>
         <div class="svn">

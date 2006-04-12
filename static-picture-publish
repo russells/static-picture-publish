@@ -201,13 +201,16 @@ class Picture:
         self.xmlPath = pathjoin(webDirName, self.xmlName)
         if self.dirName == '':
             self.xslPath = 'spp-image.xsl'
+            self.cssPath = 'spp.css'
         else:
             self.xslPath = '../spp-image.xsl'
+            self.cssPath = '../spp.css'
             ht = pathsplit(self.dirName)[0]
             #print "self.dirName == %s" % self.dirName
             while len(ht) != 0 and ht != '/':
                 #print 'ht is %s' % str(ht)
                 self.xslPath = '../' + self.xslPath
+                self.cssPath = '../' + self.cssPath
                 ht = pathsplit(ht)[0]
         self.picNameBase = base
         self.picNameExt = ext
@@ -289,7 +292,7 @@ class Picture:
         s.write(
             '<?xml version="1.0"?>\n'+\
             '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath+\
-            '<picinfo>\n'+\
+            '<picinfo css="%s">\n' % self.cssPath +\
             ' <this>\n'+\
             '  <name>%s</name>\n' % entityReplace(self.picNameBase)+\
             '  <ext>%s</ext>\n' % entityReplace(self.picNameExt)+\
