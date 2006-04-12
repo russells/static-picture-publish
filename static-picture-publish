@@ -475,8 +475,10 @@ class PictureDir:
         if not options.no_html:
             verboseMessage('Creating %s' % \
                            pathjoin(self.webRoot, self.dirName, 'index.html'))
-            system('cd "%s" && xsltproc index.xml > index.html' % \
-                   pathjoin(self.webRoot, self.dirName))
+            cmd = 'cd %s && xsltproc index.xml > index.html' % \
+                  shellEscape(pathjoin(self.webRoot, self.dirName))
+            verboseMessage('Command: %s' % cmd)
+            system(cmd)
 
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
@@ -488,6 +490,24 @@ class PictureDir:
     def __ge__(self, other): return self.dirBasename >= other.dirBasename
     def __le__(self, other): return self.dirBasename <= other.dirBasename
 
+
+# Characters that can be included in shell commands without escaping.
+shellOKChars = 'abcdefghijklmnopqrstuvwxyz' \
+               'ABCDEFGHIJKLMNOPQRSTUVWXYZ' \
+               '0123456789' \
+               '.@+-_,/'
+
+def shellEscape(sin):
+    '''Return a string escaped to protect it from the shell.'''
+    sout = StringIO()
+    for c in sin:
+        if c in shellOKChars:
+            sout.write(c)
+        else:
+            sout.write('\\'+c)
+    r = sout.getvalue()
+    sout.close()
+    return r
 
 def dirTree(rootName='.'):
     '''Return a list of directory names starting from a specified root.'''
