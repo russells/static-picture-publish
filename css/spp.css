@@ -11,6 +11,51 @@ a {
   color: navy;
 }
 
+.links-table
+{
+  width: 94%;
+  margin-left: 3%;
+  margin-right: 3%;
+}
+
+.links-table-cell
+{
+  width: 33%;
+  border-width: 2px;
+  border-style: solid;
+  padding: 5px;
+  background: #eee;
+}
+
+.links-table-cell.prev
+{
+  text-align: center;
+}
+
+.links-table-cell.this
+{
+  text-align: center;
+}
+
+.links-table-cell.next
+{
+  text-align: center;
+}
+
+.links-table-cell a
+{
+  color: black;
+  text-decoration: bold;
+}
+
+.picinfo
+{
+  border-width: 2px;
+  border-style: solid;
+  padding: 10px;
+  margin: 3%;
+}
+
 .page-title
 {
   font-size: 1.9em;
@@ -100,6 +145,11 @@ a {
   display: inline;
 }
 
+.picinfo
+{
+  text-align: center;
+}
+
 .footer {
   margin-top: 4em;
   margin-left: 3%;
@@ -113,17 +163,6 @@ a {
   background: #eee;;
   font-size: 80%;
   text-align: center;
-}
-
-.svn {
-  margin: 3em;
-}
-
-.rev {
-  margin-right: 3px;
-  padding-left: 3px;
-  text-align: left;
-  font-size: 120%;
 }
 
 .dir a {

@@ -199,6 +199,8 @@ class Picture:
         self.htmlPath = pathjoin(webDirName, self.htmlName)
         self.xmlName = base + ".xml"
         self.xmlPath = pathjoin(webDirName, self.xmlName)
+        self.htmlName = base + ".html"
+        self.htmlPath = pathjoin(webDirName, self.htmlName)
         if self.dirName == '':
             self.xslPath = 'spp-image.xsl'
             self.cssPath = 'spp.css'
@@ -313,6 +315,14 @@ class Picture:
         x.write(s.getvalue())
         s.close()
         x.close()
+        if not options.no_html:
+            verboseMessage('Creating %s' % \
+                           pathjoin(self.webDirName, self.htmlName))
+            cmd = 'cd %s && xsltproc %s > %s' % (shellEscape(self.webDirName),
+                                                 shellEscape(self.xmlName),
+                                                 shellEscape(self.htmlName))
+            verboseMessage('Command: %s' % cmd)
+            system(cmd)
 
 
     def __eq__(self, other): return self.picName == other.picName
@@ -444,8 +454,10 @@ class PictureDir:
                 '   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">\n'
                 '  <xsl:import href="%s"/>\n' % self.xslPath +\
                 '  <xsl:param name="nTableCells">%d</xsl:param>\n' % \
-                options.row +\
-                '</xsl:stylesheet>\n')
+                options.row)
+        if options.no_html:
+            s.write('  <xsl:param name="nohtml">yes</xsl:param>\n')
+        s.write('</xsl:stylesheet>\n')
 
         if self.doUp:
             s.write('  <updir/>\n')
