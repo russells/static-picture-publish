@@ -7,7 +7,7 @@ from os.path import abspath, basename, exists as pathexists, isdir, \
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
 import Image
-from errno import ENOENT
+from errno import EEXIST, ENOENT
 #from urllib import quote, quote_plus
 from StringIO import StringIO
 from string import join as stringjoin
@@ -650,8 +650,12 @@ if __name__ == '__main__':
     try:
         makedirs(webRoot)
     except OSError, reason:
-        print >>stderr, "%s: error creating %s: %s" \
-              (argv[0], picRoot, str(reason.args))
+        if reason.errno == EEXIST and isdir(webRoot):
+            pass
+        else:
+            print >>stderr, "%s: error creating %s: %s" % \
+                  (argv[0], webRoot, str(reason.args))
+            exit(1)
     # Copy in the XSL and CSS files.
     sppCopyFile(options.css, "spp.css", "css")
     sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl")
