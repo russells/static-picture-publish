@@ -438,9 +438,10 @@ class PictureDir:
                 '   version="1.0"\n'
                 '   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">\n'
                 # '  <!-- import must be before param -->\n'
-                '  <xsl:import href="%s"/>\n'
-                '  <xsl:param name="nTableCells">5</xsl:param>\n'
-                '</xsl:stylesheet>\n' % self.xslPath)
+                '  <xsl:import href="%s"/>\n' % self.xslPath +\
+                '  <xsl:param name="nTableCells">%d</xsl:param>\n' % \
+                options.row +\
+                '</xsl:stylesheet>\n')
 
         if self.doUp:
             s.write('  <updir/>\n')
