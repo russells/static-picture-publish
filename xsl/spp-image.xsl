@@ -48,7 +48,14 @@
                   </xsl:element>
                 </xsl:when>
                 <xsl:otherwise>
-                  <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+                  <xsl:choose>
+                    <xsl:when test="$imagePageExtension = '.xml'">
+                      <xsl:text>-</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+                    </xsl:otherwise>
+                  </xsl:choose>
                 </xsl:otherwise>
               </xsl:choose>
             </td>
@@ -76,7 +83,14 @@
                   </xsl:element>
                 </xsl:when>
                 <xsl:otherwise>
-                  <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+                  <xsl:choose>
+                    <xsl:when test="$imagePageExtension = '.xml'">
+                      <xsl:text>-</xsl:text>
+                    </xsl:when>
+                    <xsl:otherwise>
+                      <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+                    </xsl:otherwise>
+                  </xsl:choose>
                 </xsl:otherwise>
               </xsl:choose>
               <!-- <xsl:text>&amp;nbsp;</xsl:text> -->

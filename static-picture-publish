@@ -331,9 +331,11 @@ class Picture:
         if not options.no_html:
             verboseMessage('Creating %s' % \
                            pathjoin(self.webDirName, self.htmlName))
-            cmd = 'cd %s && xsltproc %s > %s' % (shellEscape(self.webDirName),
-                                                 shellEscape(self.xmlName),
-                                                 shellEscape(self.htmlName))
+            cmd = 'cd %s && xsltproc ' \
+                  '--param imagePageExtension \'".html"\' ' \
+                  '%s > %s' % (shellEscape(self.webDirName),
+                               shellEscape(self.xmlName),
+                               shellEscape(self.htmlName))
             verboseMessage('Command: %s' % cmd)
             system(cmd)
         self.createFullImageLink()
@@ -528,7 +530,9 @@ class PictureDir:
         if not options.no_html:
             verboseMessage('Creating %s' % \
                            pathjoin(self.webRoot, self.dirName, 'index.html'))
-            cmd = 'cd %s && xsltproc --param imagePageExtension \'".html"\' index.xml > index.html' % \
+            cmd = 'cd %s && xsltproc ' \
+                  '--param imagePageExtension \'".html"\' ' \
+                  'index.xml > index.html' % \
                   shellEscape(pathjoin(self.webRoot, self.dirName))
             verboseMessage('Command: %s' % cmd)
             system(cmd)
