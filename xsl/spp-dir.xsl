@@ -193,7 +193,7 @@ being able to display the translated html.
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
-            <xsl:text>.xml</xsl:text>
+            <xsl:text>.html</xsl:text>
           </xsl:attribute>
           <xsl:value-of select="name"/>
         </xsl:element>
