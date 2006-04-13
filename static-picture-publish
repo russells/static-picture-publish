@@ -1,8 +1,9 @@
 #!/usr/bin/python
 
 from sys import argv, exit, path as syspath, stderr
-from os import getcwd, listdir, makedirs, rmdir, stat, system, unlink
-from os.path import abspath, basename, exists as pathexists, isdir, \
+from os import getcwd, listdir, makedirs, readlink, rmdir, stat, symlink, \
+     system, unlink
+from os.path import abspath, basename, exists as pathexists, isdir, islink, \
      join as pathjoin, split as pathsplit, splitext
 from optparse import OptionParser, Option, OptionValueError
 from copy import copy
@@ -93,7 +94,7 @@ opt.add_option('--row',
 opt.add_option('-s','--image-size',
                type='intpair',
                action='store',
-               help='Set maximum dimension for images (Default 800x800 pixels)')
+               help='Set maximum dimension for images (Default 640x640 pixels)')
 opt.add_option('-t','--title',
                type='string',
                action='store',
@@ -125,7 +126,7 @@ def parseOptions():
     else:
         options.extensions = defaultExtensions.split(',')
     if not options.image_size:
-        options.image_size = (800,800)
+        options.image_size = (640,640)
     if not options.thumbnail_size:
         options.thumbnail_size = (128,128)
     if options.thumbnail_size[0] > options.image_size[0] or \
@@ -335,6 +336,33 @@ class Picture:
                                                  shellEscape(self.htmlName))
             verboseMessage('Command: %s' % cmd)
             system(cmd)
+        self.createFullImageLink()
+
+    def createFullImageLink(self):
+        '''Create a symlink to the full image.'''
+
+        fullImagePath = abspath(pathjoin(self.picDirName, self.picName))
+        symlinkPath = abspath(pathjoin(self.webDirName, self.fullImageName))
+        st = None
+        try:
+            st = stat(symlinkPath)
+        except OSError, reason:
+            if reason.errno == ENOENT: pass
+            else: raise
+        if st is None:
+            verboseMessage("symlink: %s -> %s" % (symlinkPath, fullImagePath))
+            symlink(fullImagePath, symlinkPath)
+        else:
+            # This logic will delete relative symlinks that do point to the
+            # right place, and replace them with absolute symlinks that point
+            # to the same place.  The alternative is to call readlink() with
+            # cwd of the symlink location, but I haven't coded that yet.
+            if not islink(symlinkPath) \
+               or abspath(readlink(symlinkPath)) != fullImagePath:
+                verboseMessage("symlink: %s -> %s" % \
+                               (symlinkPath, fullImagePath))
+                unlink(symlinkPath)
+                symlink(fullImagePath, symlinkPath)
 
 
     def __eq__(self, other): return self.picName == other.picName

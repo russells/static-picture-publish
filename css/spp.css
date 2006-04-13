@@ -148,6 +148,8 @@ a {
 .picinfo
 {
   text-align: center;
+  background-color: #eee;
+  border-color: black;
 }
 
 .footer {

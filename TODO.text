@@ -46,10 +46,12 @@ Check up on the __eq__() etc methods.
 
 ie Full -> web -> thumbnail, instead of full -> web, full -> thumbnail.
 
-** Use a single list of extensions, compare with folded case.
+** Use a single list of extensions, compare with folded case.  DONE.
 
 if ext.lower() in options.extensions:
     stuff
+
+** Don't create symlinks to full-sized pics, if specified.
 
 
 

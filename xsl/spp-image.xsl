@@ -72,11 +72,18 @@
           <xsl:value-of select="this/ext"/>
         </span>
         <div class="picinfo">
-          <xsl:element name="img">
-            <xsl:attribute name="src">
+          <xsl:element name="a">
+            <xsl:attribute name="href">
               <xsl:value-of select="this/name"/>
+              <xsl:text>-full</xsl:text>
               <xsl:value-of select="this/ext"/>
             </xsl:attribute>
+            <xsl:element name="img">
+              <xsl:attribute name="src">
+                <xsl:value-of select="this/name"/>
+                <xsl:value-of select="this/ext"/>
+              </xsl:attribute>
+            </xsl:element>
           </xsl:element>
         </div>
         <div class="footer">
