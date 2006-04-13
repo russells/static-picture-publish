@@ -166,14 +166,26 @@ def verboseMessage(msg):
     message(msg, 2)
 
 
-entityChars = { '&':"amp", '<':"lt", '>':"gt", '\'':"apos", '"':"quot" }
+entityChars = {
+    '&'  : "&amp;",
+    '<'  : "&lt;",
+    '>'  : "&gt;",
+    '\'' : "&apos;",
+    '"'  : "&quot;",
+    ';'  : "&#59;",
+    # Erk, I can't work out how to put a '#' in a URL.  This works, but also
+    # puts ugly "%23" strings in link text.
+    '#'  : '%23',
+    # Same for '?'.
+    '?'  : '%3f',
+    }
 
 def entityReplace(s):
     '''Replace the characters "&<>\'" with html entities.'''
     r = StringIO()
     for c in s:
         if c in entityChars:
-            r.write("&%s;" % entityChars[c])
+            r.write(entityChars[c])
         else:
             r.write(c)
     s2 = r.getvalue()
