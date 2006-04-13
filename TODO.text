@@ -23,6 +23,13 @@ need tables to enforce the regular layout.
 
 Might not be needed if all the targeted clients can use XML.
 
+** Make the index links go to the page near the image.  DONE.
+
+Each "Index" link should be a to href="index.html#a.jpg", so that when we go
+back to the index we are near the current image.
+
+(Not sure how this handles image names with strange characters in them.)
+
 *** Konqueror 3.5.1 doesn't translate the XML.
 
 * Code

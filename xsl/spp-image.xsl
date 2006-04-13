@@ -62,10 +62,24 @@
             <td class="links-table-cell this">
               <xsl:choose>
                 <xsl:when test="$imagePageExtension = '.xml'">
-                 <a href="index.xml">Index</a>
+                  <xsl:element name="a">
+                    <xsl:attribute name="href">
+                      <xsl:text>index.xml#</xsl:text>
+                      <xsl:value-of select="/picinfo/this/name"/>
+                      <xsl:value-of select="/picinfo/this/ext"/>
+                    </xsl:attribute>
+                    <xsl:text>Index</xsl:text>
+                  </xsl:element>
                 </xsl:when>
                 <xsl:otherwise>
-                 <a href=".">Index</a>
+                  <xsl:element name="a">
+                    <xsl:attribute name="href">
+                      <xsl:text>.#</xsl:text>
+                      <xsl:value-of select="/picinfo/this/name"/>
+                      <xsl:value-of select="/picinfo/this/ext"/>
+                    </xsl:attribute>
+                    <xsl:text>Index</xsl:text>
+                  </xsl:element>
                 </xsl:otherwise>
               </xsl:choose>
             </td>

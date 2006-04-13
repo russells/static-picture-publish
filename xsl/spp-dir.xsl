@@ -193,6 +193,12 @@ being able to display the translated html.
           <xsl:text>thumbnail-image</xsl:text>
         </xsl:attribute>
         <xsl:element name="a">
+          <xsl:attribute name="name">
+            <xsl:value-of select="name"/>
+            <xsl:value-of select="ext"/>
+          </xsl:attribute>
+        </xsl:element>
+        <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
             <xsl:value-of select="$imagePageExtension"/>
