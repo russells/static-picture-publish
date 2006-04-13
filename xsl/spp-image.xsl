@@ -8,6 +8,8 @@
 
   <xsl:output method="html"/>
 
+  <xsl:param name="imagePageExtension">.xml</xsl:param>
+
   <xsl:template match="/picinfo">
     <html>
       <head>
@@ -38,7 +40,7 @@
                   <xsl:element name="a">
                     <xsl:attribute name="href">
                       <xsl:value-of select="prev/name"/>
-                      <xsl:text>.html</xsl:text>
+                      <xsl:value-of select="$imagePageExtension"/>
                     </xsl:attribute>
                     <xsl:text>&lt;&lt; </xsl:text>
                     <xsl:value-of select="prev/name"/>
@@ -51,7 +53,14 @@
               </xsl:choose>
             </td>
             <td class="links-table-cell this">
-              <a href=".">Index</a>
+              <xsl:choose>
+                <xsl:when test="$imagePageExtension = '.xml'">
+                 <a href="index.xml">Index</a>
+                </xsl:when>
+                <xsl:otherwise>
+                 <a href=".">Index</a>
+                </xsl:otherwise>
+              </xsl:choose>
             </td>
             <td class="links-table-cell next">
               <xsl:choose>
@@ -59,7 +68,7 @@
                   <xsl:element name="a">
                     <xsl:attribute name="href">
                       <xsl:value-of select="next/name"/>
-                      <xsl:text>.html</xsl:text>
+                      <xsl:value-of select="$imagePageExtension"/>
                     </xsl:attribute>
                     <xsl:value-of select="next/name"/>
                     <xsl:value-of select="next/ext"/>

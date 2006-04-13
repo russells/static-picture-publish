@@ -528,7 +528,7 @@ class PictureDir:
         if not options.no_html:
             verboseMessage('Creating %s' % \
                            pathjoin(self.webRoot, self.dirName, 'index.html'))
-            cmd = 'cd %s && xsltproc index.xml > index.html' % \
+            cmd = 'cd %s && xsltproc --param imagePageExtension \'".html"\' index.xml > index.html' % \
                   shellEscape(pathjoin(self.webRoot, self.dirName))
             verboseMessage('Command: %s' % cmd)
             system(cmd)

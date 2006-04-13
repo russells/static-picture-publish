@@ -18,8 +18,8 @@ being able to display the translated html.
 
   <xsl:template match="*"/>
 
-  <!-- Can we pass this in as a stylesheet argument? -->
   <xsl:param name="nTableCells">4</xsl:param>
+  <xsl:param name="imagePageExtension">.xml</xsl:param>
 
   <xsl:template match="/picturedir">
     <html>
@@ -79,10 +79,24 @@ being able to display the translated html.
       <tr>
         <td width="100%" class="updir-table-cell">
           <xsl:text>[</xsl:text>
-          <xsl:element name="a">
-            <xsl:attribute name="href">..</xsl:attribute>
-            <xsl:text>Go up one folder</xsl:text>
-          </xsl:element>
+          <xsl:choose>
+            <xsl:when test="$imagePageExtension = '.xml'">
+              <xsl:element name="a">
+                <xsl:attribute name="href">
+                  <xsl:text>../index.xml</xsl:text>
+                </xsl:attribute>
+                <xsl:text>Go up one folder</xsl:text>
+              </xsl:element>
+            </xsl:when>
+            <xsl:otherwise>
+              <xsl:element name="a">
+                <xsl:attribute name="href">
+                  <xsl:text>..</xsl:text>
+                </xsl:attribute>
+                <xsl:text>Go up one folder</xsl:text>
+              </xsl:element>
+            </xsl:otherwise>
+          </xsl:choose>
           <xsl:text>]</xsl:text>
         </td>
       </tr>
@@ -120,12 +134,25 @@ being able to display the translated html.
       <xsl:attribute name="width">
         <xsl:value-of select="100 div $nTableCells" /><xsl:text>%</xsl:text>
       </xsl:attribute>
-      <xsl:element name="a">
-        <xsl:attribute name="href">
-          <xsl:value-of select="name"/>
-        </xsl:attribute>
-        <xsl:value-of select="name"/>
-      </xsl:element>
+      <xsl:choose>
+        <xsl:when test="$imagePageExtension = '.xml'">
+          <xsl:element name="a">
+            <xsl:attribute name="href">
+              <xsl:value-of select="name"/>
+              <xsl:text>/index.xml</xsl:text>
+            </xsl:attribute>
+            <xsl:value-of select="name"/>
+          </xsl:element>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:element name="a">
+            <xsl:attribute name="href">
+              <xsl:value-of select="name"/>
+            </xsl:attribute>
+            <xsl:value-of select="name"/>
+          </xsl:element>
+        </xsl:otherwise>
+      </xsl:choose>
     </xsl:element>
     <!-- <xsl:apply-templates/ -->
   </xsl:template>
@@ -168,7 +195,7 @@ being able to display the translated html.
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
-            <xsl:text>.html</xsl:text>
+            <xsl:value-of select="$imagePageExtension"/>
           </xsl:attribute>
           <xsl:element name="img">
             <xsl:attribute name="src">
@@ -193,7 +220,7 @@ being able to display the translated html.
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
-            <xsl:text>.html</xsl:text>
+            <xsl:value-of select="$imagePageExtension"/>
           </xsl:attribute>
           <xsl:value-of select="name"/>
         </xsl:element>
