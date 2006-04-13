@@ -33,34 +33,43 @@
         <table class="links-table">
           <tr>
             <td class="links-table-cell prev">
-              <xsl:if test="string-length(prev/name) != 0">
-                <xsl:element name="a">
-                  <xsl:attribute name="href">
+              <xsl:choose>
+                <xsl:when test="string-length(prev/name) != 0">
+                  <xsl:element name="a">
+                    <xsl:attribute name="href">
+                      <xsl:value-of select="prev/name"/>
+                      <xsl:text>.html</xsl:text>
+                    </xsl:attribute>
+                    <xsl:text>&lt;&lt; </xsl:text>
                     <xsl:value-of select="prev/name"/>
-                    <xsl:text>.html</xsl:text>
-                  </xsl:attribute>
-                  <xsl:text>&lt;&lt; </xsl:text>
-                  <xsl:value-of select="prev/name"/>
-                  <xsl:value-of select="prev/ext"/>
-                </xsl:element>
-              </xsl:if>
-              <!-- <xsl:text>&amp;nbsp;</xsl:text> -->
+                    <xsl:value-of select="prev/ext"/>
+                  </xsl:element>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
             </td>
             <td class="links-table-cell this">
               <a href=".">Index</a>
             </td>
             <td class="links-table-cell next">
-              <xsl:if test="string-length(next/name) != 0">
-                <xsl:element name="a">
-                  <xsl:attribute name="href">
+              <xsl:choose>
+                <xsl:when test="string-length(next/name) != 0">
+                  <xsl:element name="a">
+                    <xsl:attribute name="href">
+                      <xsl:value-of select="next/name"/>
+                      <xsl:text>.html</xsl:text>
+                    </xsl:attribute>
                     <xsl:value-of select="next/name"/>
-                    <xsl:text>.html</xsl:text>
-                  </xsl:attribute>
-                  <xsl:value-of select="next/name"/>
-                  <xsl:value-of select="next/ext"/>
-                  <xsl:text> &gt;&gt;</xsl:text>
-                </xsl:element>
-              </xsl:if>
+                    <xsl:value-of select="next/ext"/>
+                    <xsl:text> &gt;&gt;</xsl:text>
+                  </xsl:element>
+                </xsl:when>
+                <xsl:otherwise>
+                  <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+                </xsl:otherwise>
+              </xsl:choose>
               <!-- <xsl:text>&amp;nbsp;</xsl:text> -->
             </td>
           </tr>
