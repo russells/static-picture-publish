@@ -14,6 +14,7 @@ from StringIO import StringIO
 from string import join as stringjoin
 from time import time
 from shutil import copyfile
+from ConfigParser import ConfigParser
 
 
 defaultExtensions = '.jpg,.jpeg,.gif,.png'
@@ -387,6 +388,11 @@ class PictureDir:
         self.dirBasename = basename(dirName)
         self.doUp = doUp                # If true, put "Up" link in html
 
+        self.dirConfig = ConfigParser()
+        dirConfigs[self.dirName] = self.dirConfig
+        self.dirConfig.read(pathjoin(self.picRoot, self.dirName,
+                                     '.static-picture-publish'))
+
         if self.dirName=='':
             self.picPath = self.picRoot
             self.webPath = self.webRoot
@@ -412,6 +418,11 @@ class PictureDir:
         # Now create our lists
         lst = listdir(self.picPath)
         for l in lst:
+            # We might be ignoring this entry.
+            if self.dirConfig.has_option('ignore', l) \
+                   and self.dirConfig.getboolean('ignore', l):
+                #print 'We are ignoring %s' % pathjoin(self.dirName,l)
+                continue
             # If it's a directory, recursively create an instance and process
             # that directory.
             subPath = pathjoin(self.picPath, l)
@@ -725,6 +736,8 @@ def sppCopyFile(filename, destfilename, filetype):
 
 if __name__ == '__main__':
     parseOptions()
+
+    dirConfigs = {}
 
     pd = PictureDir(picRoot, webRoot)
     # Create the output directory.
