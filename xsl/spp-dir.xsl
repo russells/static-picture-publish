@@ -56,13 +56,18 @@ being able to display the translated html.
         <span class="page-title">Images in <xsl:value-of select="@path"/></span>
         <div class="picturedir">
           <xsl:apply-templates select="updir"/>
+          <xsl:comment>
+            <xsl:text> We have </xsl:text>
+            <xsl:value-of select="count(dirs/dir)"/>
+            <xsl:text> folders </xsl:text>
+          </xsl:comment>
           <xsl:apply-templates select="dirs"/>
-          <xsl:apply-templates select="images"/>
           <xsl:comment>
             <xsl:text> We have </xsl:text>
             <xsl:value-of select="count(images/image)"/>
             <xsl:text> images </xsl:text>
           </xsl:comment>
+          <xsl:apply-templates select="images"/>
           <xsl:if test="count(images/image) &gt; $repeatDirsAfterNImages">
             <xsl:apply-templates select="dirs"/>
             <xsl:apply-templates select="updir"/>
@@ -119,23 +124,23 @@ being able to display the translated html.
   <xsl:template match="/picturedir/dirs">
     <xsl:if test="count(dir) != 0">
       <span class="dir-list-title">Folders</span>
+      <table class="dir-table">
+        <xsl:attribute name="summary">
+          <xsl:text>Folder list</xsl:text>
+        </xsl:attribute>
+        <xsl:for-each select="dir[ position() mod $nTableCells = 1 ]">
+          <tr class="dir-table-row">
+            <xsl:for-each select=". | following-sibling::dir[position()&lt;$nTableCells]">
+              <xsl:call-template name="dirtemplate">
+                <!-- <xsl:with-param name="p"> -->
+                  <!-- <xsl:value-of select="position()"/> -->
+                <!-- </xsl:with-param> -->
+              </xsl:call-template>
+            </xsl:for-each>
+          </tr>
+        </xsl:for-each>
+      </table>
     </xsl:if>
-    <table class="dir-table">
-      <xsl:attribute name="summary">
-        <xsl:text>Directories</xsl:text>
-      </xsl:attribute>
-      <xsl:for-each select="dir[ position() mod $nTableCells = 1 ]">
-        <tr class="dir-table-row">
-          <xsl:for-each select=". | following-sibling::dir[position()&lt;$nTableCells]">
-            <xsl:call-template name="dirtemplate">
-              <!-- <xsl:with-param name="p"> -->
-                <!-- <xsl:value-of select="position()"/> -->
-              <!-- </xsl:with-param> -->
-            </xsl:call-template>
-          </xsl:for-each>
-        </tr>
-      </xsl:for-each>
-    </table>
   </xsl:template>
 
   <xsl:template name="dirtemplate">
@@ -172,23 +177,23 @@ being able to display the translated html.
   <xsl:template match="/picturedir/images">
     <xsl:if test="count(image) != 0">
       <span class="thumbnail-list-title">Images</span>
+      <table class="thumbnail-table">
+        <xsl:attribute name="summary">
+          <xsl:text>Thumbnail list</xsl:text>
+        </xsl:attribute>
+        <xsl:for-each select="image[ position() mod $nTableCells = 1 ]">
+          <tr class="thumbnail-table-row">
+            <xsl:for-each select=". | following-sibling::image[position()&lt;$nTableCells]">
+              <xsl:call-template name="imagetemplate">
+                <!-- <xsl:with-param name="p"> -->
+                  <!-- <xsl:value-of select="position()"/> -->
+                <!-- </xsl:with-param> -->
+              </xsl:call-template>
+            </xsl:for-each>
+          </tr>
+        </xsl:for-each>
+      </table>
     </xsl:if>
-    <table class="thumbnail-table">
-      <xsl:attribute name="summary">
-        <xsl:text>Thumbnails!</xsl:text>
-      </xsl:attribute>
-      <xsl:for-each select="image[ position() mod $nTableCells = 1 ]">
-        <tr class="thumbnail-table-row">
-          <xsl:for-each select=". | following-sibling::image[position()&lt;$nTableCells]">
-            <xsl:call-template name="imagetemplate">
-              <!-- <xsl:with-param name="p"> -->
-                <!-- <xsl:value-of select="position()"/> -->
-              <!-- </xsl:with-param> -->
-            </xsl:call-template>
-          </xsl:for-each>
-        </tr>
-      </xsl:for-each>
-    </table>
   </xsl:template>
 
 
