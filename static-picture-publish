@@ -455,14 +455,26 @@ class PictureDir:
 
     def sortSubList(self, lst, sectionName):
         lst.sort()
+        lstcopy = copy(lst)
+	for i in range(len(lst)):
+            lst[i] = None
         for i in range(len(lst)):
-            sub = lst[i]
+            sub = lstcopy[i]
             name = sub.name()
             if self.dirConfig.has_option(sectionName, name):
                 order = self.dirConfig.getint(sectionName, name) - 1
-                if i == order:
-                    continue
-                lst[i], lst[order] = lst[order], lst[i]
+                if lst[order] is not None:
+                    raise IndexError('Duplicate index')
+                lst[order] = sub
+                lstcopy[i] = None
+        for i in range(len(lst)):
+            if lstcopy[i] is None:
+                continue
+            sub = lstcopy[i]
+            for j in range(len(lst)):
+                if lst[j] is None:
+                    lst[j] = sub
+                    break
 
 
     def name(self):
@@ -594,6 +606,8 @@ class PictureDir:
     def __lt__(self, other): return self.dirBasename <  other.dirBasename
     def __ge__(self, other): return self.dirBasename >= other.dirBasename
     def __le__(self, other): return self.dirBasename <= other.dirBasename
+
+    def __repr__(self): return self.dirBasename
 
 
 # Characters that can be included in shell commands without escaping.
