@@ -368,6 +368,10 @@ class Picture:
                 symlink(fullImagePath, symlinkPath)
 
 
+    def name(self):
+        return self.picName
+
+
     def __eq__(self, other): return self.picName == other.picName
     def __ne__(self, other): return self.picName != other.picName
     def __gt__(self, other): return self.picName >  other.picName
@@ -390,8 +394,14 @@ class PictureDir:
 
         self.dirConfig = ConfigParser()
         dirConfigs[self.dirName] = self.dirConfig
-        self.dirConfig.read(pathjoin(self.picRoot, self.dirName,
-                                     '.static-picture-publish'))
+        # Grudgingly allow reading a config file with '.txt' on the end, so
+        # that Windows can work out how to edit the file.  You don't need both
+        # (or either) of these files.  Nothing bad will happen if they don't
+        # exist.
+        self.dirConfig.read((pathjoin(self.picRoot, self.dirName,
+                                      '.static-picture-publish'),
+                             pathjoin(self.picRoot, self.dirName,
+                                      '.static-picture-publish.txt')))
 
         if self.dirName=='':
             self.picPath = self.picRoot
@@ -435,10 +445,29 @@ class PictureDir:
                 if p.hasPics():
                     self.subdirList.append(p)
             elif isPicFile(self.picPath, subPath):
-                self.picList.append(Picture(l, self.picPath, self.webPath,
-                                            dirName))
-        self.picList.sort()
-        self.subdirList.sort()
+                im = Picture(l, self.picPath, self.webPath, dirName)
+                self.picList.append(im)
+        # Now sort the lists, and then rearrange them given the information in
+        # the config file.
+        self.sortSubList(self.subdirList, 'folder order')
+        self.sortSubList(self.picList, 'image order')
+
+
+    def sortSubList(self, lst, sectionName):
+        lst.sort()
+        for i in range(len(lst)):
+            sub = lst[i]
+            name = sub.name()
+            if self.dirConfig.has_option(sectionName, name):
+                order = self.dirConfig.getint(sectionName, name) - 1
+                if i == order:
+                    continue
+                lst[i], lst[order] = lst[order], lst[i]
+
+
+    def name(self):
+        return self.dirBasename
+
 
     def __str__(self):
         s = '<<PictureDir("%s","%s","%s",%s)' % \
@@ -469,13 +498,18 @@ class PictureDir:
         modified = False
         for i in range(len(self.picList)):
             pic = self.picList[i]
+            if pic is None:
+                continue
             if i > 0: prevPic = self.picList[i-1]
             else: prevPic = None
             if i < len(self.picList)-1: nextPic = self.picList[i+1]
             else: nextPic = None
             m = pic.go(prevPic, nextPic)
             if m: modified = True
-        for d in self.subdirList:
+        for i in range(len(self.subdirList)):
+            d = self.subdirList[i]
+            if d is None:
+                continue
             m = d.go()
             if m: modified = True
         if options.regen_all or options.regen_markup or modified:
