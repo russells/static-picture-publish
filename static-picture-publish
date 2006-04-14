@@ -737,10 +737,13 @@ def sppCopyFile(filename, destfilename, filetype):
     copyfile(f, pathjoin(webRoot, destfilename))
 
 
+# A place to keep all the directory configuration information.  Indexed by
+# dirName, so we can get to the info from both the source and destination
+# trees.
+dirConfigs = {}
+
 if __name__ == '__main__':
     parseOptions()
-
-    dirConfigs = {}
 
     pd = PictureDir(picRoot, webRoot)
     # Create the output directory.
