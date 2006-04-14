@@ -418,7 +418,10 @@ class PictureDir:
         # Now create our lists
         lst = listdir(self.picPath)
         for l in lst:
-            # We might be ignoring this entry.
+            # Ignore anything starting with '.'
+            if l[0] == '.':
+                continue
+            # We might be ignoring this entry anyway.
             if self.dirConfig.has_option('ignore', l) \
                    and self.dirConfig.getboolean('ignore', l):
                 #print 'We are ignoring %s' % pathjoin(self.dirName,l)

@@ -30,6 +30,11 @@ back to the index we are near the current image.
 
 (Not sure how this handles image names with strange characters in them.)
 
+** Put the updir link at the bottom of the page as well as the top.
+
+This should make it easier to navigate directories.  Perhaps put the
+subdirectories table at the bottom too.
+
 *** Konqueror 3.5.1 doesn't translate the XML.
 
 * Code
