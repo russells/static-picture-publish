@@ -771,11 +771,15 @@ def searchForFile(path, type, filename):
     #print >>stderr, "searchfor  (%s, %s)" % (path,filename)
     p = pathjoin(path, filename)
     pe = pathjoin(path, type, filename)
-    pme = pathjoin(path, 'makediary', type, filename)
+    pse = pathjoin(path, 'static_picture_publish', filename)
+    pste = pathjoin(path, 'static_picture_publish', type, filename)
     #print >>stderr, "Looking for %s, cwd is %s" % (p, getcwd())
-    if pathexists(pme):
-        #print "Found %s" % pme
-        return pme
+    if pathexists(pste):
+        #print "Found %s" % pste
+        return pste
+    elif pathexists(pse):
+        #print "Found %s" % pse
+        return pse
     elif pathexists(pe):
         #print "Found %s" % pe
         return pe
@@ -798,10 +802,10 @@ def findFile(filename, filetype):
         # name, look at relative locations first.
         if argv[0].startswith('.'):
             searchpath = ['.', '..', '../..']
-            for p in syspath:
-                searchpath.append(p)
         else:
-            searchpath = syspath
+            searchpath = ['.']
+        for p in syspath:
+            searchpath.append(p)
         #print >>sys.stderr, "searchpath is %s" % str(searchpath)
         for path in searchpath:
             filepathname = searchForFile(path, filetype, filename)
@@ -811,7 +815,7 @@ def findFile(filename, filetype):
 
 
 def sppCopyFile(filename, destfilename, filetype):
-    f = findFile(filename, "css")
+    f = findFile(filename, filetype)
     if f is None:
         print >>stderr, "%s: cannot find %s" % (argv[0], filename)
         return
