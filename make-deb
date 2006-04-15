@@ -1,0 +1,46 @@
+#!/bin/sh
+
+# Make the debian package.  This must be run from within the source
+# directory.
+
+set -e -x
+
+# Check for things that indicate we are in the makediary source
+# directory.
+[ -f VERSION ]
+[ -f setup.py ]
+[ -d css ]
+[ -d xsl ]
+[ -d xslt-examples ]
+
+_VERSION="$(head -1 VERSION)"
+
+_SRC_DIR="$(pwd)"
+_DEB_BUILD_DIR=$_SRC_DIR/,tmp/deb/static-picture-publish-$_VERSION
+
+# These gymnastics are to ensure that the parent directory exists, but
+# the directory itself does not.
+rm -rf $_DEB_BUILD_DIR
+mkdir -p $_DEB_BUILD_DIR
+#rmdir $_DEB_BUILD_DIR
+
+#svn export $_SRC_DIR $_DEB_BUILD_DIR
+find .    -name '{arch}' -prune \
+       -o -name .arch-ids -prune \
+       -o -name ',*' -prune \
+       -o -name dist -prune \
+       -o -name dist-deb -prune \
+       -o -type f -print0 \
+   | tar cf - -T - --null \
+   | ( cd $_DEB_BUILD_DIR  &&  tar xvf - )
+
+cd $_DEB_BUILD_DIR
+./make-man
+
+fakeroot dpkg-buildpackage -uc -us
+
+cd $_SRC_DIR
+mkdir -p dist-deb
+cp -pv $_SRC_DIR/,tmp/deb/static-picture-publish* dist-deb/
+
+# arch-tag: 85c8f6d7-bb19-45ac-ae1f-44c0b85b9219
