@@ -103,7 +103,7 @@ markup_opts.add_option(
 markup_opts.add_option(
     '-N','--no-html',
     action='store_true',
-    help='Don\'t create HTML from XML')
+    help='Don\'t create HTML from XML (Unimplemented)')
 markup_opts.add_option(
     '-r','--regen-all',
     action='store_true',
@@ -112,7 +112,7 @@ markup_opts.add_option(
     '-t','--title',
     type='string',
     action='store',
-    help='Set the HTML title')
+    help='Set the HTML title (Unimplemented)')
 opt.add_option_group(markup_opts)
 
 layout_opts = OptionGroup(opt, "Layout options")
