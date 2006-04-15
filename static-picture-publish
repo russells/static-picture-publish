@@ -368,6 +368,10 @@ class Picture:
                 symlink(fullImagePath, symlinkPath)
 
 
+    def name(self):
+        return self.picName
+
+
     def __eq__(self, other): return self.picName == other.picName
     def __ne__(self, other): return self.picName != other.picName
     def __gt__(self, other): return self.picName >  other.picName
@@ -390,8 +394,14 @@ class PictureDir:
 
         self.dirConfig = ConfigParser()
         dirConfigs[self.dirName] = self.dirConfig
-        self.dirConfig.read(pathjoin(self.picRoot, self.dirName,
-                                     '.static-picture-publish'))
+        # Grudgingly allow reading a config file with '.txt' on the end, so
+        # that Windows can work out how to edit the file.  You don't need both
+        # (or either) of these files.  Nothing bad will happen if they don't
+        # exist.
+        self.dirConfig.read((pathjoin(self.picRoot, self.dirName,
+                                      '.static-picture-publish'),
+                             pathjoin(self.picRoot, self.dirName,
+                                      '.static-picture-publish.txt')))
 
         if self.dirName=='':
             self.picPath = self.picRoot
@@ -435,10 +445,53 @@ class PictureDir:
                 if p.hasPics():
                     self.subdirList.append(p)
             elif isPicFile(self.picPath, subPath):
-                self.picList.append(Picture(l, self.picPath, self.webPath,
-                                            dirName))
-        self.picList.sort()
-        self.subdirList.sort()
+                im = Picture(l, self.picPath, self.webPath, dirName)
+                self.picList.append(im)
+        # Now sort the lists, and then rearrange them given the information in
+        # the config file.
+        self.sortSubList(self.subdirList, 'folder order')
+        self.sortSubList(self.picList, 'image order')
+
+
+    def sortSubList(self, lst, sectionName):
+        # Sort gives us the default order.
+        lst.sort()
+        if not self.dirConfig.has_section(sectionName):
+            return
+        # Take a shallow copy, then null the original.
+        lstcopy = copy(lst)
+        for i in range(len(lst)):
+            lst[i] = None
+        # Copy the original data back into the original array, if it's
+        # referenced in the config.
+        for i in range(len(lst)):
+            sub = lstcopy[i]
+            # This requires Picture and PictureDir objects to have a name()
+            # method that returns the directory entry name.
+            name = sub.name()
+            if self.dirConfig.has_option(sectionName, name):
+                order = self.dirConfig.getint(sectionName, name) - 1
+                # Error if there are duplicate indexes in the config.
+                if lst[order] is not None:
+                    raise IndexError('Duplicate index')
+                # Copy the data, and zero the copy.
+                lst[order] = sub
+                lstcopy[i] = None
+        # Now for all the data in the copied array that hasn't been copied back
+        # to the original array, copy it back in order.
+        for i in range(len(lst)):
+            if lstcopy[i] is None:
+                continue
+            sub = lstcopy[i]
+            for j in range(len(lst)):
+                if lst[j] is None:
+                    lst[j] = sub
+                    break
+
+
+    def name(self):
+        return self.dirBasename
+
 
     def __str__(self):
         s = '<<PictureDir("%s","%s","%s",%s)' % \
@@ -469,13 +522,18 @@ class PictureDir:
         modified = False
         for i in range(len(self.picList)):
             pic = self.picList[i]
+            if pic is None:
+                continue
             if i > 0: prevPic = self.picList[i-1]
             else: prevPic = None
             if i < len(self.picList)-1: nextPic = self.picList[i+1]
             else: nextPic = None
             m = pic.go(prevPic, nextPic)
             if m: modified = True
-        for d in self.subdirList:
+        for i in range(len(self.subdirList)):
+            d = self.subdirList[i]
+            if d is None:
+                continue
             m = d.go()
             if m: modified = True
         if options.regen_all or options.regen_markup or modified:
@@ -560,6 +618,8 @@ class PictureDir:
     def __lt__(self, other): return self.dirBasename <  other.dirBasename
     def __ge__(self, other): return self.dirBasename >= other.dirBasename
     def __le__(self, other): return self.dirBasename <= other.dirBasename
+
+    def __repr__(self): return self.dirBasename
 
 
 # Characters that can be included in shell commands without escaping.

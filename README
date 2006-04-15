@@ -3,3 +3,19 @@ Statically publish a directory tree of pictures.
 Russell Steicke <russells@adelie.cx>
 
 
+- The published tree of pictures must be in a different location from the
+  source tree.  This is because some of the generated images will have the
+  same names as the source images.
+
+- Directories and images can be excluded from publishing in the web tree by
+  putting them in a section in their containing directory.  The file is
+  called .static-picture-publish or .static-picture-publish.txt, and it is
+  in INI format.  eg
+
+    [ignore]
+    abc.jpg = 1
+    def.jpg = 1
+
+  The names must be '= 1' because the parser expects a key and a value.
+
+
