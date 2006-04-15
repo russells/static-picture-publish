@@ -1,0 +1,16 @@
+Source: static-picture-publish
+Section: utilities
+Priority: optional
+Maintainer: Russell Steicke <russells@adelie.cx>
+Build-Depends-Indep: debhelper (>> 3.0.0), python-dev (>= 2.3), perl
+Standards-Version: 3.5.2
+
+Package: static-picture-publish
+Architecture: all
+Depends: ${shlibs:Depends}, python (>= 2.3), xsltproc,
+  python-imaging
+Description: Publish pictures into a web directory
+ static-picture-publish creates a copy of the directory structure
+ of your image directories, including smaller web-sized images,
+ thumbnails, and HTML and XML files for your web server.
+
