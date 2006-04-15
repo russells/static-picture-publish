@@ -1,0 +1,22 @@
+0.1
+
+The first line of this file is the version number of makediary.  This
+number must match the number in setup.py.  (setup.py doesn't exist yet for
+this project.)
+
+Everything else is ignored.
+
+*** When changing the version number here, don't forget to also change:
+
+- setup.py.
+
+- static-picture-publish
+
+- man/static-picture-publish.pod, including the copyright expiry date.
+
+- debian/changelog.
+
+- The version numbers in the web page.
+
+
+# arch-tag: b56cc216-2e37-4f18-9255-a80dd4920958

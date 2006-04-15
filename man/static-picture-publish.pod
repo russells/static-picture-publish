@@ -1,0 +1,192 @@
+=head1 NAME
+
+static-picture-publish - create a web dir structure from an image dir.
+
+=head1 SYNOPSIS
+
+B<static-picture-publish --help>
+
+B<static-picture-publish --version>
+
+B<static-picture-publish> I<[options]> I<picRoot> I<webRoot>
+
+=head1 DESCRIPTION
+
+Create a web directory structure from an image directory structure.
+I<picRoot> is the root of the image directory, and I<webRoot> is the root
+of the web directory.  Subdirectories of I<picroot> will be duplicated in
+I<webRoot>, containing thumbnails and smaller versions of images in
+I<picRoot>, along with XML and HTML web pages to enable viewing them.
+
+B<static-picture-publish> produces XML output initially, then process that
+with B<xsltproc> to produce HTML.  (This is only necessary because Internet
+Explorer 6, while it can process XML and XSLT, does strange things when
+given a relative path to the XSL stylesheet.  Firefox and Mozilla Seamonkey
+can view the XML files well.)
+
+If you start viewing the XML files (eg by opening index.xml in the web root
+directory with a web browser), then all the links will take you to XML
+files, which need to be processed correctly by your web browser.  If you
+start viewing HTML files (by opening index.html, perhaps implicitly as a
+DirectoryIndex file served by apache), then all the links will take you to
+HTML files.
+
+=head1 OPTIONS
+
+=head2 General options
+
+=over
+
+=item --help
+
+Print a help message, describing the program options.
+
+=item --version
+
+Print the program version and exit.
+
+=item -q
+
+=item --quiet
+
+Run silently, without printing any normal output.
+
+=item -v
+
+=item --verbose
+
+Print more information about actions.
+
+=back
+
+=head2 Image options
+
+=over
+
+=item -c
+
+=item --copy
+
+Copy the originals instead of symlinking them.
+
+=item -eI<EXTENSIONS>
+
+=item --extensions=I<EXTENSIONS>
+
+Specify a comma-separated list of file extensions to process.  These files
+must be recoginsed by the Python Imaging Library.  The extensions are
+compared case-folded.  The default list is B<.jpg,.jpeg,.gif,.png>.  If
+specified, the list is replaced, not extended.
+
+=item -n
+
+=item --no-originals
+
+Don't symlink or copy originals.
+
+=item -sI<IMAGE_SIZE>
+
+=item --image-size=I<IMAGE_SIZE>
+
+Set maximum dimension for images.  (Default 640x640 pixels)
+
+=item -zI<THUMBNAIL_SIZE>
+
+=item --thumbnail-size=I<THUMBNAIL_SIZE>
+
+Set maximum dimension for thumbnails.  (Default 128x128 pixels)
+
+=back
+
+=head2 Markup options
+
+=over
+
+=item -g
+
+=item --regen-markup
+
+Force regeneration of HTML or XML output.
+
+=item -N
+
+=item --no-html
+
+Don't create HTML from XML.  (Unimplemented)
+
+=item -r
+
+=item --regen-all
+
+Force regeneration of all output.
+
+=item -tI<TITLE>
+
+=item --title=I<TITLE>
+
+Set the HTML title.  (Unimplemented)
+
+=back
+
+=head2 Layout options
+
+=over
+
+=item --css=I<CSS>
+
+CSS file to use in HTML or XML output. (Default inbuilt.)  The CSS file
+will be copied into I<webRoot> and renamed to F<spp.css>.
+
+=item --row=ROW
+
+Number of images per row in HTML. (Default 3.)
+
+=item --xsl-dir=I<XSL_DIR>
+
+XSLT file to use for directory XML output. (Default inbuilt.)  The file
+will be copied into I<webRoot> and renamed to F<spp-dir.xsl>.
+
+=item --xsl-image=I<XSL_IMAGE>
+
+XSLT file to use for image XML output. (Default inbuilt.)  The file will be
+copied into I<webRoot> and renamed to F<spp-image.xsl>.
+
+=back
+
+=head1 PER-DIRECTORY CONFIG FILE
+
+If B<static-picture-publish> finds a F<.static-picture-publish> or
+F<.static-picture-publish.txt> file in the I<picRoot> or a subdirectory of
+that, it is taken as a configuration file to specify how the contents of
+that directory are to be processed.  Both files can exist, and both will be
+read if they exist.
+
+=head1 EXAMPLES
+
+Publish pictures from F</home/joe/pics> to F</var/www/pics>, specifying the
+thumbnail size.
+
+ static-picture-publish -z 100x100 /home/joe/pics /var/www/pics
+
+=head1 BUGS
+
+Some, probably...
+
+=head1 AUTHOR
+
+Russell Steicke <russells@adelie.cx>
+
+=head1 COPYRIGHT
+
+Copyright (C) 2006 Russell Steicke.  Released under the terms of the GNU
+General Public License, but dedicated to the public domain at the beginning
+of the tenth calendar year after publishing (ie the start of 2016 for
+version 0.1, released in 2006).
+
+This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+=head1 VERSION
+
+0.1
+

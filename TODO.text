@@ -2,17 +2,22 @@ Things to do... -*- mode:outline; fill-column:79 -*-
 
 * Content
 
-** Create XML files.
+** Create XML files.  DONE.
 
 Instead of HTML files.  Need to make sure that the XSLT stuff works as
 expected.
+
+I actually create both, by making XML files first, then post-processing them
+with xsltproc.  This is necessary because IE6, which otherwise handles XML and
+XSL properly, stupidly reads relative locations as relative to the XSL file, so
+after that it can't find the CSS file.  WTF?
 
 ** Investigate DTDs in xml output.
 
 Find out what web browsers do if an XML file contains a DTD but does not
 conform to the DTD.
 
-** Look at CSS.
+** Look at CSS.  DONE.
 
 ** Work out if we need tables in the output, or if CSS can do it.  DONE.
 
@@ -67,6 +72,18 @@ if ext.lower() in options.extensions:
 
 ** Don't create symlinks to full-sized pics, if specified.
 
+** Delete unused images in webdir.
+
+Unused directories are currently deleted, but not unused images in still-used
+directories.
+
+* Documentation.
+
+** Create the web page for this.
+
+** Man page.
+
+** Rearrange the command line options into groups.
 
 
 # arch-tag: d7862aaa-4514-4f8d-b5eb-80826533fee9

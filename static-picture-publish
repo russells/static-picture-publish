@@ -5,7 +5,7 @@ from os import getcwd, listdir, makedirs, readlink, rmdir, stat, symlink, \
      system, unlink
 from os.path import abspath, basename, exists as pathexists, isdir, islink, \
      join as pathjoin, split as pathsplit, splitext
-from optparse import OptionParser, Option, OptionValueError
+from optparse import Option, OptionGroup, OptionParser, OptionValueError
 from copy import copy
 import Image
 from errno import EEXIST, ENOENT
@@ -61,61 +61,82 @@ usage=
 '  not have its webdir output regenerated.  Directories and images in picdir\n'
 '  that no longer exist will have their equivalents removed from webdir.')
 
-opt.add_option('-c','--copy',
-               action='store_true',
-               help='Copy originals instead of symlinking')
-opt.add_option('--css',
-               action='store',
-               #metavar="css_file",
-               help='CSS file to use in HTML or XML output. (Default inbuilt)')
-opt.add_option('-e','--extensions',
-               action='store',
-               help='Comma-separated list of file extensions to use.  '
-               'These are compared case-insenstiively.  '
-               '(Default is "%s").  ' % defaultExtensions)
-opt.add_option('-g','--regen-markup',
-               action='store_true',
-               help='Force regeneration of HTML or XML output')
-opt.add_option('-n','--no-symlink',
-               action='store_true',
-               help='Don\'t symlink originals')
-opt.add_option('-N','--no-html',
-               action='store_true',
-               help='Don\'t create HTML from XML')
 opt.add_option('-q','--quiet',
                action='store_true',
                help='Don\'t print any output')
-opt.add_option('-r','--regen-all',
-               action='store_true',
-               help='Force regeneration of all output')
-opt.add_option('--row',
-               type='int',
-               action='store',
-               help='Number of images per row in HTML. (Default 3)')
-opt.add_option('-s','--image-size',
-               type='intpair',
-               action='store',
-               help='Set maximum dimension for images (Default 640x640 pixels)')
-opt.add_option('-t','--title',
-               type='string',
-               action='store',
-               help='Set the HTML title')
 opt.add_option('-v','--verbose',
                action='store_true',
                help='Print more information about actions')
-opt.add_option('--xsl-dir',
-               action='store',
-               help='XSLT file to use for directory XML output. '
-               '(Default inbuilt)')
-opt.add_option('--xsl-image',
-               action='store',
-               help='XSLT file to use for image XML output. '
-               '(Default inbuilt)')
-opt.add_option('-z','--thumbnail-size',
-               type='intpair',
-               action='store',
-               help='Set maximum dimension for thumbnails '
-               '(Default 128x128 pixels)')
+
+image_opts = OptionGroup(opt, "Image options")
+image_opts.add_option(
+    '-c','--copy',
+    action='store_true',
+    help='Copy originals instead of symlinking')
+image_opts.add_option(
+    '-e','--extensions',
+    action='store',
+    help='Comma-separated list of file extensions to use.  '
+    'These are compared case-insenstiively.  '
+    '(Default is "%s").  ' % defaultExtensions)
+image_opts.add_option(
+    '-n','--no-originals',
+    action='store_true',
+    help='Don\'t symlink or copy originals')
+image_opts.add_option(
+    '-s','--image-size',
+    type='intpair',
+    action='store',
+    help='Set maximum dimension for images (Default 640x640 pixels)')
+image_opts.add_option(
+    '-z','--thumbnail-size',
+    type='intpair',
+    action='store',
+    help='Set maximum dimension for thumbnails '
+    '(Default 128x128 pixels)')
+opt.add_option_group(image_opts)
+
+markup_opts = OptionGroup(opt, "Markup options")
+markup_opts.add_option(
+    '-g','--regen-markup',
+    action='store_true',
+    help='Force regeneration of HTML or XML output')
+markup_opts.add_option(
+    '-N','--no-html',
+    action='store_true',
+    help='Don\'t create HTML from XML')
+markup_opts.add_option(
+    '-r','--regen-all',
+    action='store_true',
+    help='Force regeneration of all output')
+markup_opts.add_option(
+    '-t','--title',
+    type='string',
+    action='store',
+    help='Set the HTML title')
+opt.add_option_group(markup_opts)
+
+layout_opts = OptionGroup(opt, "Layout options")
+layout_opts.add_option(
+    '--css',
+    action='store',
+    #metavar="css_file",
+    help='CSS file to use in HTML or XML output. (Default inbuilt)')
+layout_opts.add_option(
+    '--row',
+    type='int',
+    action='store',
+    help='Number of images per row in HTML. (Default 3)')
+layout_opts.add_option(
+    '--xsl-dir',
+    action='store',
+    help='XSLT file to use for directory XML output. (Default inbuilt)')
+layout_opts.add_option(
+    '--xsl-image',
+    action='store',
+    help='XSLT file to use for image XML output. (Default inbuilt)')
+
+opt.add_option_group(layout_opts)
 
 def parseOptions():
     global options, picRoot, webRoot, picTree, webTree
@@ -339,7 +360,8 @@ class Picture:
                                shellEscape(self.htmlName))
             verboseMessage('Command: %s' % cmd)
             system(cmd)
-        self.createFullImageLink()
+        if not options.no_originals:
+            self.createFullImageLink()
 
     def createFullImageLink(self):
         '''Create a symlink to the full image.'''
