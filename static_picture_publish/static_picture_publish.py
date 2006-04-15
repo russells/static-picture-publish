@@ -9,7 +9,6 @@ from optparse import Option, OptionGroup, OptionParser, OptionValueError
 from copy import copy
 import Image
 from errno import EEXIST, ENOENT
-#from urllib import quote, quote_plus
 from StringIO import StringIO
 from string import join as stringjoin
 from time import time
@@ -824,7 +823,7 @@ def sppCopyFile(filename, destfilename, filetype):
 # trees.
 dirConfigs = {}
 
-if __name__ == '__main__':
+def go():
     parseOptions()
 
     pd = PictureDir(picRoot, webRoot)
@@ -849,6 +848,10 @@ if __name__ == '__main__':
     global webTree
     webTree = dirTree(webRoot)
     doWebDirs()
+
+if __name__ == '__main__':
+    go()
+
 
 # arch-tag: dbd38a8f-6259-49ca-a125-6b5cd1f48bdb
 

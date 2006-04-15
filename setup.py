@@ -11,18 +11,22 @@ setup(name='static-picture-publish',
       description="""Publish images.""",
 
       long_description="""
-      Print diaries on a range of paper sizes.  The diaries can
-      include a cover page, various types of front matter pages
-      (planners, calendars, addresses etc), and a year's worth of day
-      pages.""",
+      Publish images.""",
 
       author='Russell Steicke',
       author_email='russells@adelie.cx',
       url='http://adelie.cx/static-picture-publish',
       version=_sppVersion,
       license="GPL",
-      packages=['static-picture-publish'],
+      packages=['static_picture_publish'],
       scripts=['bin/static-picture-publish'],
-      data_files=[('share/man/man1', ['man/static-picture-publish.1.gz'])])
+      data_files=[('share/man/man1',
+                   ['man/static-picture-publish.1.gz']),
+                  ('lib/python2.3/static_picture_publish/css',
+                   ['css/spp.css'] ),
+                  ('lib/python2.3/static_picture_publish/xsl',
+                   ['xsl/spp-dir.xsl', 'xsl/spp-image.xsl'] )
+                  ]
+      )
 
 # arch-tag: a7b4fe07-d658-43fc-962d-bb9456914ec8
