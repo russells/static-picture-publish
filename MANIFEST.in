@@ -1,0 +1,12 @@
+include COPYING
+include README
+include *.text
+include setup.py
+include static_picture_publish/*.py
+include bin/static-picture-publish
+include man/static-picture-publish.1.gz
+include css/spp.css
+include xsl/spp-*.xsl
+
+# arch-tag: b35cc1c7-e9fd-48da-a19e-a5edda38c2ad
+

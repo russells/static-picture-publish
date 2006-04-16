@@ -1,3 +1,6 @@
 
 precious ^dist-.*$
+precious ^build$
+precious ^dist$
+precious ^MANIFEST$
 
