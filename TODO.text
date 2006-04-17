@@ -41,6 +41,34 @@ This should make it easier to navigate directories.  Perhaps put the
 subdirectories table at the bottom too.  Do this only if there are more than a
 few images, perhaps 9.
 
+** Allow renaming images and folders.
+
+For example, I have many directories that are named by year and month number:
+
+  2006/
+    01/
+    02/
+    03/
+
+I'd like these names to stay the same in the source directory, but be able to
+rename them in the destination:
+
+  2006/
+    January/
+    February/
+    March/
+
+I could put a [folder names] section in the config file:
+
+  [folder names]
+  01 = January
+  02 = February
+  03 = March
+
+So that the destination directories get renamed.
+
+If I do this, what name goes in the [folder order] section: the original name
+or the new name?
 
 *** Konqueror 3.5.1 doesn't translate the XML.
 
