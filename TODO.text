@@ -28,6 +28,8 @@ need tables to enforce the regular layout.
 
 Might not be needed if all the targeted clients can use XML.
 
+Konqueror 3.5.1 doesn't translate the XML.
+
 ** Make the index links go to the page near the image.  DONE.
 
 Each "Index" link should be a to href="index.html#a.jpg", so that when we go
@@ -70,7 +72,20 @@ So that the destination directories get renamed.
 If I do this, what name goes in the [folder order] section: the original name
 or the new name?
 
-*** Konqueror 3.5.1 doesn't translate the XML.
+** Allow rotating images in output.
+
+Perhaps a section like this in the config file:
+
+  [Image - a.jpg]
+  rotate = 90
+
+Rotating an image may require copying the original, so the original is in the
+same orientation as the web image.  Or perhaps not.  If anyone wants the
+original for printing, they can just cope with this.
+
+** Virtual folders.
+
+
 
 * Code
 
@@ -105,11 +120,42 @@ if ext.lower() in options.extensions:
 Unused directories are currently deleted, but not unused images in still-used
 directories.
 
+** Add a [include] section.
+
+If there is an [include] section, then we'll only include (!) items in that
+list.  After this, we should rename [ignore] to [exclude].
+
+** Allow globs in config file.
+
+Instead of having to name every pic in a section:
+
+  [ignore]
+  2573-one.jpg
+  2574-two.jpg
+  2575-three.jpg
+
+allow this:
+
+  [ignore]
+  257?-*.jpg
+
+or this:
+
+  [ignore]
+  257[3-5]*.jpg
+
+
 * Documentation.
 
-** Create the web page for this.
+** Create the web page for this.  DONE.
 
-** Man page.
+** Man page.  DONE.
+
+Done in perl pod.
+
+** Convert man page to docbook.
+
+There are docbook2man etc tools around
 
 ** Rearrange the command line options into groups.
 

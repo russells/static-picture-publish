@@ -449,13 +449,7 @@ class PictureDir:
         # Now create our lists
         lst = listdir(self.picPath)
         for l in lst:
-            # Ignore anything starting with '.'
-            if l[0] == '.':
-                continue
-            # We might be ignoring this entry anyway.
-            if self.dirConfig.has_option('ignore', l) \
-                   and self.dirConfig.getboolean('ignore', l):
-                #print 'We are ignoring %s' % pathjoin(self.dirName,l)
+            if not self.isIncluded(l):
                 continue
             # If it's a directory, recursively create an instance and process
             # that directory.
@@ -472,6 +466,27 @@ class PictureDir:
         # the config file.
         self.sortSubList(self.subdirList, 'folder order')
         self.sortSubList(self.picList, 'image order')
+
+
+    def isIncluded(self, name):
+        '''Find out if an entry is to be included in the output.'''
+        # Default is to include.
+        included = True
+        # Ignore anything starting with '.'
+        if name[0] == '.':
+            included = False
+        elif self.dirConfig.has_section('include'):
+            # If we have an [include] section, the default is now to exclude.
+            included = False
+            if self.dirConfig.has_option('include', name):
+                included = self.dirConfig.getboolean('include', name)
+        elif self.dirConfig.has_section('exclude'):
+            # Don't change the default here, as it's already set correctly
+            # above.
+            if self.dirConfig.has_option('exclude', name):
+                included = not self.dirConfig.getboolean('exclude', name)
+        #print "isIncluded(%s, %s): %s" % (self.dirName,name,str(included))
+        return included
 
 
     def sortSubList(self, lst, sectionName):
