@@ -85,6 +85,8 @@ original for printing, they can just cope with this.
 
 ** Virtual folders.
 
+A shadow directory structure, which points to the real images via the config
+files?
 
 
 * Code
@@ -120,7 +122,7 @@ if ext.lower() in options.extensions:
 Unused directories are currently deleted, but not unused images in still-used
 directories.
 
-** Add a [include] section.
+** Add an [include] section.  DONE.
 
 If there is an [include] section, then we'll only include (!) items in that
 list.  After this, we should rename [ignore] to [exclude].
@@ -143,6 +145,30 @@ or this:
 
   [ignore]
   257[3-5]*.jpg
+
+** Allow re-publishing only a part of the source tree.
+
+We should be able to have this directory structure:
+
+  a/
+  a/b
+  a/b/1
+  a/c
+  a/c/2
+
+and then, if say only the content in a/b changes, we should to run spp over
+just that directory and have it still linked into the rest of the output tree.
+
+There are two problems with that:
+
+  In the second run, a/b will appear to the the top level directory, so it will
+  not get a link to its parent directory by default.  This is fairly easy to
+  fix.
+
+  The second run will have to "know" where to real top level is, so it can link
+  to the correct XSL and CSS files.  This can be fairly complicated, as we may
+  need to search up and down the filesystem to find out where this spot really
+  is.  Or perhaps we could just search up until we find those files.
 
 
 * Documentation.
