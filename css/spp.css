@@ -57,6 +57,13 @@ a {
   margin-right: 3%;
 }
 
+.fullpicinfo
+{
+  font-family: sans-serif;
+  font-size: 80%;
+  padding-top: 10px;
+}
+
 .page-title
 {
   font-size: 1.9em;

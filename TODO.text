@@ -79,6 +79,11 @@ Perhaps a section like this in the config file:
   [Image - a.jpg]
   rotate = 90
 
+Or this:
+
+  [rotate]
+  a.jpg = 90
+
 Rotating an image may require copying the original, so the original is in the
 same orientation as the web image.  Or perhaps not.  If anyone wants the
 original for printing, they can just cope with this.
@@ -87,6 +92,29 @@ original for printing, they can just cope with this.
 
 A shadow directory structure, which points to the real images via the config
 files?
+
+** Instructions on pages.  DONE.
+
+Mention that the full image is available by selecting the main image.
+
+** Allow output to be split across web servers.
+
+Mainly, I want the index pages, thumbnails and web-sized pics to be on one
+server, and the full-sized pics to be on another.  The main reason for this is
+to host the main part of the output on commercial hosting somewhere, and the
+big picture archive (which shouldn't be accessed very often) on my home server.
+Then I can have the bits that most people will (or should) be looking at most
+often hosted with more availability.  It doesn't matter too much if the
+full-sized stuff isn't available sometimes.
+
+The easiest way to do this would seem to be to allow specification of a base
+URL for the full-sized stuff, give that URL to the XSL, and have it prepended
+to the correct links.
+
+** Use .comment/*.xml files.
+
+GNOME (and perhaps others, is this a freedesktop thing?) store picture comments
+in a file called .comments/$IMAGENAME.xml, which is gzip or zlib compressed.
 
 
 * Code
@@ -165,10 +193,10 @@ There are two problems with that:
   not get a link to its parent directory by default.  This is fairly easy to
   fix.
 
-  The second run will have to "know" where to real top level is, so it can link
-  to the correct XSL and CSS files.  This can be fairly complicated, as we may
-  need to search up and down the filesystem to find out where this spot really
-  is.  Or perhaps we could just search up until we find those files.
+  The second run will have to "know" where the real top level is, so it can
+  link to the correct XSL and CSS files.  This can be fairly complicated, as we
+  may need to search up and down the filesystem to find out where this spot
+  really is.  Or perhaps we could just search up until we find those files.
 
 
 * Documentation.
