@@ -1,0 +1,13 @@
+#!/bin/sh
+
+# Get rid of all the non-essential files.
+
+set -x
+
+rm -rf dist dist-deb build ,tmp MANIFEST
+rm -f */*.pyc
+rm -rf man/static-picture-publish.1 man/static-picture-publish.1.html
+find . -type f -name \*~ -print0 | xargs -0 rm -f
+
+# arch-tag: 0f004074-fd68-45fc-a447-1cb0faa5f7f9
+

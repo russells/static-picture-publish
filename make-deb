@@ -9,6 +9,7 @@ set -e -x
 # directory.
 [ -f VERSION ]
 [ -f setup.py ]
+[ -d static_picture_publish ]
 [ -d css ]
 [ -d xsl ]
 [ -d xslt-examples ]
@@ -18,20 +19,13 @@ _VERSION="$(head -1 VERSION)"
 _SRC_DIR="$(pwd)"
 _DEB_BUILD_DIR=$_SRC_DIR/,tmp/deb/static-picture-publish-$_VERSION
 
-# These gymnastics are to ensure that the parent directory exists, but
-# the directory itself does not.
 rm -rf $_DEB_BUILD_DIR
 mkdir -p $_DEB_BUILD_DIR
-#rmdir $_DEB_BUILD_DIR
 
-#svn export $_SRC_DIR $_DEB_BUILD_DIR
-find .    -name '{arch}' -prune \
-       -o -name .arch-ids -prune \
-       -o -name ',*' -prune \
-       -o -name dist -prune \
-       -o -name dist-deb -prune \
-       -o -type f -print0 \
-   | tar cf - -T - --null \
+# Here, we assume that the source tree does not contain any files whose names
+# will be escaped by tla.
+tla inventory -s \
+   | tar cf - -T - \
    | ( cd $_DEB_BUILD_DIR  &&  tar xvf - )
 
 cd $_DEB_BUILD_DIR
