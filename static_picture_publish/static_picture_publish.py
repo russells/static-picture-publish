@@ -184,6 +184,7 @@ def message(msg, level=1):
     if level <= options.messageLevel:
         print msg
 
+
 def verboseMessage(msg):
     message(msg, 2)
 
@@ -195,12 +196,12 @@ entityChars = {
     '\'' : "&apos;",
     '"'  : "&quot;",
     ';'  : "&#59;",
-    # Erk, I can't work out how to put a '#' in a URL.  This works, but also
-    # puts ugly "%23" strings in link text.
+    # '#' needs to be escaped as it is used to indicate an anchor in a page.
     '#'  : '%23',
-    # Same for '?'.
+    # '?' indicates CGI arguments (or whatever they're really called).
     '?'  : '%3f',
     }
+
 
 def entityReplace(s):
     '''Replace the characters "&<>\'" with html entities.'''
@@ -217,11 +218,12 @@ def entityReplace(s):
 
 class Picture:
     '''Process one pic.'''
-    def __init__(self, picName, picDirName, webDirName, dirName):
+    def __init__(self, picName, picDirName, webDirName, dirName, configEntry):
         self.picName = picName          # file name only
         self.picDirName = picDirName    # path to pic dir
         self.webDirName = webDirName    # path to web dir
         self.dirName = dirName          # path to either dir, relative to root
+        self.configEntry = configEntry
         self.picPath = pathjoin(picDirName, picName)
         (base, ext) = splitext(self.picName)
         self.imageName = picName
@@ -250,6 +252,7 @@ class Picture:
                 ht = pathsplit(ht)[0]
         self.picNameBase = base
         self.picNameExt = ext
+
 
     def go(self, prevPic, nextPic):
         '''Create the output files (thumbnail, image and html).'''
@@ -285,6 +288,7 @@ class Picture:
         self.createMarkup(prevPic, nextPic)
         return modified
 
+
     def imageSizeCheck(self, imagePath, requiredSize):
         '''Check to see if the output image is the correct size.
 
@@ -307,12 +311,24 @@ class Picture:
         smallimage = None
         return flag
 
+
     def generateImage(self, imagePath, imageSize, image):
         '''Make an output image.'''
         verboseMessage("  %s => %s" % (self.picPath, imagePath))
         starttime = time()
         if image is None:
             image = Image.open(self.picPath)
+            if self.configEntry.has_key('rotate'):
+                angle = int(self.configEntry['rotate'])
+                print " -- Rotating %s by %d" % (imagePath, angle)
+                if angle == 90:
+                    image = image.transpose(Image.ROTATE_90)
+                elif angle == 180:
+                    image = image.transpose(Image.ROTATE_180)
+                elif angle == 270:
+                    image = image.transpose(Image.ROTATE_270)
+                else:
+                    image = image.rotate(angle)
         image.thumbnail(imageSize, Image.ANTIALIAS)
         image.save(imagePath)
         endtime = time()
@@ -361,6 +377,7 @@ class Picture:
             system(cmd)
         if not options.no_originals:
             self.createFullImageLink()
+
 
     def createFullImageLink(self):
         '''Create a symlink to the full image.'''
@@ -412,6 +429,7 @@ class PictureDir:
         self.dirName = dirName          # Relative to picRoot (and webRoot)
         self.dirBasename = basename(dirName)
         self.doUp = doUp                # If true, put "Up" link in html
+        self.configEntries = {}
 
         self.dirConfig = ConfigParser()
         dirConfigs[self.dirName] = self.dirConfig
@@ -449,18 +467,21 @@ class PictureDir:
         # Now create our lists
         lst = listdir(self.picPath)
         for l in lst:
-            if not self.isIncluded(l):
+            configEntry = self.readConfigEntry(l)
+            if not self.isIncluded(l, configEntry):
                 continue
-            # If it's a directory, recursively create an instance and process
-            # that directory.
+            self.configEntries[l] = configEntry
             subPath = pathjoin(self.picPath, l)
             if isdir(subPath):
+                # If it's a directory, recursively create an instance and process that
+                # directory.
                 p = PictureDir(self.picRoot, self.webRoot,
                                pathjoin(self.dirName,l), True)
                 if p.hasPics():
                     self.subdirList.append(p)
             elif isPicFile(self.picPath, subPath):
-                im = Picture(l, self.picPath, self.webPath, dirName)
+                # Otherwise it's a file.
+                im = Picture(l, self.picPath, self.webPath, dirName, configEntry)
                 self.picList.append(im)
         # Now sort the lists, and then rearrange them given the information in
         # the config file.
@@ -468,23 +489,65 @@ class PictureDir:
         self.sortSubList(self.picList, 'image order')
 
 
-    def isIncluded(self, name):
+    booleanTrueValues  = ['1', 'yes', 'true',  'on' ]
+    booleanFalseValues = ['0', 'no',  'false', 'off']
+
+
+    def readConfigEntry(self, name):
+        '''Read the configuration information for an entry, if it is available.'''
+        configEntry = {}
+
+        if self.dirConfig.has_option('include', name):
+            s = self.dirConfig.get('include', name)
+            self.interpretConfigEntry(configEntry, s, 'include')
+            if not configEntry.has_key('include'):
+                # If there was no include= value in here, assume one just because the name was
+                # in the [include] section.
+                configEntry['include'] = True
+
+        if self.dirConfig.has_option('exclude', name):
+            s = self.dirConfig.get('exclude', name)
+            self.interpretConfigEntry(configEntry, s, 'exclude')
+
+        #print "configEntry<%s>" % name
+        #for key in configEntry.keys():
+        #    print "  %s: %s" % (key, configEntry[key])
+        return configEntry
+
+
+    def interpretConfigEntry(self, configEntry, s, default):
+        for ss in s.split():
+            kv = ss.split('=',1)
+            if len(kv) == 2:
+                # A value like "key=value"
+                configEntry[kv[0]] = kv[1]
+            elif kv[0].lower() in self.booleanTrueValues:
+                # A bare true value
+                configEntry[default] = True
+            elif kv[0].lower() in self.booleanFalseValues:
+                # A bare false value
+                configEntry[default] = False
+            else:
+                # A bare word with no value
+                configEntry[kv[0]] = True
+        return configEntry
+
+
+    def isIncluded(self, name, configEntry):
         '''Find out if an entry is to be included in the output.'''
-        # Default is to include.
-        included = True
+        # Default is to include, unless there is an [include] section.
+        if self.dirConfig.has_section('include'):
+            included = False
+        else:
+            included = True
         # Ignore anything starting with '.'
         if name[0] == '.':
             included = False
-        elif self.dirConfig.has_section('include'):
-            # If we have an [include] section, the default is now to exclude.
-            included = False
-            if self.dirConfig.has_option('include', name):
-                included = self.dirConfig.getboolean('include', name)
-        elif self.dirConfig.has_section('exclude'):
-            # Don't change the default here, as it's already set correctly
-            # above.
-            if self.dirConfig.has_option('exclude', name):
-                included = not self.dirConfig.getboolean('exclude', name)
+        if configEntry.has_key('include'):
+            included = configEntry['include']
+        # Exclusion takes precedence, if specified.
+        if configEntry.has_key('exclude'):
+            included = not configEntry['exclude']
         #print "isIncluded(%s, %s): %s" % (self.dirName,name,str(included))
         return included
 
@@ -872,5 +935,11 @@ if __name__ == '__main__':
     go()
 
 
+# This section is for emacs.
+# Local variables: ***
+# mode:python ***
+# py-indent-offset:4 ***
+# fill-column:95 ***
+# End: ***
 # arch-tag: dbd38a8f-6259-49ca-a125-6b5cd1f48bdb
 

@@ -8,6 +8,8 @@ pod2man  --center="User Commands" \
          man/static-picture-publish.pod \
          man/static-picture-publish.1
 
+man -t man/static-picture-publish.1 > man/static-picture-publish.1.ps
+
 pod2html --header \
          --infile=man/static-picture-publish.pod \
          --outfile=man/static-picture-publish.1.html

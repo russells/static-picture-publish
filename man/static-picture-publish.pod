@@ -161,6 +161,123 @@ that, it is taken as a configuration file to specify how the contents of
 that directory are to be processed.  Both files can exist, and both will be
 read if they exist.
 
+=head2 Format
+
+The format of the file is like the INI format.  It can contain these
+sections:
+
+=over
+
+=item [include]
+
+If the C<[include]> section exists, only files and directories that are
+mentioned in here will be included in the output.  The value of the entry
+is a space separated list of C<key=value> items.  The possible keys are
+explained below.
+
+A key without a value results in that key having a value of C<True>.
+
+If there exists a key with no value, and it has one of the values C<1>,
+C<on>, C<true> or C<yes> (without regard to case), that results in the key
+C<include> having the value C<True>.
+
+If there exists a key with no value, and it has one of the values C<0>,
+C<off>, C<false> or C<no> (without regard to case), that results in the key
+C<include> having the value C<False>.
+
+If there is no C<include> key, or no key with a boolean name and no value,
+then it is as the section had a key-value pair of C<include=True>.
+
+=item [exclude]
+
+If the C<[exclude]> section exists, files and directories mentioned in
+there can be excluded.  Like above, the value is a space separated list of
+C<key=value> items.  Keys without values are handled as for the
+C<[include]> section, except that the key that is affected by default is
+C<exclude>.
+
+=item [folder order]
+
+Keys in this section are folder names, and each value is the position in
+the output folder list for that folder.  The list is B<not> checked to see
+that the indexes are within the number of folders available, which means
+that if you miscalculate the folder numbers the program may abort.  The way
+this list is used is that first the list of folders is sorted into lexical
+order (locale-dependent), then each folder mentioned in C<[folder order]>
+is put in the output list in that position, then the remaining folders are
+put in the output list by "filling in the gaps" in order.
+
+=item [image order]
+
+This section is handled in the same way as the C<[folder order]> section
+above, but for images.
+
+=item [names]
+
+(B<Unimplemented>) This section contains a list of C<original name = output
+name> pairs.  All other references to the name are to the output name.
+
+=back
+
+=head2 [include] and [exclude] processing
+
+The way that the C<[include]> and C<[exclude]> sections are handled is
+slightly strange.
+
+=over
+
+=item *
+
+Firstly, if there is no config file in this directory, or there is a config
+file but it has no C<[include]> or C<[exclude]> sections, then all entries
+are included.
+
+=item *
+
+If there is an C<[include]> section, the default action is to not include
+an entry.
+
+=item *
+
+If the item is mentioned in the C<[include]> section, it is only included
+if the value of the C<include> key is C<True>.  As above, this will be the
+case if there is no C<include> key at all.
+
+=item *
+
+If the item is mentioned in the C<exclude> section, it is only included if
+the value of the C<exclude> key is C<False>.  This will not normally be the
+case, unless the C<exclude> key is mentioned explicitly.
+
+=back
+
+=head2 key-value pairs
+
+=over
+
+=item rotate=I<X>
+
+Rotate the output images (thumbnail and web-sized version) by I<X> degrees
+counterclockwise.  The original is not affected by this value, and is
+presented un-rotated.
+
+=back
+
+=head2 Example config file
+
+ [include]
+ a.jpg = 1
+ b.jpg = rotate=90
+ c.jpg = rotate=-90 false
+ d.jpg = True
+
+ [exclude]
+ d.jpg = True
+
+With this config file, F<a.jpg> and F<b.jpg> will be included, but F<c.jpg>
+and F<d.jpg> will not.  In addition, F<b.jpg> will have C<rotate> set to
+C<90>.
+
 =head1 EXAMPLES
 
 Publish pictures from F</home/joe/pics> to F</var/www/pics>, specifying the

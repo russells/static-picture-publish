@@ -1,5 +1,6 @@
 
 precious ^static-picture-publish\.1$
 precious ^static-picture-publish\.1\.gz$
+precious ^static-picture-publish\.1\.ps$
 precious ^static-picture-publish\.1\.html$
 
