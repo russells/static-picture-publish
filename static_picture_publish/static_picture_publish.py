@@ -927,7 +927,7 @@ def sppCopyFile(filename, destfilename, filetype, stylesheetPath=None):
     else:
         p = pathjoin(webRoot, stylesheetPath, destfilename)
     p = normpath(p)
-    print "Copying %s to %s" % (f,p)
+    #print "Copying %s to %s" % (f,p)
     copyfile(f, p)
 
 
@@ -941,7 +941,7 @@ def findstylesheetPath():
     '''Locate the CSS and XSL files if we are processing only a subdirectory.'''
     path = '.'
     while True:
-        print "findstylesheetPath(): trying %s" % path
+        #print "findstylesheetPath(): trying %s" % path
         if isfile(normpath(pathjoin(webRoot, path,'spp-dir.xsl'))) \
            and isfile(normpath(pathjoin(webRoot, path,'spp-image.xsl'))) \
            and isfile(normpath(pathjoin(webRoot, path,'spp.css'))):
@@ -957,12 +957,12 @@ def findstylesheetPath():
 def go():
     parseOptions()
 
-    print "subdir is %s" % str(options.subdir)
+    #print "subdir is %s" % str(options.subdir)
     if options.subdir:
         # Search for the XSL and CSS stylesheets.
         stylesheetPath = findstylesheetPath()
         if stylesheetPath is None:
-            print >>stderr, "%s: cannot find spp.css, spp-dir.xsl and spp-image.xsl"
+            print >>stderr, "%s: cannot find spp.css, spp-dir.xsl and spp-image.xsl" % argv[0]
             exit(1)
     else:
         stylesheetPath = None
