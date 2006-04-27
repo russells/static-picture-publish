@@ -3,8 +3,8 @@
 from sys import argv, exit, path as syspath, stderr
 from os import getcwd, listdir, makedirs, readlink, rmdir, stat, symlink, \
      system, unlink
-from os.path import abspath, basename, exists as pathexists, isdir, islink, \
-     join as pathjoin, split as pathsplit, splitext
+from os.path import abspath, basename, exists as pathexists, isdir, isfile, islink, \
+     join as pathjoin, normpath, split as pathsplit, splitext
 from optparse import Option, OptionGroup, OptionParser, OptionValueError
 from copy import copy
 import Image
@@ -108,6 +108,10 @@ markup_opts.add_option(
     '-r','--regen-all',
     action='store_true',
     help='Force regeneration of all output')
+markup_opts.add_option(
+    '-S', '--subdir',
+    action='store_true',
+    help='Run as if in a subdirectory of the output directory (Unimplemented)')
 markup_opts.add_option(
     '-t','--title',
     type='string',
@@ -218,12 +222,14 @@ def entityReplace(s):
 
 class Picture:
     '''Process one pic.'''
-    def __init__(self, picName, picDirName, webDirName, dirName, configEntry):
+    def __init__(self, picName, picDirName, webDirName, dirName, configEntry,
+                 stylesheetPath=None):
         self.picName = picName          # file name only
         self.picDirName = picDirName    # path to pic dir
         self.webDirName = webDirName    # path to web dir
         self.dirName = dirName          # path to either dir, relative to root
         self.configEntry = configEntry
+        self.stylesheetPath = stylesheetPath
         self.picPath = pathjoin(picDirName, picName)
         (base, ext) = splitext(self.picName)
         self.imageName = picName
@@ -237,19 +243,25 @@ class Picture:
         self.xmlPath = pathjoin(webDirName, self.xmlName)
         self.htmlName = base + ".html"
         self.htmlPath = pathjoin(webDirName, self.htmlName)
-        if self.dirName == '':
-            self.xslPath = 'spp-image.xsl'
-            self.cssPath = 'spp.css'
+        # If we were supplied a path to the CSS and XSL files, then we use that.  Otherwise,
+        # calculate the path by going up until we get to the top.
+        if stylesheetPath:
+            self.xslPath = pathjoin(stylesheetPath, 'spp-image.xsl')
+            self.cssPath = pathjoin(stylesheetPath, 'spp.css')
         else:
-            self.xslPath = '../spp-image.xsl'
-            self.cssPath = '../spp.css'
-            ht = pathsplit(self.dirName)[0]
-            #print "self.dirName == %s" % self.dirName
-            while len(ht) != 0 and ht != '/':
-                #print 'ht is %s' % str(ht)
-                self.xslPath = '../' + self.xslPath
-                self.cssPath = '../' + self.cssPath
-                ht = pathsplit(ht)[0]
+            if self.dirName == '':
+                self.xslPath = 'spp-image.xsl'
+                self.cssPath = 'spp.css'
+            else:
+                self.xslPath = '../spp-image.xsl'
+                self.cssPath = '../spp.css'
+                ht = pathsplit(self.dirName)[0]
+                #print "self.dirName == %s" % self.dirName
+                while len(ht) != 0 and ht != '/':
+                    #print 'ht is %s' % str(ht)
+                    self.xslPath = '../' + self.xslPath
+                    self.cssPath = '../' + self.cssPath
+                    ht = pathsplit(ht)[0]
         self.picNameBase = base
         self.picNameExt = ext
 
@@ -420,7 +432,7 @@ class Picture:
 
 class PictureDir:
     '''Contains information about a picture directory.'''
-    def __init__(self, picRoot, webRoot, dirName='', doUp=False):
+    def __init__(self, picRoot, webRoot, dirName='', doUp=False, stylesheetPath=None):
         '''Search through the directory, looking for pictures and
         sub-directories.  We do not process anything yet, but wait until we
         know if the subdirs contain anything interesting.'''
@@ -450,17 +462,25 @@ class PictureDir:
             self.webPath = pathjoin(self.webRoot, self.dirName)
         self.htmlPath = pathjoin(self.webPath, "index.html")
         self.xmlPath = pathjoin(self.webPath, "index.xml")
-        if self.dirName == '':
-            self.xslPath = 'spp-dir.xsl'
-            self.cssPath = 'spp.css'
+        # If we were supplied a path to the CSS and XSL files, then we use that.  Otherwise,
+        # calculate the path by going up until we get to the top.
+        if stylesheetPath:
+            childStylesheetPath = pathjoin('..',stylesheetPath)
+            self.xslPath = pathjoin(stylesheetPath, 'spp-dir.xsl')
+            self.cssPath = pathjoin(stylesheetPath, 'spp.css')
         else:
-            self.xslPath = '../spp-dir.xsl'
-            self.cssPath = '../spp.css'
-            ht = pathsplit(self.dirName)[0]
-            while ht != '':
-                self.xslPath = '../'+self.xslPath
-                self.cssPath = '../'+self.cssPath
-                ht = pathsplit(ht)[0]
+            childStylesheetPath = None
+            if self.dirName == '':
+                self.xslPath = 'spp-dir.xsl'
+                self.cssPath = 'spp.css'
+            else:
+                self.xslPath = '../spp-dir.xsl'
+                self.cssPath = '../spp.css'
+                ht = pathsplit(self.dirName)[0]
+                while ht != '':
+                    self.xslPath = '../'+self.xslPath
+                    self.cssPath = '../'+self.cssPath
+                    ht = pathsplit(ht)[0]
 
         self.subdirList = []
         self.picList = []
@@ -475,13 +495,14 @@ class PictureDir:
             if isdir(subPath):
                 # If it's a directory, recursively create an instance and process that
                 # directory.
-                p = PictureDir(self.picRoot, self.webRoot,
-                               pathjoin(self.dirName,l), True)
+                p = PictureDir(self.picRoot, self.webRoot, dirName=pathjoin(self.dirName,l),
+                               doUp=True, stylesheetPath=childStylesheetPath)
                 if p.hasPics():
                     self.subdirList.append(p)
             elif isPicFile(self.picPath, subPath):
                 # Otherwise it's a file.
-                im = Picture(l, self.picPath, self.webPath, dirName, configEntry)
+                im = Picture(l, self.picPath, self.webPath, dirName, configEntry,
+                             stylesheetPath=stylesheetPath)
                 self.picList.append(im)
         # Now sort the lists, and then rearrange them given the information in
         # the config file.
@@ -537,7 +558,11 @@ class PictureDir:
         '''Find out if an entry is to be included in the output.'''
         # Default is to include, unless there is an [include] section.
         if self.dirConfig.has_section('include'):
-            included = False
+            # But if the [include] section has a * entry, honour that.
+            if self.dirConfig.has_option('include','*'):
+                included = self.dirConfig.getboolean('include','*')
+            else:
+                included = False
         else:
             included = True
         # Ignore anything starting with '.'
@@ -892,12 +917,18 @@ def findFile(filename, filetype):
     return filepathname
 
 
-def sppCopyFile(filename, destfilename, filetype):
+def sppCopyFile(filename, destfilename, filetype, stylesheetPath=None):
     f = findFile(filename, filetype)
     if f is None:
         print >>stderr, "%s: cannot find %s" % (argv[0], filename)
         return
-    copyfile(f, pathjoin(webRoot, destfilename))
+    if stylesheetPath is None:
+        p = pathjoin(webRoot, destfilename)
+    else:
+        p = pathjoin(webRoot, stylesheetPath, destfilename)
+    p = normpath(p)
+    print "Copying %s to %s" % (f,p)
+    copyfile(f, p)
 
 
 # A place to keep all the directory configuration information.  Indexed by
@@ -905,10 +936,37 @@ def sppCopyFile(filename, destfilename, filetype):
 # trees.
 dirConfigs = {}
 
+
+def findstylesheetPath():
+    '''Locate the CSS and XSL files if we are processing only a subdirectory.'''
+    path = '.'
+    while True:
+        print "findstylesheetPath(): trying %s" % path
+        if isfile(normpath(pathjoin(webRoot, path,'spp-dir.xsl'))) \
+           and isfile(normpath(pathjoin(webRoot, path,'spp-image.xsl'))) \
+           and isfile(normpath(pathjoin(webRoot, path,'spp.css'))):
+            # normpath gets rid of the leading './'
+            return normpath(path)
+        # Try the next directory up
+        path = pathjoin(path,'..')
+        # Search terminating condition
+        if abspath(path) == '/':
+            return None
+
+
 def go():
     parseOptions()
 
-    pd = PictureDir(picRoot, webRoot)
+    print "subdir is %s" % str(options.subdir)
+    if options.subdir:
+        # Search for the XSL and CSS stylesheets.
+        stylesheetPath = findstylesheetPath()
+        if stylesheetPath is None:
+            print >>stderr, "%s: cannot find spp.css, spp-dir.xsl and spp-image.xsl"
+            exit(1)
+    else:
+        stylesheetPath = None
+    pd = PictureDir(picRoot, webRoot, doUp=options.subdir, stylesheetPath=stylesheetPath)
     # Create the output directory.
     try:
         makedirs(webRoot)
@@ -920,9 +978,9 @@ def go():
                   (argv[0], webRoot, str(reason.args))
             exit(1)
     # Copy in the XSL and CSS files.
-    sppCopyFile(options.css, "spp.css", "css")
-    sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl")
-    sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl")
+    sppCopyFile(options.css,       "spp.css",       "css", stylesheetPath=stylesheetPath)
+    sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
+    sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
     # Now create thumbnails and markup.
     pd.go()
 

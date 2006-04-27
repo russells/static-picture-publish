@@ -30,6 +30,9 @@ Might not be needed if all the targeted clients can use XML.
 
 Konqueror 3.5.1 doesn't translate the XML.
 
+IE6 grabs CSS relative to the location of the XSL file, if both are relative
+links.
+
 ** Make the index links go to the page near the image.  DONE.
 
 Each "Index" link should be a to href="index.html#a.jpg", so that when we go
@@ -198,6 +201,18 @@ There are two problems with that:
   may need to search up and down the filesystem to find out where this spot
   really is.  Or perhaps we could just search up until we find those files.
 
+** Don't copy in CSS and XSL files if they already exist.
+
+But add an option to force them to be copied in.
+
+** Use EXIF data.
+
+Date/time in particular.
+
+** Rationalise how the XML and HTML is generated.
+
+It's easy to confuse at the moment, such that it won't generate output files
+when it needs to, and re-generates others unnecessarily sometimes.
 
 * Documentation.
 

@@ -67,7 +67,7 @@ Print more information about actions.
 
 =item --copy
 
-Copy the originals instead of symlinking them.
+(Unimplemented) Copy the originals instead of symlinking them.
 
 =item -eI<EXTENSIONS>
 
@@ -82,7 +82,7 @@ specified, the list is replaced, not extended.
 
 =item --no-originals
 
-Don't symlink or copy originals.
+(Unimplemented) Don't symlink or copy originals.
 
 =item -sI<IMAGE_SIZE>
 
@@ -119,6 +119,20 @@ Don't create HTML from XML.  (Unimplemented)
 =item --regen-all
 
 Force regeneration of all output.
+
+=item -S
+
+=item --subdir
+
+Run as if in a subdirectory of the output directory.  This is used to
+(re-)generate only a part of the output tree, so you don't have to process
+the whole thing again if you've just changed on part.  This option requires
+the stylesheet files (F<spp.css>, F<spp-dir.xsl> and F<spp-image.xsl>) to
+already be in place.  They won't be copied in, and it's an error if they
+can't be found by searching up the output directory tree.
+
+This option also forces the creation of an "Up" link in the top-most
+processed folder, which is not normally created.
 
 =item -tI<TITLE>
 
@@ -177,16 +191,24 @@ explained below.
 
 A key without a value results in that key having a value of C<True>.
 
-If there exists a key with no value, and it has one of the values C<1>,
-C<on>, C<true> or C<yes> (without regard to case), that results in the key
-C<include> having the value C<True>.
+If there exists a key with no value, and the key is one of C<1>, C<on>,
+C<true> or C<yes> (boolean true, without regard to case), that results in
+the key C<include> having the value C<True>.
 
-If there exists a key with no value, and it has one of the values C<0>,
-C<off>, C<false> or C<no> (without regard to case), that results in the key
-C<include> having the value C<False>.
+If there exists a key with no value, and the key is one of C<0>, C<off>,
+C<false> or C<no> (boolean false, without regard to case), that results in
+the key C<include> having the value C<False>.
 
 If there is no C<include> key, or no key with a boolean name and no value,
-then it is as the section had a key-value pair of C<include=True>.
+then it is as if the section had a key-value pair of C<include=True>.
+
+The C<[include]> section can contain one special key: C<*>.  The value of
+this key is a boolean that specifies the default C<include> value for
+entries.  The rationale for this is that if you wish to rotate just one
+entry, that is done in the C<[include]> section, and having that section
+makes the default rule to exclude anything not mentioned there, so you'd
+then have to mention every file in the C<[include]> section.  Instead, you
+can change the default with a C<*> key.
 
 =item [exclude]
 
@@ -261,22 +283,27 @@ Rotate the output images (thumbnail and web-sized version) by I<X> degrees
 counterclockwise.  The original is not affected by this value, and is
 presented un-rotated.
 
+=item name=I<NAME>
+
+(B<Unimplemented>) Specify the name to use for this entry in the output.  All
+references to the image or folder will use I<NAME>.
+
 =back
 
 =head2 Example config file
 
  [include]
- a.jpg = 1
- b.jpg = rotate=90
- c.jpg = rotate=-90 false
- d.jpg = True
+ a.jpg : include=1
+ b.jpg : rotate=90
+ c.jpg : rotate=-90 false
+ d.jpg : True
 
  [exclude]
- d.jpg = True
+ d.jpg : True
 
 With this config file, F<a.jpg> and F<b.jpg> will be included, but F<c.jpg>
-and F<d.jpg> will not.  In addition, F<b.jpg> will have C<rotate> set to
-C<90>.
+and F<d.jpg> will not.  In addition, F<b.jpg> will be rotated by 90 degrees
+counter-clockwise.
 
 =head1 EXAMPLES
 
