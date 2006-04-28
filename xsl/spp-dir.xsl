@@ -21,10 +21,18 @@ being able to display the translated html.
   <xsl:param name="nTableCells">4</xsl:param>
   <xsl:param name="imagePageExtension">.xml</xsl:param>
   <xsl:param name="repeatDirsAfterNImages">9</xsl:param>
+  <xsl:param name="doDownloads">yes</xsl:param>
 
   <xsl:template match="/picturedir">
     <html>
       <head>
+        <xsl:if test="$doDownloads = 'yes'">
+<script>
+<![CDATA[
+// A script
+]]>
+</script>
+        </xsl:if>
         <title>
           <xsl:value-of select="@name"/>
         </title>
@@ -58,6 +66,7 @@ being able to display the translated html.
             <xsl:text> images </xsl:text>
           </xsl:comment>
           <xsl:apply-templates select="images"/>
+          <xsl:call-template name="doDownloads" />
           <xsl:if test="count(images/image) &gt; $repeatDirsAfterNImages">
             <xsl:apply-templates select="dirs"/>
             <xsl:apply-templates select="updir"/>
@@ -73,13 +82,33 @@ being able to display the translated html.
               <xsl:text>_blank</xsl:text>
             </xsl:attribute>
             <xsl:text>static-picture-publish</xsl:text>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="@version"/>
           </xsl:element>
-          <xsl:text> </xsl:text>
-          <xsl:value-of select="@version"/>
         </div>
       </body>
     </html>
   </xsl:template>
+
+
+  <xsl:template name="doDownloads">
+    <xsl:if test="$doDownloads = 'yes'">
+      <table class="downloads-table">
+        <tr>
+          <td width="33%" class="download-table-cell">
+            <input class="select-all-button" type="button" value="Select all images"/>
+          </td>
+          <td width="33%" class="download-table-cell">
+            <input class="select-all-button" type="button" value="Unselect all images"/>
+          </td>
+          <td width="33%" class="download-table-cell">
+            <input class="download-button" type="button" value="Download selected images"/>
+          </td>
+        </tr>
+      </table>
+    </xsl:if>
+  </xsl:template>
+
 
   <xsl:template match="updir">
     <table class="updir-table">
@@ -239,6 +268,21 @@ being able to display the translated html.
           <xsl:value-of select="ext"/>
         </xsl:element>
       </xsl:element>
+      <xsl:if test="$doDownloads = 'yes'">
+        <!-- Box for selecting a download. -->
+        <span class="download-text">
+          <xsl:text>Select for download: </xsl:text>
+        </span>
+        <xsl:element name="input">
+          <xsl:attribute name="type">checkbox</xsl:attribute>
+          <xsl:attribute name="name">
+            <xsl:value-of select="name" />
+            <xsl:text>-full</xsl:text>
+            <xsl:value-of select="ext" />
+          </xsl:attribute>
+          <xsl:text>WTF</xsl:text>
+        </xsl:element>
+      </xsl:if>
     </xsl:element>
     <!-- xsl:apply-templates/ -->
   </xsl:template>

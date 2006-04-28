@@ -91,7 +91,8 @@ a {
 
 .updir-table,
 .dir-table,
-.thumbnail-table
+.thumbnail-table,
+.downloads-table
 {
   width: 94%;
   margin-left: 3%;
@@ -111,7 +112,8 @@ a {
 
 .updir-table-cell,
 .dir-table-cell,
-.thumbnail-table-cell
+.thumbnail-table-cell,
+.download-table-cell
 {
   text-align: center;
   border-width: 2px;
@@ -158,6 +160,11 @@ a {
   text-align: center;
   background-color: #eee;
   border-color: black;
+}
+
+.download-text
+{
+  font-size: 80%;
 }
 
 .footer {
