@@ -138,7 +138,9 @@ processed folder, which is not normally created.
 
 =item --title=I<TITLE>
 
-Set the HTML title.  (Unimplemented)
+Set the HTML title.  This will appear on all pages as "B<Title - name>",
+where B<Title> is what you set here, and B<name> is the name of the folder
+or image you are viewing.
 
 =back
 
