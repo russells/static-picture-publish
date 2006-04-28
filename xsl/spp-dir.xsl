@@ -26,17 +26,7 @@ being able to display the translated html.
     <html>
       <head>
         <title>
-          <xsl:if test="string-length(@name) != 0">
-            <xsl:value-of select="@name"/>
-          </xsl:if>
-          <xsl:if test="string-length(@path) != 0">
-            <xsl:if test="string-length(@name) != 0">
-              <xsl:text>: </xsl:text>
-            </xsl:if>
-          </xsl:if>
-          <xsl:if test="string-length(@path) != 0">
-            <xsl:value-of select="@path"/>
-          </xsl:if>
+          <xsl:value-of select="@name"/>
         </title>
         <xsl:if test="string-length(@css) != 0">
           <xsl:element name="link">
@@ -53,7 +43,7 @@ being able to display the translated html.
         </xsl:if>
       </head>
       <body>
-        <span class="page-title">Images in <xsl:value-of select="@path"/></span>
+        <span class="page-title"><xsl:value-of select="@name"/></span>
         <div class="picturedir">
           <xsl:apply-templates select="updir"/>
           <xsl:comment>
@@ -246,6 +236,7 @@ being able to display the translated html.
             <xsl:value-of select="$imagePageExtension"/>
           </xsl:attribute>
           <xsl:value-of select="name"/>
+          <xsl:value-of select="ext"/>
         </xsl:element>
       </xsl:element>
     </xsl:element>

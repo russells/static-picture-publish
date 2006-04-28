@@ -171,6 +171,8 @@ def parseOptions():
         options.messageLevel = 0
     if not options.row:
         options.row = 3
+    if not options.title:
+        options.title = 'Pics'
     picRoot = args[0]
     webRoot = args[1]
     if abspath(picRoot) == abspath(webRoot):
@@ -356,7 +358,10 @@ class Picture:
         s.write(
             '<?xml version="1.0"?>\n'+\
             '<?xml-stylesheet type="text/xsl" href="%s"?>\n' % self.xslPath+\
-            '<picinfo css="%s">\n' % self.cssPath +\
+            '<picinfo css="%s">\n' % self.cssPath)
+        if options.title:
+            s.write(' <title>%s</title>\n' %  entityReplace(options.title))
+        s.write(
             ' <this>\n'+\
             '  <name>%s</name>\n' % entityReplace(self.picNameBase)+\
             '  <ext>%s</ext>\n' % entityReplace(self.picNameExt)+\
@@ -469,6 +474,9 @@ class PictureDir:
             self.xslPath = pathjoin(stylesheetPath, 'spp-dir.xsl')
             self.cssPath = pathjoin(stylesheetPath, 'spp.css')
         else:
+            # This looks very inefficient, but it should only happen once, at the root of the
+            # tree.  All the subdirectory instances will be supplied the childStylesheetPath
+            # parameter, so won't have to do this search.
             childStylesheetPath = None
             if self.dirName == '':
                 self.xslPath = 'spp-dir.xsl'
@@ -673,11 +681,19 @@ class PictureDir:
         x = file(self.xmlPath, "w")
         s = StringIO()
         if self.dirBasename == '':
-            dname = 'Pics'
-            dpath = 'Pics'
+            if options.title:
+                dname = entityReplace(options.title)
+                dpath = entityReplace(options.title)
+            else:
+                dname = 'Pics'
+                dpath = 'Pics'
         else:
-            dname = entityReplace(self.dirBasename)
-            dpath = entityReplace(self.dirName)
+            if options.title:
+                dname = entityReplace(options.title+' - '+self.dirBasename)
+                dpath = entityReplace(options.title+' - '+self.dirName)
+            else:
+                dname = entityReplace(self.dirBasename)
+                dpath = entityReplace(self.dirName)
         s.write(
             '<?xml version="1.0"?>\n' \
             '<?xml-stylesheet type="text/xsl" href="#stylesheet"?>\n' \

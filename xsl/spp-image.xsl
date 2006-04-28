@@ -14,10 +14,16 @@
     <html>
       <head>
         <title>
+          <xsl:if test="string-length(title) != 0">
+            <xsl:value-of select="title" />
+            <xsl:text> - </xsl:text>
+          </xsl:if>
           <xsl:if test="string-length(this/name) != 0">
             <xsl:value-of select="this/name"/>
           </xsl:if>
-          <xsl:value-of select="index/@path"/>
+          <xsl:if test="string-length(this/ext) != 0">
+            <xsl:value-of select="this/ext"/>
+          </xsl:if>
         </title>
         <xsl:element name="link">
           <xsl:attribute name="rel">
@@ -112,6 +118,10 @@
           </tr>
         </table>
         <span class="page-title">
+          <xsl:if test="string-length(title) != 0">
+            <xsl:value-of select="title" />
+            <xsl:text> - </xsl:text>
+          </xsl:if>
           <xsl:value-of select="this/name"/>
           <xsl:value-of select="this/ext"/>
         </span>

@@ -75,7 +75,7 @@ So that the destination directories get renamed.
 If I do this, what name goes in the [folder order] section: the original name
 or the new name?
 
-** Allow rotating images in output.
+** Allow rotating images in output.  DONE.
 
 Perhaps a section like this in the config file:
 
@@ -177,7 +177,7 @@ or this:
   [ignore]
   257[3-5]*.jpg
 
-** Allow re-publishing only a part of the source tree.
+** Allow re-publishing only a part of the source tree.  DONE.
 
 We should be able to have this directory structure:
 
@@ -226,7 +226,7 @@ Done in perl pod.
 
 There are docbook2man etc tools around
 
-** Rearrange the command line options into groups.
+** Rearrange the command line options into groups.  DONE.
 
 
 # arch-tag: d7862aaa-4514-4f8d-b5eb-80826533fee9
