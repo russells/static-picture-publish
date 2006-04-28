@@ -387,9 +387,9 @@ class Picture:
                            pathjoin(self.webDirName, self.htmlName))
             cmd = 'cd %s && xsltproc ' \
                   '--param imagePageExtension \'".html"\' ' \
-                  '%s > %s' % (shellEscape(self.webDirName),
-                               shellEscape(self.xmlName),
-                               shellEscape(self.htmlName))
+                  '-o %s %s' % (shellEscape(self.webDirName),
+                               shellEscape(self.htmlName),
+                               shellEscape(self.xmlName))
             verboseMessage('Command: %s' % cmd)
             system(cmd)
         if not options.no_originals:
@@ -744,7 +744,7 @@ class PictureDir:
                            pathjoin(self.webRoot, self.dirName, 'index.html'))
             cmd = 'cd %s && xsltproc ' \
                   '--param imagePageExtension \'".html"\' ' \
-                  'index.xml > index.html' % \
+                  '-o index.html index.xml' % \
                   shellEscape(pathjoin(self.webRoot, self.dirName))
             verboseMessage('Command: %s' % cmd)
             system(cmd)
