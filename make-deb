@@ -31,6 +31,8 @@ tla inventory -s \
 cd $_DEB_BUILD_DIR
 ./make-man
 
+tla logs --merges --full > tla-logs-list
+
 fakeroot dpkg-buildpackage -uc -us
 
 cd $_SRC_DIR
