@@ -31,9 +31,44 @@ being able to display the translated html.
       </xsl:element>
       <head>
         <xsl:if test="$doDownloads = 'yes'">
-<script>
+<script type="text/javascript">
 <![CDATA[
-// A script
+
+function select_all_images()
+{
+  var cb
+  var n
+  var cbs = document.getElementsByName("image-select")
+  for (n=0; n<cbs.length; n++) {
+    cb = cbs[n]
+    cb.checked = true
+  }
+}
+
+function unselect_all_images()
+{
+  var cb
+  var n
+  var cbs = document.getElementsByName("image-select")
+  for (n=0; n<cbs.length; n++) {
+    cb = cbs[n]
+    cb.checked = false
+  }
+}
+
+function download_selected_images()
+{
+  var cb
+  var n
+  var cbs = document.getElementsByName("image-select")
+  for (n=0; n<cbs.length; n++) {
+    cb = cbs[n]
+    if (cb.checked) {
+      alert("downloading "+cb.value)
+    }
+  }
+}
+
 ]]>
 </script>
         </xsl:if>
@@ -99,13 +134,16 @@ being able to display the translated html.
       <table class="downloads-table">
         <tr>
           <td width="33%" class="download-table-cell">
-            <button class="download-button" type="submit">Select all images</button>
+            <button class="download-button" type="submit"
+                    onclick="select_all_images()">Select all images</button>
           </td>
           <td width="33%" class="download-table-cell">
-            <button class="download-button" type="submit">Unselect all images</button>
+            <button class="download-button" type="submit"
+                    onclick="unselect_all_images()">Unselect all images</button>
           </td>
           <td width="33%" class="download-table-cell">
-            <button class="download-button" type="submit">Download selected images</button>
+            <button class="download-button" type="submit"
+                    onclick="download_selected_images()">Download selected images</button>
           </td>
         </tr>
       </table>
@@ -282,7 +320,8 @@ being able to display the translated html.
         </span>
         <xsl:element name="input">
           <xsl:attribute name="type">checkbox</xsl:attribute>
-          <xsl:attribute name="name">
+          <xsl:attribute name="name">image-select</xsl:attribute>
+          <xsl:attribute name="value">
             <xsl:value-of select="name" />
             <xsl:text>-full</xsl:text>
             <xsl:value-of select="ext" />
