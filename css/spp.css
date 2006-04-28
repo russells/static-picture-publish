@@ -112,8 +112,7 @@ a {
 
 .updir-table-cell,
 .dir-table-cell,
-.thumbnail-table-cell,
-.download-table-cell
+.thumbnail-table-cell
 {
   text-align: center;
   border-width: 2px;
@@ -162,9 +161,25 @@ a {
   border-color: black;
 }
 
+.download-table-cell
+{
+  text-align: center;
+  padding: 5px;
+  padding-top: 10px;
+}
+
 .download-text
 {
   font-size: 80%;
+}
+
+.download-button
+{
+  color: black;
+  background: #eee;
+  font-size: 1.1em;
+  border-color: black;
+  border-style: solid;
 }
 
 .footer {

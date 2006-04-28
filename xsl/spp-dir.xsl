@@ -25,6 +25,10 @@ being able to display the translated html.
 
   <xsl:template match="/picturedir">
     <html>
+      <xsl:element name="META">
+        <xsl:attribute name="http-equiv">Content-Script-Type</xsl:attribute>
+        <xsl:attribute name="content">text/javascript</xsl:attribute>
+      </xsl:element>
       <head>
         <xsl:if test="$doDownloads = 'yes'">
 <script>
@@ -66,7 +70,6 @@ being able to display the translated html.
             <xsl:text> images </xsl:text>
           </xsl:comment>
           <xsl:apply-templates select="images"/>
-          <xsl:call-template name="doDownloads" />
           <xsl:if test="count(images/image) &gt; $repeatDirsAfterNImages">
             <xsl:apply-templates select="dirs"/>
             <xsl:apply-templates select="updir"/>
@@ -96,13 +99,13 @@ being able to display the translated html.
       <table class="downloads-table">
         <tr>
           <td width="33%" class="download-table-cell">
-            <input class="select-all-button" type="button" value="Select all images"/>
+            <button class="download-button" type="submit">Select all images</button>
           </td>
           <td width="33%" class="download-table-cell">
-            <input class="select-all-button" type="button" value="Unselect all images"/>
+            <button class="download-button" type="submit">Unselect all images</button>
           </td>
           <td width="33%" class="download-table-cell">
-            <input class="download-button" type="button" value="Download selected images"/>
+            <button class="download-button" type="submit">Download selected images</button>
           </td>
         </tr>
       </table>
@@ -196,6 +199,9 @@ being able to display the translated html.
   <xsl:template match="/picturedir/images">
     <xsl:if test="count(image) != 0">
       <span class="thumbnail-list-title">Images</span>
+      <xsl:if test="count(image) &gt; $repeatDirsAfterNImages">
+        <xsl:call-template name="doDownloads" />
+      </xsl:if>
       <table class="thumbnail-table">
         <xsl:attribute name="summary">
           <xsl:text>Thumbnail list</xsl:text>
@@ -212,6 +218,7 @@ being able to display the translated html.
           </tr>
         </xsl:for-each>
       </table>
+      <xsl:call-template name="doDownloads" />
     </xsl:if>
   </xsl:template>
 
