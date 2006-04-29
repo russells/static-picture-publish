@@ -61,11 +61,30 @@ function download_selected_images()
   var cb
   var n
   var cbs = document.getElementsByName("image-select")
+  var s = ""
+  var files = new Array()
   for (n=0; n<cbs.length; n++) {
     cb = cbs[n]
     if (cb.checked) {
-      alert("downloading "+cb.value)
+      files[files.length] = cb.value
     }
+  }
+  if (files.length == 0) {
+    alert("Nothing selected, downloading no files.")
+  } else {
+    s = "If this worked, I would be downloading "
+    // alert("files.length = "+files.length)
+    for (n=0; n<files.length; n++) {
+      if (n > 2)
+        break
+      s = s + files[n]
+      if (n < files.length-1)
+        s = s + ", "
+    }
+    if (files.length > 3) {
+      s = s + " ..."
+    }
+    alert(s)
   }
 }
 
