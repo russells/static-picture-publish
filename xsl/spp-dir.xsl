@@ -86,6 +86,12 @@ function download_selected_images()
     }
     alert(s)
   }
+  if (files.length > 0) {
+    alert("opening "+files[0])
+    open(files[0])
+  } else {
+    alert("no files?")
+  }
 }
 
 ]]>
