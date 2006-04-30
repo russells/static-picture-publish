@@ -21,7 +21,6 @@ being able to display the translated html.
   <xsl:param name="nTableCells">4</xsl:param>
   <xsl:param name="imagePageExtension">.xml</xsl:param>
   <xsl:param name="repeatDirsAfterNImages">9</xsl:param>
-  <xsl:param name="doDownloads">yes</xsl:param>
 
   <xsl:template match="/picturedir">
     <html>
@@ -30,72 +29,15 @@ being able to display the translated html.
         <xsl:attribute name="content">text/javascript</xsl:attribute>
       </xsl:element>
       <head>
-        <xsl:if test="$doDownloads = 'yes'">
-<script type="text/javascript">
-<![CDATA[
-
-function select_all_images()
-{
-  var cb
-  var n
-  var cbs = document.getElementsByName("image-select")
-  for (n=0; n<cbs.length; n++) {
-    cb = cbs[n]
-    cb.checked = true
-  }
-}
-
-function unselect_all_images()
-{
-  var cb
-  var n
-  var cbs = document.getElementsByName("image-select")
-  for (n=0; n<cbs.length; n++) {
-    cb = cbs[n]
-    cb.checked = false
-  }
-}
-
-function download_selected_images()
-{
-  var cb
-  var n
-  var cbs = document.getElementsByName("image-select")
-  var s = ""
-  var files = new Array()
-  for (n=0; n<cbs.length; n++) {
-    cb = cbs[n]
-    if (cb.checked) {
-      files[files.length] = cb.value
-    }
-  }
-  if (files.length == 0) {
-    alert("Nothing selected, downloading no files.")
-  } else {
-    s = "If this worked, I would be downloading "
-    // alert("files.length = "+files.length)
-    for (n=0; n<files.length; n++) {
-      if (n > 2)
-        break
-      s = s + files[n]
-      if (n < files.length-1)
-        s = s + ", "
-    }
-    if (files.length > 3) {
-      s = s + " ..."
-    }
-    alert(s)
-  }
-  if (files.length > 0) {
-    alert("opening "+files[0])
-    open(files[0])
-  } else {
-    alert("no files?")
-  }
-}
-
-]]>
-</script>
+        <xsl:if test="string-length(@javascript) != 0">
+          <xsl:element name="script">
+            <xsl:attribute name="type">
+              <xsl:text>text/javascript</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="src">
+              <xsl:value-of select="@javascript"/>
+            </xsl:attribute>
+          </xsl:element>
         </xsl:if>
         <title>
           <xsl:value-of select="@name"/>
@@ -155,7 +97,7 @@ function download_selected_images()
 
 
   <xsl:template name="doDownloads">
-    <xsl:if test="$doDownloads = 'yes'">
+    <xsl:if test="string-length(/picturedir/@javascript) != 0">
       <table class="downloads-table">
         <tr>
           <td width="33%" class="download-table-cell">
@@ -338,7 +280,7 @@ function download_selected_images()
           <xsl:value-of select="ext"/>
         </xsl:element>
       </xsl:element>
-      <xsl:if test="$doDownloads = 'yes'">
+      <xsl:if test="string-length(/picturedir/@javascript) != 0">
         <!-- Box for selecting a download. -->
         <span class="download-text">
           <xsl:text>Select for download: </xsl:text>
