@@ -119,6 +119,22 @@ to the correct links.
 GNOME (and perhaps others, is this a freedesktop thing?) store picture comments
 in a file called .comments/$IMAGENAME.xml, which is gzip or zlib compressed.
 
+** Put thumbnail and image sizes into html.
+
+  <img width=128 height=96 src="a.jpg">
+
+This will require image dimension specs in the XML files, perhaps something
+like this:
+
+    <image>
+      <name>0,1658,5119258,00</name>
+      <ext>.jpg</ext>
+      <dimensions width="128" height="96" />
+    </image>
+
+We're already opening the images to check their sizes, so there's not much
+overhead in recording the sizes.
+
 
 * Code
 
