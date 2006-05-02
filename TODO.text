@@ -217,9 +217,9 @@ There are two problems with that:
   may need to search up and down the filesystem to find out where this spot
   really is.  Or perhaps we could just search up until we find those files.
 
-** Don't copy in CSS and XSL files if they already exist.
+** Don't copy in CSS and XSL files if they already exist.  DONE.
 
-But add an option to force them to be copied in.
+But add an option to force them to be copied in.  (I didn't do this bit.)
 
 ** Use EXIF data.
 

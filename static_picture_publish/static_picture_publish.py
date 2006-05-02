@@ -687,7 +687,11 @@ class PictureDir:
             else:
                 dname = 'Pics'
                 dpath = 'Pics'
+            if options.subdir:
+                dname = dname + ' - ' + entityReplace(basename(picRoot))
+                dpath = dpath + ' - ' + entityReplace(basename(picRoot))
         else:
+            # dirBasename is not null, so it's definitely a subdir
             if options.title:
                 dname = entityReplace(options.title+' - '+self.dirBasename)
                 dpath = entityReplace(options.title+' - '+self.dirName)
@@ -994,9 +998,10 @@ def go():
                   (argv[0], webRoot, str(reason.args))
             exit(1)
     # Copy in the XSL and CSS files.
-    sppCopyFile(options.css,       "spp.css",       "css", stylesheetPath=stylesheetPath)
-    sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
-    sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
+    if not options.subdir:
+        sppCopyFile(options.css,       "spp.css",       "css", stylesheetPath=stylesheetPath)
+        sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
+        sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
     # Now create thumbnails and markup.
     pd.go()
 
