@@ -24,7 +24,21 @@ being able to display the translated html.
 
   <xsl:template match="/picturedir">
     <html>
+      <xsl:element name="META">
+        <xsl:attribute name="http-equiv">Content-Script-Type</xsl:attribute>
+        <xsl:attribute name="content">text/javascript</xsl:attribute>
+      </xsl:element>
       <head>
+        <xsl:if test="string-length(@javascript) != 0">
+          <xsl:element name="script">
+            <xsl:attribute name="type">
+              <xsl:text>text/javascript</xsl:text>
+            </xsl:attribute>
+            <xsl:attribute name="src">
+              <xsl:value-of select="@javascript"/>
+            </xsl:attribute>
+          </xsl:element>
+        </xsl:if>
         <title>
           <xsl:value-of select="@name"/>
         </title>
@@ -73,13 +87,36 @@ being able to display the translated html.
               <xsl:text>_blank</xsl:text>
             </xsl:attribute>
             <xsl:text>static-picture-publish</xsl:text>
+            <xsl:text> </xsl:text>
+            <xsl:value-of select="@version"/>
           </xsl:element>
-          <xsl:text> </xsl:text>
-          <xsl:value-of select="@version"/>
         </div>
       </body>
     </html>
   </xsl:template>
+
+
+  <xsl:template name="doDownloads">
+    <xsl:if test="string-length(/picturedir/@javascript) != 0">
+      <table class="downloads-table">
+        <tr>
+          <td width="33%" class="download-table-cell">
+            <button class="download-button" type="submit"
+                    onclick="select_all_images()">Select all images</button>
+          </td>
+          <td width="33%" class="download-table-cell">
+            <button class="download-button" type="submit"
+                    onclick="unselect_all_images()">Unselect all images</button>
+          </td>
+          <td width="33%" class="download-table-cell">
+            <button class="download-button" type="submit"
+                    onclick="download_selected_images()">Download selected images</button>
+          </td>
+        </tr>
+      </table>
+    </xsl:if>
+  </xsl:template>
+
 
   <xsl:template match="updir">
     <table class="updir-table">
@@ -167,6 +204,9 @@ being able to display the translated html.
   <xsl:template match="/picturedir/images">
     <xsl:if test="count(image) != 0">
       <span class="thumbnail-list-title">Images</span>
+      <xsl:if test="count(image) &gt; $repeatDirsAfterNImages">
+        <xsl:call-template name="doDownloads" />
+      </xsl:if>
       <table class="thumbnail-table">
         <xsl:attribute name="summary">
           <xsl:text>Thumbnail list</xsl:text>
@@ -183,6 +223,7 @@ being able to display the translated html.
           </tr>
         </xsl:for-each>
       </table>
+      <xsl:call-template name="doDownloads" />
     </xsl:if>
   </xsl:template>
 
@@ -239,6 +280,22 @@ being able to display the translated html.
           <xsl:value-of select="ext"/>
         </xsl:element>
       </xsl:element>
+      <xsl:if test="string-length(/picturedir/@javascript) != 0">
+        <!-- Box for selecting a download. -->
+        <span class="download-text">
+          <xsl:text>Select for download: </xsl:text>
+        </span>
+        <xsl:element name="input">
+          <xsl:attribute name="type">checkbox</xsl:attribute>
+          <xsl:attribute name="name">image-select</xsl:attribute>
+          <xsl:attribute name="value">
+            <xsl:value-of select="name" />
+            <xsl:text>-full</xsl:text>
+            <xsl:value-of select="ext" />
+          </xsl:attribute>
+          <xsl:text>WTF</xsl:text>
+        </xsl:element>
+      </xsl:if>
     </xsl:element>
     <!-- xsl:apply-templates/ -->
   </xsl:template>

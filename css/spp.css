@@ -3,7 +3,8 @@
 /* http://adelie.cx/static-picture-publish */
 
 body{
-  margin: 0;
+  margin-left: 3%;
+  margin-right: 3%;
   padding: 0;
 }
 
@@ -13,9 +14,6 @@ a {
 
 .links-table
 {
-  width: 94%;
-  margin-left: 3%;
-  margin-right: 3%;
 }
 
 .links-table-cell
@@ -45,7 +43,7 @@ a {
 .links-table-cell a
 {
   color: black;
-  text-decoration: bold;
+  font-weight: bold;
 }
 
 .picinfo
@@ -53,8 +51,6 @@ a {
   border-width: 2px;
   border-style: solid;
   padding: 10px;
-  margin-left: 3%;
-  margin-right: 3%;
 }
 
 .fullpicinfo
@@ -79,23 +75,23 @@ a {
 .dir-list-title,
 .thumbnail-list-title
 {
-  width: 94%;
-  margin-left: 3%;
-  margin-right: 3%;
   margin-top: 0.2em;
   margin-bottom: 0.2em;
   display: block;
-  text-decoration: bold;
+  font-weight: bold;
   text-align: center;
 }
 
+.links-table,
 .updir-table,
 .dir-table,
-.thumbnail-table
+.thumbnail-table,
+.downloads-table
 {
-  width: 94%;
+  width: 100%;
+/*
   margin-left: 3%;
-  margin-right: 3%;
+  margin-right: 3%; */
 }
 
 .thumbnail-tbody
@@ -133,11 +129,11 @@ a {
 
 .thumbnailimage
 {
-  position: center;
+  text-align: center;
 }
 
-.thumbnail .thumbnailtext a:link,
-.thumbnail .thumbnailtext a:visited
+.thumbnail-text a:link,
+.thumbnail-text a:visited
 {
   color: red;
   text-decoration: none;
@@ -160,10 +156,31 @@ a {
   border-color: black;
 }
 
+.download-table-cell
+{
+  text-align: center;
+  padding: 5px;
+  padding-top: 10px;
+}
+
+.download-text
+{
+  font-size: 75%;
+}
+
+/*
+.download-button
+{
+  color: black;
+  background: #eee;
+  font-size: 1.1em;
+  border-color: black;
+  border-style: solid;
+}
+*/
+
 .footer {
   margin-top: 1em;
-  margin-left: 3%;
-  margin-right: 3%;
   margin-bottom: 1em;
   padding: 0.5em 1em 0.5em;
   border: 1px solid;
@@ -199,35 +216,6 @@ a {
   background: #FFEEAA;
 }
 
-.file {
-  margin: 3px;
-  padding: 3px;
-  margin-left: 3em;
-  background: rgb(95%,95%,95%);
-}
-
-.file:hover {
-  margin: 3px;
-  padding: 3px;
-  margin-left: 3em;
-  background: rgb(100%,100%,90%);
-/*  border: 1px black solid; */
-}
-
-.dir {
-  margin: 3px;
-  padding: 3px;
-  margin-left: 3em;
-  background: rgb(90%,90%,90%);
-}
-
-.dir:hover {
-  margin: 3px;
-  padding: 3px;
-  margin-left: 3em;
-  background: rgb(100%,100%,80%);
-/*  border: 1px black solid; */
-}
 
 /* arch-tag: 4b8b1694-44b0-45df-b825-8418b0f04072
 */
