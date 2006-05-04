@@ -141,6 +141,12 @@
                 <xsl:value-of select="this/name"/>
                 <xsl:value-of select="this/ext"/>
               </xsl:attribute>
+              <xsl:attribute name="width">
+                <xsl:value-of select="this/size/@width" />
+              </xsl:attribute>
+              <xsl:attribute name="height">
+                <xsl:value-of select="this/size/@height" />
+              </xsl:attribute>
             </xsl:element>
           </xsl:element>
           <div class="fullpicinfo">

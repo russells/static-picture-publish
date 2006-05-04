@@ -264,6 +264,16 @@ being able to display the translated html.
             <xsl:attribute name="class">
               <xsl:text>image</xsl:text>
             </xsl:attribute>
+            <xsl:if test="string-length(size/@width) != 0">
+              <xsl:attribute name="width">
+                <xsl:value-of select="size/@width" />
+              </xsl:attribute>
+            </xsl:if>
+            <xsl:if test="string-length(size/@height) != 0">
+              <xsl:attribute name="height">
+                <xsl:value-of select="size/@height" />
+              </xsl:attribute>
+            </xsl:if>
           </xsl:element>
         </xsl:element>
       </xsl:element>
