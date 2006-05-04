@@ -244,6 +244,8 @@ class Picture:
         self.stylesheetPath = stylesheetPath
         self.picPath = pathjoin(picDirName, picName)
         (base, ext) = splitext(self.picName)
+        self.picNameBase = base
+        self.picNameExt = ext
         self.imageName = picName
         self.fullImageName = base + "-full" + ext
         self.imagePath = pathjoin(webDirName, self.imageName)
@@ -274,8 +276,6 @@ class Picture:
                     self.xslPath = '../' + self.xslPath
                     self.cssPath = '../' + self.cssPath
                     ht = pathsplit(ht)[0]
-        self.picNameBase = base
-        self.picNameExt = ext
 
 
     def go(self, prevPic, nextPic):
@@ -453,17 +453,19 @@ class PictureDir:
         know if the subdirs contain anything interesting.'''
         self.picRoot = picRoot
         self.webRoot = webRoot
-        self.dirName = dirName          # Relative to picRoot (and webRoot)
-        self.dirBasename = basename(dirName)
+        # dirName is relative to picRoot (and webRoot).  If dirName is '', we know we are at
+        # the root.
+        self.dirName = dirName
+        # dirBasename is the name of this directory.  It is not a path name (like dirName).
+        self.dirBasename = basename(pathjoin(picRoot,dirName))
         self.doUp = doUp                # If true, put "Up" link in html
         self.configEntries = {}
 
         self.dirConfig = ConfigParser()
         dirConfigs[self.dirName] = self.dirConfig
-        # Grudgingly allow reading a config file with '.txt' on the end, so
-        # that Windows can work out how to edit the file.  You don't need both
-        # (or either) of these files.  Nothing bad will happen if they don't
-        # exist.
+        # Grudgingly allow reading a config file with '.txt' on the end, so that Windows can
+        # work out how to edit the file.  You don't need both (or either) of these files.
+        # Nothing bad will happen if they don't exist.
         self.dirConfig.read((pathjoin(self.picRoot, self.dirName,
                                       '.static-picture-publish'),
                              pathjoin(self.picRoot, self.dirName,
@@ -486,7 +488,7 @@ class PictureDir:
             if options.with_javascript:
                 self.javascriptPath = pathjoin(stylesheetPath, 'spp.js')
         else:
-            # This looks very inefficient, but it should only happen once, at the root of the
+            # This looks very inefficient, but it will only happen once, at the root of the
             # tree.  All the subdirectory instances will be supplied the childStylesheetPath
             # parameter, so won't have to do this search.
             childStylesheetPath = None
@@ -698,7 +700,7 @@ class PictureDir:
         verboseMessage("  %s" % self.xmlPath)
         x = file(self.xmlPath, "w")
         s = StringIO()
-        if self.dirBasename == '':
+        if self.dirName == '':
             if options.title:
                 dname = entityReplace(options.title)
                 dpath = entityReplace(options.title)
@@ -709,7 +711,7 @@ class PictureDir:
                 dname = dname + ' - ' + entityReplace(basename(picRoot))
                 dpath = dpath + ' - ' + entityReplace(basename(picRoot))
         else:
-            # dirBasename is not null, so it's definitely a subdir
+            # dirName is not null, so it's definitely a subdir
             if options.title:
                 dname = entityReplace(options.title+' - '+self.dirBasename)
                 dpath = entityReplace(options.title+' - '+self.dirName)
@@ -777,14 +779,14 @@ class PictureDir:
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
     # children of one parent directory.)
-    def __eq__(self, other): return self.dirBasename == other.dirBasename
-    def __ne__(self, other): return self.dirBasename != other.dirBasename
-    def __gt__(self, other): return self.dirBasename >  other.dirBasename
-    def __lt__(self, other): return self.dirBasename <  other.dirBasename
-    def __ge__(self, other): return self.dirBasename >= other.dirBasename
-    def __le__(self, other): return self.dirBasename <= other.dirBasename
+    def __eq__(self, other): return self.dirName == other.dirName
+    def __ne__(self, other): return self.dirName != other.dirName
+    def __gt__(self, other): return self.dirName >  other.dirName
+    def __lt__(self, other): return self.dirName <  other.dirName
+    def __ge__(self, other): return self.dirName >= other.dirName
+    def __le__(self, other): return self.dirName <= other.dirName
 
-    def __repr__(self): return self.dirBasename
+    def __repr__(self): return self.dirName
 
 
 # Characters that can be included in shell commands without escaping.
