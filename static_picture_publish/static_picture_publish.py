@@ -290,39 +290,42 @@ class Picture(dict):
             # Create the web image, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self['imagePath'], picStat) \
-                   or not self.imageSizeCheck(self['imagePath'],
-                                              options.image_size):
+                   or not self.imageSizeCheck('image', options.image_size):
                 #print "Regenerating %s" % self['imagePath']
-                image = self.generateImage(self['imagePath'],
-                                           options.image_size, image)
+                image = self.generateImage('image', options.image_size, image)
                 modified = True
             # Create the thumbnail, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self['thumbnailPath'], picStat) \
-                   or not self.imageSizeCheck(self['thumbnailPath'],
-                                              options.thumbnail_size):
+                   or not self.imageSizeCheck('thumbnail', options.thumbnail_size):
                 #print "Regenerating %s" % self['thumbnailPath']
-                image = self.generateImage(self['thumbnailPath'],
-                                           options.thumbnail_size, image)
+                image = self.generateImage('thumbnail', options.thumbnail_size, image)
                 modified = True
                 image = None            # gc
         except (IOError, SystemError), reason:
             print >>stderr, "%s: error processing %s: %s" % \
                   (argv[0], self['picPath'], str(reason.args))
         self.createMarkup(prevPic, nextPic)
+        for n in ['image', 'thumbnail']:
+            self[n+'-image'] = None
         return modified
 
 
-    def imageSizeCheck(self, imagePath, requiredSize):
+    def imageSizeCheck(self, image_basename, requiredSize):
         '''Check to see if the output image is the correct size.
 
         Return True if the size is correct, false otherwise.'''
+        imagePath = self[image_basename+'Path']
+        imageKeyName = image_basename+'-image'
         try:
-            smallimage = Image.open(imagePath)
-            if  smallimage.size[0] > requiredSize[0] or \
-                smallimage.size[1] > requiredSize[1] or \
-                (smallimage.size[0] < requiredSize[0] and \
-                 smallimage.size[1] < requiredSize[1]):
+            if not self.has_key(imageKeyName) or not self[imageKeyName]:
+                im = Image.open(imagePath)
+            self[image_basename+'-image'] = im
+            self[image_basename+'-width']  = im.size[0]
+            self[image_basename+'-height'] = im.size[1]
+            if  im.size[0] > requiredSize[0] or \
+                im.size[1] > requiredSize[1] or \
+                (im.size[0] < requiredSize[0] and im.size[1] < requiredSize[1]):
                 flag = False
             else:
                 flag = True
@@ -330,14 +333,17 @@ class Picture(dict):
             print >>stderr, "%s: error opening %s, it will be regenerated" % \
                   (argv[0], imagePath)
             print >>stderr, "%s" % str(reason.args)
+            self[image_basename+'-width']  = None
+            self[image_basename+'-height'] = None
+            self[image_basename+'-image'] = None
             flag = False
         #print "%s: size:%s required:%s flag:%s" % (imagePath, str(smallimage.size), str(requiredSize), str(flag))
-        smallimage = None
         return flag
 
 
-    def generateImage(self, imagePath, imageSize, image):
+    def generateImage(self, image_basename, imageSize, image):
         '''Make an output image.'''
+        imagePath = self[image_basename+'Path']
         verboseMessage("  %s => %s" % (self['picPath'], imagePath))
         starttime = time()
         if image is None:
@@ -354,10 +360,11 @@ class Picture(dict):
                 else:
                     image = image.rotate(angle)
         image.thumbnail(imageSize, Image.ANTIALIAS)
+        self[image_basename+'-width']  = image.size[0]
+        self[image_basename+'-height'] = image.size[1]
         image.save(imagePath)
         endtime = time()
-        verboseMessage("  generation time %s: %.2f" % \
-                       (imagePath, endtime-starttime))
+        verboseMessage("  generation time %s: %.2f" % (imagePath, endtime-starttime))
         modified = True
         return image
 
@@ -374,8 +381,13 @@ class Picture(dict):
         s.write(
             ' <this>\n'+\
             '  <name>%s</name>\n' % entityReplace(self['picNameBase'])+\
-            '  <ext>%s</ext>\n' % entityReplace(self['picNameExt'])+\
-            ' </this>\n')
+            '  <ext>%s</ext>\n' % entityReplace(self['picNameExt']))
+        if self.has_key('image-width'):
+            s.write('  <size width="%d" height="%d" />\n' % \
+                    (self['image-width'],self['image-height']))
+        else:
+            s.write('  <!-- no image width -->\n')
+        s.write(' </this>\n')
         if prevPic is not None:
             s.write(
                 ' <prev>\n'+\
@@ -759,8 +771,13 @@ class PictureDir(dict):
             s.write(
                 '    <image>\n' \
                 '      <name>%s</name>\n' % entityReplace(f['picNameBase']) +\
-                '      <ext>%s</ext>\n' % entityReplace(f['picNameExt']) +\
-                '    </image>\n')
+                '      <ext>%s</ext>\n' % entityReplace(f['picNameExt']))
+            if f.has_key('thumbnail-width'):
+                s.write('      <size width="%d" height="%d" />\n' % (f['thumbnail-width'],
+                                                                     f['thumbnail-height']))
+            else:
+                s.write('      <!-- no thumbnail size -->\n')
+            s.write('    </image>\n')
         s.write('  </images>\n')
         s.write('</picturedir>\n')
         x.write(s.getvalue())
