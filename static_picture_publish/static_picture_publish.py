@@ -130,9 +130,9 @@ layout_opts.add_option(
     action='store',
     help='Javascript file to use in HTML or XML output. (Default inbuilt)')
 layout_opts.add_option(
-    '--no-javascript',
+    '--with-javascript',
     action='store_true',
-    help='Don\'t use javascript in output.')
+    help='Use javascript in output.  (Default no)')
 layout_opts.add_option(
     '--row',
     type='int',
@@ -483,7 +483,7 @@ class PictureDir:
             childStylesheetPath = pathjoin('..',stylesheetPath)
             self.xslPath = pathjoin(stylesheetPath, 'spp-dir.xsl')
             self.cssPath = pathjoin(stylesheetPath, 'spp.css')
-            if not options.no_javascript:
+            if options.with_javascript:
                 self.javascriptPath = pathjoin(stylesheetPath, 'spp.js')
         else:
             # This looks very inefficient, but it should only happen once, at the root of the
@@ -493,18 +493,18 @@ class PictureDir:
             if self.dirName == '':
                 self.xslPath = 'spp-dir.xsl'
                 self.cssPath = 'spp.css'
-                if not options.no_javascript:
+                if options.with_javascript:
                     self.javascriptPath = 'spp.js'
             else:
                 self.xslPath = '../spp-dir.xsl'
                 self.cssPath = '../spp.css'
-                if not options.no_javascript:
+                if options.with_javascript:
                     self.javascriptPath = '../spp.js'
                 ht = pathsplit(self.dirName)[0]
                 while ht != '':
                     self.xslPath = '../'+self.xslPath
                     self.cssPath = '../'+self.cssPath
-                    if not options.no_javascript:
+                    if options.with_javascript:
                         self.javascriptPath = '../'+self.javascriptPath
                     ht = pathsplit(ht)[0]
 
@@ -723,7 +723,7 @@ class PictureDir:
             '[ <!ATTLIST xsl:stylesheet id ID #REQUIRED> ]>\n' \
             '<picturedir name="%s" path="%s" css="%s"' % \
             (dname, dpath, self.cssPath))
-        if not options.no_javascript:
+        if options.with_javascript:
             s.write(' javascript="%s"' % self.javascriptPath)
         s.write('>\n')
         # xsl:import must be before xsl:param.  But the param here has
@@ -1023,7 +1023,7 @@ def go():
         sppCopyFile(options.css,       "spp.css",       "css", stylesheetPath=stylesheetPath)
         sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
         sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
-        if not options.no_javascript:
+        if options.with_javascript:
             sppCopyFile(options.javascript,"spp.js", "javascript",
                         stylesheetPath=stylesheetPath)
     # Now create thumbnails and markup.
