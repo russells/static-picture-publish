@@ -135,6 +135,14 @@ like this:
 We're already opening the images to check their sizes, so there's not much
 overhead in recording the sizes.
 
+** Folder images.  Done, not complete.
+
+Allow one image from a folder to be used as the icon for that folder in its
+containing folder.  The containing folder will have to ask each sub-folder what
+its icon will be.  Default to the first image, like gallery does?
+
+Still need to choose a random image from the dir instead of the first one.
+
 
 * Code
 

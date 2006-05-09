@@ -171,6 +171,45 @@ being able to display the translated html.
   </xsl:template>
 
   <xsl:template name="dirtemplate">
+
+    <!-- Set the name of the link to the subdir. -->
+    <xsl:variable name="linkname">
+      <xsl:choose>
+        <xsl:when test="$imagePageExtension = '.xml'">
+          <xsl:value-of select="name"/>
+          <xsl:text>/index.xml</xsl:text>
+        </xsl:when>
+        <xsl:otherwise>
+          <xsl:value-of select="name"/>
+          <xsl:text>/</xsl:text>
+        </xsl:otherwise>
+      </xsl:choose>
+    </xsl:variable>
+
+    <!-- If we were given a thumbnail, use that. This will set the variable
+    even without the thumbnail element being available.  I do this because
+    the scoping rules for variables don't seem to allow putting
+    xsl:variable inside xsl:choose. -->
+    <xsl:variable name="thumbnailstuff">
+      <div class="dir-image">
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="name" />
+          </xsl:attribute>
+          <xsl:element name="img">
+            <xsl:attribute name="src">
+              <xsl:value-of select="name" />
+              <xsl:text>/</xsl:text>
+              <xsl:value-of select="thumbnail" />
+            </xsl:attribute>
+            <xsl:attribute name="alt">
+              <xsl:value-of select="$linkname" />
+            </xsl:attribute>
+          </xsl:element>
+        </xsl:element>
+      </div>
+    </xsl:variable>
+
     <xsl:element name="td">
       <xsl:attribute name="class">
         <xsl:text>dir-table-cell</xsl:text>
@@ -178,25 +217,17 @@ being able to display the translated html.
       <xsl:attribute name="width">
         <xsl:value-of select="100 div $nTableCells" /><xsl:text>%</xsl:text>
       </xsl:attribute>
-      <xsl:choose>
-        <xsl:when test="$imagePageExtension = '.xml'">
-          <xsl:element name="a">
-            <xsl:attribute name="href">
-              <xsl:value-of select="name"/>
-              <xsl:text>/index.xml</xsl:text>
-            </xsl:attribute>
-            <xsl:value-of select="name"/>
-          </xsl:element>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:element name="a">
-            <xsl:attribute name="href">
-              <xsl:value-of select="name"/>
-            </xsl:attribute>
-            <xsl:value-of select="name"/>
-          </xsl:element>
-        </xsl:otherwise>
-      </xsl:choose>
+      <xsl:if test="string-length(thumbnail) != 0">
+        <xsl:copy-of select="$thumbnailstuff" />
+      </xsl:if>
+      <p class="dir-text">
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="$linkname"/>
+          </xsl:attribute>
+          <xsl:value-of select="name"/>
+        </xsl:element>
+      </p>
     </xsl:element>
     <!-- <xsl:apply-templates/ -->
   </xsl:template>

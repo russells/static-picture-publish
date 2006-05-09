@@ -524,6 +524,7 @@ class PictureDir(dict):
 
         self['subdirList'] = []
         self['picList'] = []
+        self['picDict'] = {}
         # Now create our lists
         lst = listdir(self['picPath'])
         for l in lst:
@@ -544,6 +545,7 @@ class PictureDir(dict):
                 im = Picture(l, self['picPath'], self['webPath'], dirName, configEntry,
                              stylesheetPath=stylesheetPath)
                 self['picList'].append(im)
+                self['picDict'][l] = im
         # Now sort the lists, and then rearrange them given the information in
         # the config file.
         self.sortSubList(self['subdirList'], 'folder order')
@@ -763,8 +765,11 @@ class PictureDir(dict):
             s.write(
                 '    <dir>\n' \
                 '      <name>%s</name>\n' % entityReplace(d['dirBasename']) +\
-                '      <path>%s</path>\n' % entityReplace(d['dirName']) +\
-                '    </dir>\n')
+                '      <path>%s</path>\n' % entityReplace(d['dirName']))
+            tname = d.thumbnailName()
+            if tname:
+                s.write('      <thumbnail>%s</thumbnail>\n' % entityReplace(tname))
+            s.write('    </dir>\n')
         s.write('  </dirs>\n')
         s.write('  <images>\n')
         for f in self['picList']:
@@ -804,6 +809,16 @@ class PictureDir(dict):
     def __le__(self, other): return self['dirName'] <= other['dirName']
 
     def __repr__(self): return self['dirName']
+
+
+    def thumbnailName(self):
+        '''Find out the name of the image used as a thumbnail.'''
+        if self['dirConfig'].has_option('folder', 'thumbnail'):
+            return self['picDict'][self['dirConfig'].get('folder',' thumbnail')]['thumbnailName']
+        elif len(self['picList']) != 0:
+            return self['picDict'][self['picList'][0].name()]['thumbnailName']
+        else:
+            return None
 
 
 # Characters that can be included in shell commands without escaping.
