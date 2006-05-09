@@ -814,7 +814,7 @@ class PictureDir(dict):
     def thumbnailName(self):
         '''Find out the name of the image used as a thumbnail.'''
         if self['dirConfig'].has_option('folder', 'thumbnail'):
-            return self['picDict'][self['dirConfig'].get('folder',' thumbnail')]['thumbnailName']
+            return self['picDict'][self['dirConfig'].get('folder','thumbnail')]['thumbnailName']
         elif len(self['picList']) != 0:
             return self['picDict'][self['picList'][0].name()]['thumbnailName']
         else:
