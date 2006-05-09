@@ -14,6 +14,10 @@ from string import join as stringjoin
 from time import time
 from shutil import copyfile
 from ConfigParser import ConfigParser
+from random import randint, seed
+
+# init the random number generator.
+seed()
 
 
 defaultExtensions = '.jpg,.jpeg,.gif,.png'
@@ -664,11 +668,11 @@ class PictureDir(dict):
             (self['picRoot'], self['webRoot'], self['dirName'], str(self['doUp']))
         s += ':im=[ '
         for p in self['picList']:
-            s = s + p.picName + ' '
+            s = s + p['picName'] + ' '
         s = s + ']'
         s = s + ':sd[ '
         for d in self['subdirList']:
-            s = s + d.dirName+' '
+            s = s + d['dirName']+' '
         s = s + ']>>'
         return s
 
@@ -766,9 +770,13 @@ class PictureDir(dict):
                 '    <dir>\n' \
                 '      <name>%s</name>\n' % entityReplace(d['dirBasename']) +\
                 '      <path>%s</path>\n' % entityReplace(d['dirName']))
-            tname = d.thumbnailName()
+            (tname,twidth,theight) = d.thumbnailName()
             if tname:
-                s.write('      <thumbnail>%s</thumbnail>\n' % entityReplace(tname))
+                if twidth:
+                    s.write('      <thumbnail width="%d" height="%d">%s</thumbnail>\n' % \
+                            (twidth, theight, tname))
+                else:
+                    s.write('      <thumbnail>%s</thumbnail>\n' % entityReplace(tname))
             s.write('    </dir>\n')
         s.write('  </dirs>\n')
         s.write('  <images>\n')
@@ -813,12 +821,21 @@ class PictureDir(dict):
 
     def thumbnailName(self):
         '''Find out the name of the image used as a thumbnail.'''
+        ret = (None,None,None)
+        im = None
         if self['dirConfig'].has_option('folder', 'thumbnail'):
-            return self['picDict'][self['dirConfig'].get('folder','thumbnail')]['thumbnailName']
+            nm = self['dirConfig'].get('folder','thumbnail')
+            im = self['picDict'][nm]
         elif len(self['picList']) != 0:
-            return self['picDict'][self['picList'][0].name()]['thumbnailName']
-        else:
-            return None
+            im = self['picList'][randint(0,len(self['picList'])-1)]
+
+        if im:
+            if im.has_key('thumbnail-width') and im.has_key('thumbnail-height'):
+                ret = (im['thumbnailName'], im['thumbnail-width'], im['thumbnail-height'])
+            else:
+                ret = (im['thumbnailName'], None, None)
+        verboseMessage("For %s, thumbnail is %s" % (self, ret))
+        return ret
 
 
 # Characters that can be included in shell commands without escaping.

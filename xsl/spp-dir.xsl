@@ -205,6 +205,16 @@ being able to display the translated html.
                 <xsl:attribute name="alt">
                   <xsl:value-of select="$linkname" />
                 </xsl:attribute>
+                <xsl:if test="string-length(thumbnail/@height) != 0">
+                  <xsl:attribute name="height">
+                    <xsl:value-of select="thumbnail/@height" />
+                  </xsl:attribute>
+                </xsl:if>
+                <xsl:if test="string-length(thumbnail/@width) != 0">
+                  <xsl:attribute name="width">
+                    <xsl:value-of select="thumbnail/@width" />
+                  </xsl:attribute>
+                </xsl:if>
               </xsl:element>
             </xsl:element>
           </div>
