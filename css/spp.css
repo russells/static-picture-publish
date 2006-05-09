@@ -113,8 +113,19 @@ a {
   border-width: 2px;
   border-style: solid;
   padding: 5px;
+}
+
+.thumbnail-table-cell
+{
   background: #eee;
 }
+
+.updir-table-cell,
+.dir-table-cell
+{
+  background: #eeb;
+}
+
 
 .thumbnail
 {
