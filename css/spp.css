@@ -126,16 +126,17 @@ a {
   background: #eeb;
 }
 
-
 .thumbnail
 {
   display: inline;
   width: 33%;
 }
 
-.thumbnail-text
+p.dir-text,
+p.thumbnail-text
 {
   text-align: center;
+  overflow: hidden;
 }
 
 .thumbnailimage
