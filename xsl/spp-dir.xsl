@@ -24,11 +24,11 @@ being able to display the translated html.
 
   <xsl:template match="/picturedir">
     <html>
-      <xsl:element name="META">
-        <xsl:attribute name="http-equiv">Content-Script-Type</xsl:attribute>
-        <xsl:attribute name="content">text/javascript</xsl:attribute>
-      </xsl:element>
       <head>
+        <xsl:element name="META">
+          <xsl:attribute name="http-equiv">Content-Script-Type</xsl:attribute>
+          <xsl:attribute name="content">text/javascript</xsl:attribute>
+        </xsl:element>
         <xsl:if test="string-length(@javascript) != 0">
           <xsl:element name="script">
             <xsl:attribute name="type">
@@ -208,7 +208,7 @@ being able to display the translated html.
           <xsl:value-of select="$className" />
         </xsl:attribute>
         <xsl:attribute name="width">
-          <xsl:value-of select="100 div $nTableColumns" /><xsl:text>%</xsl:text>
+          <xsl:value-of select="format-number(1 div $nTableColumns, '#%')" />
         </xsl:attribute>
         <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
         <xsl:comment> Extra cell </xsl:comment>
@@ -289,7 +289,7 @@ being able to display the translated html.
         <xsl:text>dir-table-cell</xsl:text>
       </xsl:attribute>
       <xsl:attribute name="width">
-        <xsl:value-of select="100 div $nTableColumns" /><xsl:text>%</xsl:text>
+        <xsl:value-of select="format-number(1 div $nTableColumns, '#%')" />
       </xsl:attribute>
       <xsl:copy-of select="$thumbnailstuff" />
       <p class="dir-text">
@@ -368,7 +368,7 @@ being able to display the translated html.
         <xsl:text>thumbnail-table-cell</xsl:text>
       </xsl:attribute>
       <xsl:attribute name="width">
-        <xsl:value-of select="100 div $nTableColumns" /><xsl:text>%</xsl:text>
+        <xsl:value-of select="format-number(1 div $nTableColumns, '#%')" />
       </xsl:attribute>
       <xsl:element name="div">
         <xsl:attribute name="class">
