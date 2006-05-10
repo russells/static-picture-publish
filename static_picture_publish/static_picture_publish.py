@@ -774,7 +774,7 @@ class PictureDir(dict):
             if tname:
                 if twidth:
                     s.write('      <thumbnail width="%d" height="%d">%s</thumbnail>\n' % \
-                            (twidth, theight, tname))
+                            (twidth, theight, entityReplace(tname)))
                 else:
                     s.write('      <thumbnail>%s</thumbnail>\n' % entityReplace(tname))
             s.write('    </dir>\n')
