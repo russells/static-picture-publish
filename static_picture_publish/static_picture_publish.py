@@ -463,6 +463,12 @@ class Picture(dict):
 
 class PictureDir(dict):
     '''Contains information about a picture directory.'''
+
+    # List of files to leave in the output directory.  Normally, files we don't recognise in
+    # the output will be deleted, but not if they're named in here.
+    filesToKeep = [ '.htaccess', 'index.xml', 'index.html',
+                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl', 'spp.js']
+
     def __init__(self, picRoot, webRoot, dirName='', doUp=False, stylesheetPath=None):
         '''Search through the directory, looking for pictures and
         sub-directories.  We do not process anything yet, but wait until we
@@ -527,6 +533,7 @@ class PictureDir(dict):
                     ht = pathsplit(ht)[0]
 
         self['subdirList'] = []
+        self['subdirDict'] = {}
         self['picList'] = []
         self['picDict'] = {}
         # Now create our lists
@@ -544,6 +551,7 @@ class PictureDir(dict):
                                doUp=True, stylesheetPath=childStylesheetPath)
                 if p.hasPics():
                     self['subdirList'].append(p)
+                    self['subdirDict'][l] = p
             elif isPicFile(self['picPath'], subPath):
                 # Otherwise it's a file.
                 im = Picture(l, self['picPath'], self['webPath'], dirName, configEntry,
@@ -838,6 +846,53 @@ class PictureDir(dict):
         return ret
 
 
+    def deleteUnused(self):
+        '''Delete unused directories and files in the output tree.'''
+        # First, do the same thing in our subdirectories.
+        for d in self['subdirList']:
+            d.deleteUnused()
+        # Now, construct the list of files and directories we want to keep.
+        keepList = {}
+        for z in self.filesToKeep:
+            keepList[z] = 1
+        for z in self['subdirDict'].keys():
+            keepList[z] = 1
+        for z in self['picList']:
+            keepList[z['imageName']] = 1
+            keepList[z['fullImageName']] = 1
+            keepList[z['thumbnailName']] = 1
+            keepList[z['xmlName']] = 1
+            keepList[z['htmlName']] = 1
+        # Get the list of things that are in the output directory.
+        lst = listdir(self['webPath'])
+        for l in lst:
+            if not l in keepList:
+                p = pathjoin(self['webPath'], l)
+                try:
+                    if isdir(p):
+                        self.deleteDir(p)
+                    else:
+                        unlink(p)
+                except OSError,reason:
+                    print >>stderr, "%s: error deleting %s: %s" % (argv[0], p, str(reason.args))
+
+
+    def deleteDir(self, d):
+        '''Recursively delete a whole directory tree.'''
+        lst = listdir(d)
+        for e in lst:
+            p = pathjoin(d,e)
+            try:
+                if isdir(p):
+                    self.deleteDir(p)
+                else:
+                    unlink(p)
+            except OSError,reason:
+                print >>stderr, "%s: error deleting %s: %s" % (argv[0], p, str(reason.args))
+        message("Removing directory %s" % d)
+        rmdir(d)
+
+
 # Characters that can be included in shell commands without escaping.
 shellOKChars = 'abcdefghijklmnopqrstuvwxyz' \
                'ABCDEFGHIJKLMNOPQRSTUVWXYZ' \
@@ -855,38 +910,6 @@ def shellEscape(sin):
     r = sout.getvalue()
     sout.close()
     return r
-
-def dirTree(rootName='.'):
-    '''Return a list of directory names starting from a specified root.'''
-
-    def recursiveDirTree(rootName,dirName):
-        '''Return a list of directory names.
-
-        The directories are searched for starting from rootName/dirName.  The
-        "rootName/" prefix is not included in names in the list.  dirName is
-        included in the list.'''
-        lst = []
-        dirList = listdir(pathjoin(rootName,dirName))
-        for d in dirList:
-            if isdir(pathjoin(rootName,dirName,d)):
-                dName = pathjoin(dirName,d)
-                #message("Appending (%s) %s" % (rootName,dName))
-                lst.append(dName)
-                lst.extend(recursiveDirTree(rootName,dName))
-        return lst
-
-    lst = []
-    if not isdir(rootName):
-        return lst
-    #message("Appending (%s) ." % rootName)
-    lst.append('.')
-    thisDirList = listdir(rootName)
-    for subd in thisDirList:
-        if isdir(pathjoin(rootName,subd)):
-            #message("Appending (%s) %s" % (rootName,subd))
-            lst.append(subd)
-            lst.extend(recursiveDirTree(rootName,subd))
-    return lst
 
 
 def isPicFile(path, pic):
@@ -923,41 +946,6 @@ def fileIsNewer(file1, file2):
     else:
         file2stat = file2
     return file1stat.st_mtime > file2stat.st_mtime
-
-
-def doWebDirs():
-    for d in webTree:
-        # Handle '.' specially.  This is slightly icky.
-        if d == '.':
-            webd = webRoot
-            picd = picRoot
-        else:
-            webd = pathjoin(webRoot, d)
-            picd = pathjoin(picRoot, d)
-        doOneWebDir(webd, picd)
-
-
-def doOneWebDir(webd, picd):
-    # First check that the directory still exists.
-    if not isdir(webd):
-        return
-    if not isdir(picd):
-        # There is no corresponding picture directory, so we recursively delete
-        # the web output dir.
-        deleteDir(webd)
-
-
-def deleteDir(d):
-    '''Recursively delete a whole directory tree.'''
-    lst = listdir(d)
-    for e in lst:
-        p = pathjoin(d,e)
-        if isdir(p):
-            deleteDir(p)
-        else:
-            unlink(p)
-    message("Removing directory %s" % d)
-    rmdir(d)
 
 
 def searchForFile(path, type, filename):
@@ -1079,11 +1067,8 @@ def go():
                         stylesheetPath=stylesheetPath)
     # Now create thumbnails and markup.
     pd.go()
+    pd.deleteUnused()
 
-
-    global webTree
-    webTree = dirTree(webRoot)
-    doWebDirs()
 
 if __name__ == '__main__':
     go()
@@ -1093,7 +1078,7 @@ if __name__ == '__main__':
 # Local variables: ***
 # mode:python ***
 # py-indent-offset:4 ***
-# fill-column:95 ***
+# fill-column:100 ***
 # End: ***
 # arch-tag: dbd38a8f-6259-49ca-a125-6b5cd1f48bdb
 
