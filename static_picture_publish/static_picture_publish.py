@@ -752,7 +752,7 @@ class PictureDir(dict):
                 '   version="1.0"\n'
                 '   xmlns:xsl="http://www.w3.org/1999/XSL/Transform">\n'
                 '  <xsl:import href="%s"/>\n' % self['xslPath'] +\
-                '  <xsl:param name="nTableCells">%d</xsl:param>\n' % \
+                '  <xsl:param name="nTableColumns">%d</xsl:param>\n' % \
                 options.row)
         if options.no_html:
             s.write('  <xsl:param name="nohtml">yes</xsl:param>\n')

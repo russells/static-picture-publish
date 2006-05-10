@@ -18,7 +18,7 @@ being able to display the translated html.
 
   <xsl:template match="*"/>
 
-  <xsl:param name="nTableCells">4</xsl:param>
+  <xsl:param name="nTableColumns">4</xsl:param>
   <xsl:param name="imagePageExtension">.xml</xsl:param>
   <xsl:param name="repeatDirsAfterNImages">9</xsl:param>
 
@@ -150,25 +150,83 @@ being able to display the translated html.
 
   <xsl:template match="/picturedir/dirs">
     <xsl:if test="count(dir) != 0">
+
+      <xsl:variable name="nRows">
+        <xsl:value-of select="ceiling(count(dir) div $nTableColumns)" />
+      </xsl:variable>
+
+      <xsl:variable name="nExtraCells">
+        <xsl:choose>
+          <xsl:when test="(count(dir) mod $nTableColumns) = 0">0</xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$nTableColumns - (count(dir) mod $nTableColumns)" />
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+
       <span class="dir-list-title">Folders</span>
+      <xsl:comment> nRows == <xsl:value-of select="$nRows"/> </xsl:comment>
+      <xsl:comment> nExtraCells == <xsl:value-of select="$nExtraCells"/> </xsl:comment>
       <table class="dir-table">
         <xsl:attribute name="summary">
           <xsl:text>Folder list</xsl:text>
         </xsl:attribute>
-        <xsl:for-each select="dir[ position() mod $nTableCells = 1 ]">
+        <xsl:for-each select="dir[ position() mod $nTableColumns = 1 ]">
           <tr class="dir-table-row">
-            <xsl:for-each select=". | following-sibling::dir[position()&lt;$nTableCells]">
-              <xsl:call-template name="dirtemplate">
-                <!-- <xsl:with-param name="p"> -->
-                  <!-- <xsl:value-of select="position()"/> -->
-                <!-- </xsl:with-param> -->
-              </xsl:call-template>
+            <xsl:for-each select=". | following-sibling::dir[position()&lt;$nTableColumns]">
+              <xsl:call-template name="dirtemplate" />
             </xsl:for-each>
+            <!-- If we just did the last row, and we require extra cells, -->
+            <!-- then fill in the table with blank cells -->
+            <xsl:comment> position() == <xsl:value-of select="position()"/> </xsl:comment>
+            <xsl:if test="position() = $nRows">
+              <xsl:if test="$nExtraCells != 0">
+                <xsl:call-template name="emptyCellTemplate">
+                  <xsl:with-param name="i">1</xsl:with-param>
+                  <xsl:with-param name="n">
+                    <xsl:value-of select="$nExtraCells" />
+                  </xsl:with-param>
+                  <xsl:with-param name="className">
+                    <xsl:text>dir-table-cell</xsl:text>
+                  </xsl:with-param>
+                </xsl:call-template>
+              </xsl:if>
+            </xsl:if>
           </tr>
         </xsl:for-each>
       </table>
     </xsl:if>
   </xsl:template>
+
+  <xsl:template name="emptyCellTemplate">
+    <xsl:param name="i" />
+    <xsl:param name="n" />
+    <xsl:param name="className" />
+    <xsl:if test="$i &lt;= $n">
+      <xsl:element name="td">
+        <xsl:attribute name="class">
+          <xsl:value-of select="$className" />
+        </xsl:attribute>
+        <xsl:attribute name="width">
+          <xsl:value-of select="100 div $nTableColumns" /><xsl:text>%</xsl:text>
+        </xsl:attribute>
+        <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+        <xsl:comment> Extra cell </xsl:comment>
+      </xsl:element>
+      <xsl:call-template name="emptyCellTemplate">
+        <xsl:with-param name="i">
+          <xsl:value-of select="$i + 1" />
+        </xsl:with-param>
+        <xsl:with-param name="n">
+          <xsl:value-of select="$n" />
+        </xsl:with-param>
+        <xsl:with-param name="className">
+          <xsl:value-of select="$className" />
+        </xsl:with-param>
+      </xsl:call-template>
+    </xsl:if>
+  </xsl:template>
+
 
   <xsl:template name="dirtemplate">
 
@@ -231,7 +289,7 @@ being able to display the translated html.
         <xsl:text>dir-table-cell</xsl:text>
       </xsl:attribute>
       <xsl:attribute name="width">
-        <xsl:value-of select="100 div $nTableCells" /><xsl:text>%</xsl:text>
+        <xsl:value-of select="100 div $nTableColumns" /><xsl:text>%</xsl:text>
       </xsl:attribute>
       <xsl:copy-of select="$thumbnailstuff" />
       <p class="dir-text">
@@ -246,8 +304,23 @@ being able to display the translated html.
     <!-- <xsl:apply-templates/ -->
   </xsl:template>
 
+
   <xsl:template match="/picturedir/images">
     <xsl:if test="count(image) != 0">
+
+      <xsl:variable name="nRows">
+        <xsl:value-of select="ceiling(count(image) div $nTableColumns)" />
+      </xsl:variable>
+
+      <xsl:variable name="nExtraCells">
+        <xsl:choose>
+          <xsl:when test="(count(image) mod $nTableColumns) = 0">0</xsl:when>
+          <xsl:otherwise>
+            <xsl:value-of select="$nTableColumns - (count(image) mod $nTableColumns)" />
+          </xsl:otherwise>
+        </xsl:choose>
+      </xsl:variable>
+
       <span class="thumbnail-list-title">Images</span>
       <xsl:if test="count(image) &gt; $repeatDirsAfterNImages">
         <xsl:call-template name="doDownloads" />
@@ -256,15 +329,31 @@ being able to display the translated html.
         <xsl:attribute name="summary">
           <xsl:text>Thumbnail list</xsl:text>
         </xsl:attribute>
-        <xsl:for-each select="image[ position() mod $nTableCells = 1 ]">
+        <xsl:for-each select="image[ position() mod $nTableColumns = 1 ]">
           <tr class="thumbnail-table-row">
-            <xsl:for-each select=". | following-sibling::image[position()&lt;$nTableCells]">
+            <xsl:for-each select=". | following-sibling::image[position()&lt;$nTableColumns]">
               <xsl:call-template name="imagetemplate">
                 <!-- <xsl:with-param name="p"> -->
                   <!-- <xsl:value-of select="position()"/> -->
                 <!-- </xsl:with-param> -->
               </xsl:call-template>
             </xsl:for-each>
+            <!-- If we just did the last row, and we require extra cells, -->
+            <!-- then fill in the table with blank cells -->
+            <xsl:comment> position() == <xsl:value-of select="position()"/> </xsl:comment>
+            <xsl:if test="position() = $nRows">
+              <xsl:if test="$nExtraCells != 0">
+                <xsl:call-template name="emptyCellTemplate">
+                  <xsl:with-param name="i">1</xsl:with-param>
+                  <xsl:with-param name="n">
+                    <xsl:value-of select="$nExtraCells" />
+                  </xsl:with-param>
+                  <xsl:with-param name="className">
+                    <xsl:text>thumbnail-table-cell</xsl:text>
+                  </xsl:with-param>
+                </xsl:call-template>
+              </xsl:if>
+            </xsl:if>
           </tr>
         </xsl:for-each>
       </table>
@@ -279,7 +368,7 @@ being able to display the translated html.
         <xsl:text>thumbnail-table-cell</xsl:text>
       </xsl:attribute>
       <xsl:attribute name="width">
-        <xsl:value-of select="100 div $nTableCells" /><xsl:text>%</xsl:text>
+        <xsl:value-of select="100 div $nTableColumns" /><xsl:text>%</xsl:text>
       </xsl:attribute>
       <xsl:element name="div">
         <xsl:attribute name="class">
