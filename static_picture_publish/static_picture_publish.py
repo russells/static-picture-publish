@@ -651,7 +651,11 @@ class PictureDir(dict):
                 order = self['dirConfig'].getint(sectionName, name) - 1
                 # Error if there are duplicate indexes in the config.
                 if lst[order] is not None:
-                    raise IndexError('Duplicate index')
+                    print >>stderr, "%s: duplicate index in [folder order] for %s: %s and %s" \
+                          % (argv[0], self['dirName'],
+                             lst[order]['dirBasename'], sub['dirBasename'])
+                    print >>stderr, "  I cannot continue, I don't know what to do here."
+                    exit(1)
                 # Copy the data, and zero the copy.
                 lst[order] = sub
                 lstcopy[i] = None
