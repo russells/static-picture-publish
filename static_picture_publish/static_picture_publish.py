@@ -128,7 +128,8 @@ layout_opts.add_option(
     '--css',
     action='store',
     #metavar="css_file",
-    help='CSS file to use in HTML or XML output. (Default inbuilt)')
+    help='CSS style to use in HTML or XML output. (Default "plain").'
+    ' The file "spp-<style>.css" or equivalent will be used, and renamed "spp.css".')
 layout_opts.add_option(
     '--javascript',
     action='store',
@@ -170,14 +171,22 @@ def parseOptions():
        options.thumbnail_size[1] > options.image_size[1]:
         print >>stderr, "%s: warning: thumbnail (%s) is bigger than image (%s)"\
               % (str(options.thumbnail_size), str(options.image_size))
-    if not options.css:
-        options.css = "css/spp.css"
-    if not options.xsl_dir:
-        options.xsl_dir = "xsl/spp-dir.xsl"
-    if not options.xsl_image:
-        options.xsl_image = "xsl/spp-image.xsl"
-    if not options.javascript:
-        options.javascript = "javascript/spp.js"
+    if options.css:
+        options.css_file = "css/spp-%s.css" % options.css
+    else:
+        options.css_file = "css/spp-plain.css"
+    if options.xsl_dir:
+        options.xsl_dir_file = "xsl/spp-dir-%s.xsl" % options.xsl_dir
+    else:
+        options.xsl_dir_file = "xsl/spp-dir-plain.xsl"
+    if options.xsl_image:
+        options.xsl_image_file = "xsl/spp-image-%s.xsl" % options.xsl_image
+    else:
+        options.xsl_image_file = "xsl/spp-image-plain.xsl"
+    if options.javascript:
+        options.javascript_file = "javascript/spp-%s.js" % options.javascript
+    else:
+        options.javascript_file = "javascript/spp-plain.js"
     options.messageLevel = 1
     if options.verbose:
         options.messageLevel = 2
@@ -785,7 +794,7 @@ class PictureDir(dict):
                     s.write('    <thumbnail width="%d" height="%d">%s</thumbnail>\n' % \
                             (twidth, theight, entityReplace(tname)))
                 else:
-                    s.write('    <thumbnail>%s</thumbnail>\n' % tname)
+                    s.write('    <thumbnail>%s</thumbnail>\n' % entityReplace(tname))
             s.write('  </prev>\n')
         if nextDir:
             s.write('  <next>\n')
@@ -796,7 +805,7 @@ class PictureDir(dict):
                     s.write('    <thumbnail width="%d" height="%d">%s</thumbnail>\n' % \
                             (twidth, theight, entityReplace(tname)))
                 else:
-                    s.write('    <thumbnail>%s</thumbnail>\n' % tname)
+                    s.write('    <thumbnail>%s</thumbnail>\n' % entityReplace(tname))
             s.write('  </next>\n')
         s.write(
             '  <thumbnails>\n'
@@ -1089,11 +1098,11 @@ def go():
             exit(1)
     # Copy in the XSL and CSS files.
     if not options.subdir:
-        sppCopyFile(options.css,       "spp.css",       "css", stylesheetPath=stylesheetPath)
-        sppCopyFile(options.xsl_dir,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
-        sppCopyFile(options.xsl_image, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
+        sppCopyFile(options.css_file,       "spp.css",       "css", stylesheetPath=stylesheetPath)
+        sppCopyFile(options.xsl_dir_file,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
+        sppCopyFile(options.xsl_image_file, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
         if options.with_javascript:
-            sppCopyFile(options.javascript,"spp.js", "javascript",
+            sppCopyFile(options.javascript_file,"spp.js", "javascript",
                         stylesheetPath=stylesheetPath)
     # Now create thumbnails and markup.
     pd.go()

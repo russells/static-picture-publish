@@ -23,11 +23,11 @@ setup(name='static-picture-publish',
       data_files=[('share/man/man1',
                    ['man/static-picture-publish.1.gz']),
                   ('lib/python2.3/static_picture_publish/css',
-                   ['css/spp.css'] ),
+                   ['css/spp-plain.css'] ),
                   ('lib/python2.3/static_picture_publish/xsl',
-                   ['xsl/spp-dir.xsl', 'xsl/spp-image.xsl'] ),
+                   ['xsl/spp-dir-plain.xsl', 'xsl/spp-image-plain.xsl'] ),
                   ('lib/python2.3/static_picture_publish/javascript',
-                   ['javascript/spp.js'] )
+                   ['javascript/spp-plain.js'] )
                   ]
       )
 
