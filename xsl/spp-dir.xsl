@@ -8,7 +8,7 @@
 
 <!--
 Enabling these extra output attributes results in firefox (at least) not
-being able to display the translated html.
+being able to display the translated html when it does the XSLT itself.
 
   <xsl:output method="xml" omit-xml-declaration="yes"
   doctype-public="-//W3C//DTD XHTML 1.0 Transitional//EN"
@@ -21,6 +21,19 @@ being able to display the translated html.
   <xsl:param name="nTableColumns">4</xsl:param>
   <xsl:param name="imagePageExtension">.xml</xsl:param>
   <xsl:param name="repeatDirsAfterNImages">9</xsl:param>
+
+  <!-- This is the text to put on the end of directory links. -->
+  <!-- If we're in xml mode, it's "/index.xml", otherwise "/". -->
+  <xsl:variable name="directoryLinkEnding">
+    <xsl:choose>
+      <xsl:when test="$imagePageExtension = '.xml'">
+        <xsl:text>/index.xml</xsl:text>
+      </xsl:when>
+      <xsl:otherwise>
+        <xsl:text>/</xsl:text>
+      </xsl:otherwise>
+    </xsl:choose>
+  </xsl:variable>
 
   <xsl:template match="/picturedir">
     <html>
@@ -59,7 +72,10 @@ being able to display the translated html.
       <body>
         <span class="page-title"><xsl:value-of select="@name"/></span>
         <div class="picturedir">
-          <xsl:apply-templates select="updir"/>
+          <xsl:if test="count(updir) != 0 or count(dirs/dir) != 0">
+            <span class="dir-list-title">Folders</span>
+          </xsl:if>
+          <xsl:call-template name="dirnavTemplate"/>
           <xsl:comment>
             <xsl:text> We have </xsl:text>
             <xsl:value-of select="count(dirs/dir)"/>
@@ -73,8 +89,11 @@ being able to display the translated html.
           </xsl:comment>
           <xsl:apply-templates select="images"/>
           <xsl:if test="count(images/image) &gt; $repeatDirsAfterNImages">
+            <xsl:if test="count(updir) != 0 or count(dirs/dir) != 0">
+              <span class="dir-list-title">Folders</span>
+            </xsl:if>
+            <xsl:call-template name="dirnavTemplate"/>
             <xsl:apply-templates select="dirs"/>
-            <xsl:apply-templates select="updir"/>
           </xsl:if>
         </div>
         <div class="footer">
@@ -118,35 +137,145 @@ being able to display the translated html.
   </xsl:template>
 
 
-  <xsl:template match="updir">
-    <table class="updir-table">
-      <tr>
-        <td width="100%" class="updir-table-cell">
-          <xsl:text>[</xsl:text>
-          <xsl:choose>
-            <xsl:when test="$imagePageExtension = '.xml'">
-              <xsl:element name="a">
-                <xsl:attribute name="href">
-                  <xsl:text>../index.xml</xsl:text>
-                </xsl:attribute>
-                <xsl:text>Go up one folder</xsl:text>
-              </xsl:element>
-            </xsl:when>
-            <xsl:otherwise>
+  <!-- Output a link for navigating to a related directory. -->
+  <xsl:template name="nextprevDirnavTemplate">
+
+    <!-- We supply the text as a parameter because sometimes we want the
+    arrows before the directory name and sometimes afterwards.  There's no
+    way to tell this reliable from the directory or link name. -->
+    <xsl:param name="preLinkText" />
+    <xsl:param name="linkText" />
+    <xsl:param name="postLinkText" />
+
+    <!-- Add the thumbnail if it's available -->
+    <xsl:if test="string-length(thumbnail) != 0">
+      <xsl:element name="a">
+        <xsl:attribute name="href">
+          <xsl:text>../</xsl:text>
+          <xsl:value-of select="name" />
+          <xsl:value-of select="$directoryLinkEnding" />
+        </xsl:attribute>
+        <xsl:element name="img">
+          <xsl:attribute name="src">
+            <xsl:text>../</xsl:text>
+            <xsl:value-of select="name" />
+            <xsl:text>/</xsl:text>
+            <xsl:value-of select="thumbnail" />
+          </xsl:attribute>
+          <xsl:attribute name="alt">
+            <xsl:text>../</xsl:text>
+            <xsl:value-of select="name" />
+            <xsl:text>/</xsl:text>
+            <xsl:value-of select="thumbnail" />
+          </xsl:attribute>
+          <xsl:if test="string-length(thumbnail/@height) != 0">
+            <xsl:attribute name="height">
+              <xsl:value-of select="thumbnail/@height" />
+            </xsl:attribute>
+          </xsl:if>
+          <xsl:if test="string-length(thumbnail/@width) != 0">
+            <xsl:attribute name="width">
+              <xsl:value-of select="thumbnail/@width" />
+            </xsl:attribute>
+          </xsl:if>
+        </xsl:element>
+      </xsl:element>
+    </xsl:if>
+
+    <!-- Text -->
+    <p class="dir-text">
+      <xsl:if test="string-length($preLinkText) != 0">
+        <xsl:value-of select="$preLinkText" />
+      </xsl:if>
+      <xsl:element name="a">
+        <xsl:attribute name="href">
+          <xsl:text>../</xsl:text>
+          <xsl:value-of select="name" />
+          <xsl:value-of select="$directoryLinkEnding" />
+        </xsl:attribute>
+        <xsl:value-of select="$linkText" />
+      </xsl:element>
+      <xsl:if test="string-length($postLinkText) != 0">
+        <xsl:value-of select="$postLinkText" />
+      </xsl:if>
+    </p>
+
+  </xsl:template>
+
+
+  <!-- Create the directory navigation table. -->
+  <xsl:template name="dirnavTemplate">
+
+    <xsl:comment> start of dirnav table </xsl:comment>
+    <xsl:if test="count(updir) != 0">
+      <table class="dirnav-table">
+        <tr>
+
+          <!-- Navigate to previous -->
+          <td width="33%" class="dirnav-table-cell">
+            <xsl:choose>
+              <xsl:when test="count(prev) != 0">
+                <xsl:for-each select="prev[position()=1]">
+                  <xsl:call-template name="nextprevDirnavTemplate">
+                    <xsl:with-param name="preLinkText">
+                      <xsl:text>&lt;&lt; </xsl:text>
+                    </xsl:with-param>
+                    <xsl:with-param name="linkText">
+                      <xsl:value-of select="name" />
+                    </xsl:with-param>
+                  </xsl:call-template>
+                </xsl:for-each>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </td>
+
+          <!-- Navigate up -->
+          <td width="33%" class="dirnav-table-cell">
+            <p class="dir-text">
+              <xsl:text>[</xsl:text>
               <xsl:element name="a">
                 <xsl:attribute name="href">
                   <xsl:text>..</xsl:text>
+                  <xsl:value-of select="$directoryLinkEnding" />
                 </xsl:attribute>
                 <xsl:text>Go up one folder</xsl:text>
               </xsl:element>
-            </xsl:otherwise>
-          </xsl:choose>
-          <xsl:text>]</xsl:text>
-        </td>
-      </tr>
-    </table>
-    <!-- xsl:apply-templates/ -->
+              <xsl:text>]</xsl:text>
+            </p>
+          </td>
+
+          <!-- Navigate to next -->
+          <td width="33%" class="dirnav-table-cell">
+            <xsl:choose>
+              <xsl:when test="count(next) != 0">
+                <xsl:for-each select="next[position()=1]">
+                  <xsl:call-template name="nextprevDirnavTemplate">
+                    <xsl:with-param name="linkText">
+                      <xsl:value-of select="name" />
+                    </xsl:with-param>
+                    <xsl:with-param name="postLinkText">
+                      <xsl:text> &gt;&gt;</xsl:text>
+                    </xsl:with-param>
+                  </xsl:call-template>
+                </xsl:for-each>
+              </xsl:when>
+              <xsl:otherwise>
+                <xsl:text disable-output-escaping="yes">&amp;nbsp;</xsl:text>
+              </xsl:otherwise>
+            </xsl:choose>
+          </td>
+
+        </tr>
+      </table>
+    </xsl:if>
+
+    <xsl:comment> end of dirnav table </xsl:comment>
   </xsl:template>
+
+
 
   <xsl:template match="/picturedir/dirs">
     <xsl:if test="count(dir) != 0">
@@ -164,7 +293,6 @@ being able to display the translated html.
         </xsl:choose>
       </xsl:variable>
 
-      <span class="dir-list-title">Folders</span>
       <xsl:comment> nRows == <xsl:value-of select="$nRows"/> </xsl:comment>
       <xsl:comment> nExtraCells == <xsl:value-of select="$nExtraCells"/> </xsl:comment>
       <table class="dir-table">

@@ -83,7 +83,7 @@ a {
 }
 
 .links-table,
-.updir-table,
+.dirnav-table,
 .dir-table,
 .thumbnail-table,
 .downloads-table
@@ -92,6 +92,11 @@ a {
 /*
   margin-left: 3%;
   margin-right: 3%; */
+}
+
+.dirnav-table
+{
+  margin-bottom: 0.5em;
 }
 
 .thumbnail-tbody
@@ -105,7 +110,7 @@ a {
   margin-right: 6em;
 }
 
-.updir-table-cell,
+.dirnav-table-cell,
 .dir-table-cell,
 .thumbnail-table-cell
 {
@@ -120,7 +125,11 @@ a {
   background: #eee;
 }
 
-.updir-table-cell,
+.dirnav-table-cell
+{
+  background: #ee7;
+}
+
 .dir-table-cell
 {
   background: #eeb;
@@ -221,7 +230,7 @@ p.thumbnail-text
   font-size: 120%;
 }
 
-.updir {
+.dirnav {
   margin: 3px;
   padding: 3px;
   margin-left: 3em;

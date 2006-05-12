@@ -693,7 +693,7 @@ class PictureDir(dict):
         return len(self['subdirList']) > 0 or len(self['picList']) > 0
 
 
-    def go(self):
+    def go(self, prevDir=None, nextDir=None):
         '''Process the pics and sub-directories.'''
         if not self.hasPics():
             message("No pics in %s: doing nothing" % self['picPath'])
@@ -716,17 +716,21 @@ class PictureDir(dict):
             d = self['subdirList'][i]
             if d is None:
                 continue
-            m = d.go()
+            if i > 0: prevSubdir = self['subdirList'][i-1]
+            else: prevSubdir = None
+            if i < len(self['subdirList'])-1: nextSubdir = self['subdirList'][i+1]
+            else: nextSubdir = None
+            m = d.go(prevSubdir, nextSubdir)
             if m: modified = True
         if options.regen_all or options.regen_markup or modified:
             # Create our directory index
-            self.createMarkup()
+            self.createMarkup(prevDir, nextDir)
         return modified
 
     numberClasses = { 2:'p2', 3:'p3', 4:'p4', 5:'p5' }
 
 
-    def createMarkup(self):
+    def createMarkup(self, prevDir=None, nextDir=None):
         verboseMessage("  %s" % self['xmlPath'])
         x = file(self['xmlPath'], "w")
         s = StringIO()
@@ -772,6 +776,28 @@ class PictureDir(dict):
 
         if self['doUp']:
             s.write('  <updir/>\n')
+        if prevDir:
+            s.write('  <prev>\n')
+            s.write('    <name>%s</name>\n' % entityReplace(prevDir['dirBasename']))
+            (tname,twidth,theight) = prevDir.thumbnailName()
+            if tname:
+                if twidth:
+                    s.write('    <thumbnail width="%d" height="%d">%s</thumbnail>\n' % \
+                            (twidth, theight, entityReplace(tname)))
+                else:
+                    s.write('    <thumbnail>%s</thumbnail>\n' % tname)
+            s.write('  </prev>\n')
+        if nextDir:
+            s.write('  <next>\n')
+            s.write('    <name>%s</name>\n' % entityReplace(nextDir['dirBasename']))
+            (tname,twidth,theight) = nextDir.thumbnailName()
+            if tname:
+                if twidth:
+                    s.write('    <thumbnail width="%d" height="%d">%s</thumbnail>\n' % \
+                            (twidth, theight, entityReplace(tname)))
+                else:
+                    s.write('    <thumbnail>%s</thumbnail>\n' % tname)
+            s.write('  </next>\n')
         s.write(
             '  <thumbnails>\n'
             '    <x>%s</x>\n    <y>%s</y>\n' % options.thumbnail_size+\
