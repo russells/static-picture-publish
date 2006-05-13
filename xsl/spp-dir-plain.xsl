@@ -73,6 +73,7 @@ being able to display the translated html when it does the XSLT itself.
         <span class="page-title"><xsl:value-of select="@name"/></span>
         <div class="picturedir">
           <xsl:if test="count(updir) != 0 or count(dirs/dir) != 0">
+            <hr class="table-separator folders-table" />
             <span class="dir-list-title">Folders</span>
           </xsl:if>
           <xsl:call-template name="dirnavTemplate"/>
@@ -90,10 +91,13 @@ being able to display the translated html when it does the XSLT itself.
           <xsl:apply-templates select="images"/>
           <xsl:if test="count(images/image) &gt; $repeatDirsAfterNImages">
             <xsl:if test="count(updir) != 0 or count(dirs/dir) != 0">
-              <span class="dir-list-title">Folders</span>
+              <xsl:if test="count(dirs/dir) &lt; $repeatDirsAfterNImages">
+                <hr class="table-separator folders-table" />
+                <span class="dir-list-title">Folders</span>
+                <xsl:call-template name="dirnavTemplate"/>
+                <xsl:apply-templates select="dirs"/>
+              </xsl:if>
             </xsl:if>
-            <xsl:call-template name="dirnavTemplate"/>
-            <xsl:apply-templates select="dirs"/>
           </xsl:if>
         </div>
         <div class="footer">
@@ -449,6 +453,7 @@ being able to display the translated html when it does the XSLT itself.
         </xsl:choose>
       </xsl:variable>
 
+      <hr class="table-separator images-table" />
       <span class="thumbnail-list-title">Images</span>
       <xsl:if test="count(image) &gt; $repeatDirsAfterNImages">
         <xsl:call-template name="doDownloads" />

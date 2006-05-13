@@ -887,7 +887,8 @@ class PictureDir(dict):
                 SRC = InputSource.DefaultFactory.fromUri(srcuri)
                 processor = Processor.Processor()
                 processor.appendStylesheet(STY)
-                result = processor.run(SRC, topLevelParams={ 'imagePageExtension':'.html' })
+                result = processor.run(SRC, topLevelParams={ 'imagePageExtension':'.html',
+                                                             'nTableColumns': 4})
                 htmlf = file(self['htmlPath'], 'w+')
                 htmlf.write(result)
                 htmlf.close()

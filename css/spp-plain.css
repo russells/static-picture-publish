@@ -237,6 +237,20 @@ p.thumbnail-text
   background: #FFEEAA;
 }
 
+hr.table-separator
+{
+  height: 4px;
+}
+
+hr.folders-table
+{
+  background-color: #ee7;
+}
+
+hr.images-table
+{
+  background-color: #eee;
+}
 
 /* arch-tag: 4b8b1694-44b0-45df-b825-8418b0f04072
 */
