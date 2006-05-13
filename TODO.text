@@ -40,6 +40,13 @@ back to the index we are near the current image.
 
 (Not sure how this handles image names with strange characters in them.)
 
+** Correct the "name" and "id" attributes.
+
+The name attributes of the back-to-folder navigation in each image page uses
+the image name.  But this can contain invalid characters for an anchor name.
+We need to replace all the invalid characters.  "%20" would be nice, but % is
+not allowed.  Perhaps "_20"?
+
 ** Put the updir link at the bottom of the page as well as the top.  DONE.
 
 This should make it easier to navigate directories.  Perhaps put the
@@ -135,13 +142,17 @@ like this:
 We're already opening the images to check their sizes, so there's not much
 overhead in recording the sizes.
 
-** Folder images.  Done, not complete.
+** Folder images.  Done, not complete.  DONE.
 
 Allow one image from a folder to be used as the icon for that folder in its
 containing folder.  The containing folder will have to ask each sub-folder what
 its icon will be.  Default to the first image, like gallery does?
 
 Still need to choose a random image from the dir instead of the first one.
+
+** Encapsulate folder images in a folder border.
+
+Needs eight images, and some CSS to place and stretch them.
 
 
 * Code
@@ -248,9 +259,25 @@ Done in perl pod.
 
 ** Convert man page to docbook.
 
-There are docbook2man etc tools around
+There are docbook2man etc tools around.
 
 ** Rearrange the command line options into groups.  DONE.
+
+** Merge the [include] and [exclude] sections into one [images] section.
+
+The [include] section gained a lot more functionality, and now it's sill having
+more than one section, when the [exclude] section only does one thing, and the
+[include] secton can do the same thing:
+
+  [include]
+  a.jpg : false
+
+and
+
+  [exclude]
+  a.jpg : true
+
+do the same thing.  They would be better merged.
 
 
 # arch-tag: d7862aaa-4514-4f8d-b5eb-80826533fee9
