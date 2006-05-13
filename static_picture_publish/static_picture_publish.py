@@ -14,10 +14,16 @@ from string import join as stringjoin
 from time import time
 from shutil import copyfile
 from ConfigParser import ConfigParser
-from random import randint, seed
 
 # init the random number generator.
+from random import randint, seed
 seed()
+
+# XSLT processing
+from Ft.Lib.Uri import OsPathToUri
+from Ft.Xml import InputSource
+from Ft.Xml.Xslt import Processor
+
 
 
 defaultExtensions = '.jpg,.jpeg,.gif,.png'
@@ -153,6 +159,13 @@ layout_opts.add_option(
     help='XSLT file to use for image XML output. (Default inbuilt)')
 
 opt.add_option_group(layout_opts)
+
+other_opts = OptionGroup(opt, "Other options")
+other_opts.add_option(
+    '--xsltproc',
+    action='store_true',
+    help="Use the xsltproc program to create HTML, instead of the python XML libraries.")
+opt.add_option_group(other_opts)
 
 def parseOptions():
     global options, picRoot, webRoot, picTree, webTree
@@ -418,15 +431,28 @@ class Picture(dict):
         s.close()
         x.close()
         if not options.no_html:
-            verboseMessage('Creating %s' % \
-                           pathjoin(self['webDirName'], self['htmlName']))
-            cmd = 'cd %s && xsltproc ' \
-                  '--param imagePageExtension \'".html"\' ' \
-                  '-o %s %s' % (shellEscape(self['webDirName']),
-                               shellEscape(self['htmlName']),
-                               shellEscape(self['xmlName']))
-            verboseMessage('Command: %s' % cmd)
-            system(cmd)
+            if options.xsltproc:
+                cmd = 'cd %s && xsltproc ' \
+                      '--param imagePageExtension \'".html"\' ' \
+                      '-o %s %s' % (shellEscape(self['webDirName']),
+                                    shellEscape(self['htmlName']),
+                                    shellEscape(self['xmlName']))
+                verboseMessage('Command: %s' % cmd)
+                system(cmd)
+            else:
+                verboseMessage('Creating %s' % pathjoin(self['webDirName'], self['htmlName']))
+                styuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], self['xslPath'])))
+                verboseMessage("stylesheet URI: %s" % styuri)
+                srcuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], self['xmlName'])))
+                verboseMessage("source     URI: %s" % srcuri)
+                STY = InputSource.DefaultFactory.fromUri(styuri)
+                SRC = InputSource.DefaultFactory.fromUri(srcuri)
+                processor = Processor.Processor()
+                processor.appendStylesheet(STY)
+                result = processor.run(SRC, topLevelParams={ 'imagePageExtension':'.html' })
+                htmlf = file(self['htmlPath'], 'w+')
+                htmlf.write(result)
+                htmlf.close()
         if not options.no_originals:
             self.createFullImageLink()
 
@@ -844,14 +870,27 @@ class PictureDir(dict):
         s.close()
         x.close()
         if not options.no_html:
-            verboseMessage('Creating %s' % \
-                           pathjoin(self['webRoot'], self['dirName'], 'index.html'))
-            cmd = 'cd %s && xsltproc ' \
-                  '--param imagePageExtension \'".html"\' ' \
-                  '-o index.html index.xml' % \
-                  shellEscape(pathjoin(self['webRoot'], self['dirName']))
-            verboseMessage('Command: %s' % cmd)
-            system(cmd)
+            verboseMessage('Creating %s' % pathjoin(self['webRoot'],self['dirName'],'index.html'))
+            if options.xsltproc:
+                cmd = 'cd %s && xsltproc ' \
+                      '--param imagePageExtension \'".html"\' ' \
+                      '-o index.html index.xml' % \
+                      shellEscape(pathjoin(self['webRoot'], self['dirName']))
+                verboseMessage('Command: %s' % cmd)
+                system(cmd)
+            else:
+                styuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], self['xslPath'])))
+                verboseMessage("stylesheet URI: %s" % styuri)
+                srcuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], 'index.xml')))
+                verboseMessage("source     URI: %s" % srcuri)
+                STY = InputSource.DefaultFactory.fromUri(styuri)
+                SRC = InputSource.DefaultFactory.fromUri(srcuri)
+                processor = Processor.Processor()
+                processor.appendStylesheet(STY)
+                result = processor.run(SRC, topLevelParams={ 'imagePageExtension':'.html' })
+                htmlf = file(self['htmlPath'], 'w+')
+                htmlf.write(result)
+                htmlf.close()
 
 
     # Comparisons assume that all the dirs compared are siblings (ie direct
