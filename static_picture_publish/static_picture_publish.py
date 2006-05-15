@@ -162,6 +162,11 @@ opt.add_option_group(layout_opts)
 
 other_opts = OptionGroup(opt, "Other options")
 other_opts.add_option(
+    '--delete',
+    action='store_true',
+    help="Delete unused files in the output directory.  Files and directories we have generated"
+    " (or were generated on previous runs) and files called .htaccess will be kept.")
+other_opts.add_option(
     '--xsltproc',
     action='store_true',
     help="Use the xsltproc program to create HTML, instead of the python XML libraries.")
@@ -949,9 +954,15 @@ class PictureDir(dict):
                 p = pathjoin(self['webPath'], l)
                 try:
                     if isdir(p):
-                        self.deleteDir(p)
+                        if options.delete:
+                            self.deleteDir(p)
+                        else:
+                            message("I want to delete directory %s" % (p))
                     else:
-                        unlink(p)
+                        if options.delete:
+                            unlink(p)
+                        else:
+                            message("I want to delete %s" % (p))
                 except OSError,reason:
                     print >>stderr, "%s: error deleting %s: %s" % (argv[0], p, str(reason.args))
 
