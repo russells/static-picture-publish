@@ -917,7 +917,11 @@ class PictureDir(dict):
         im = None
         if self['dirConfig'].has_option('folder', 'thumbnail'):
             nm = self['dirConfig'].get('folder','thumbnail')
-            im = self['picDict'][nm]
+            try:
+                im = self['picDict'][nm]
+            except KeyError, reason:
+                print >>stderr, "%s: %s does not contain %s" % (argv[0], self['dirName'], nm)
+                im = None
         elif len(self['picList']) != 0:
             im = self['picList'][randint(0,len(self['picList'])-1)]
 
