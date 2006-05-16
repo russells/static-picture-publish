@@ -1129,17 +1129,18 @@ def findstylesheetPath():
     '''Locate the CSS and XSL files if we are processing only a subdirectory.'''
     path = '.'
     while True:
-        #print "findstylesheetPath(): trying %s" % path
-        if isfile(normpath(pathjoin(webRoot, path,'spp-dir.xsl'))) \
-           and isfile(normpath(pathjoin(webRoot, path,'spp-image.xsl'))) \
-           and isfile(normpath(pathjoin(webRoot, path,'spp.css'))):
+        tryPath = normpath(pathjoin(webRoot, path))
+        # Search terminating condition
+        if abspath(tryPath) == '/':
+            return None
+        verboseMessage("findstylesheetPath(): trying %s" % tryPath)
+        if isfile(pathjoin(tryPath,'spp-dir.xsl')) \
+           and isfile(pathjoin(tryPath,'spp-image.xsl')) \
+           and isfile(pathjoin(tryPath,'spp.css')):
             # normpath gets rid of the leading './'
             return normpath(path)
         # Try the next directory up
         path = pathjoin(path,'..')
-        # Search terminating condition
-        if abspath(path) == '/':
-            return None
 
 
 def go():
