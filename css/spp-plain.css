@@ -53,6 +53,12 @@ a {
   padding: 10px;
 }
 
+.piccomment
+{
+  font-weight: bold;
+  padding-top: 10px;
+}
+
 .fullpicinfo
 {
   font-family: sans-serif;
