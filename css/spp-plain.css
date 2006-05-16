@@ -53,10 +53,17 @@ a {
   padding: 10px;
 }
 
-.piccomment
+.imagecomment-dir
 {
+  padding: 3px;
+  padding-top: 0px;
+  font-size: 0.9em;
+}
+
+.imagecomment-image
+{
+  padding: 3px;
   font-weight: bold;
-  padding-top: 10px;
 }
 
 .fullpicinfo
@@ -148,8 +155,9 @@ a {
 }
 
 p.dir-text,
-p.thumbnail-text
+.thumbnail-text
 {
+  padding: 3px;
   text-align: center;
   overflow: hidden;
 }

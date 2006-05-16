@@ -206,6 +206,14 @@ sections:
 
 =over
 
+=item [folder]
+
+The C<[folder]> section can contain one key, C<[thumbnail]>, which is the
+name of an image in the directory.  The thumbnail of that image will be
+used as the icon for that directory in its parent directory.  It this
+secion of key is missing, a random image from the directory will be used as
+the thumbnail.
+
 =item [include]
 
 If the C<[include]> section exists, only files and directories that are
@@ -328,6 +336,20 @@ references to the image or folder will use I<NAME>.
 With this config file, F<a.jpg> and F<b.jpg> will be included, but F<c.jpg>
 and F<d.jpg> will not.  In addition, F<b.jpg> will be rotated by 90 degrees
 counter-clockwise.
+
+=head1 IMAGE COMMENTS
+
+B<static-picture-publish> will use image comments that are saved by
+B<gthumb>.  These are stored in files named like F<.comment/a.jpg.xml> for
+example for an image called F<a.jpg>.  The "Notes" text from this file will
+be used as a comment for the image in both the directory and image views.
+It will be truncated to 75 characters in directory view and 295 characters
+in image view.
+
+Comments saved by other programs (B<gqview> and B<nautilus> in particular)
+will be added when I get to it.
+
+Storage of this information should really be a freedesktop.org standard.
 
 =head1 EXAMPLES
 

@@ -37,6 +37,6 @@ fakeroot dpkg-buildpackage -uc -us
 
 cd $_SRC_DIR
 mkdir -p dist-deb
-cp -pv $_SRC_DIR/,tmp/deb/static-picture-publish* dist-deb/
+cp -pv $_SRC_DIR/,tmp/deb/static-picture-publish[-_]${_VERSION}[-_]* dist-deb/
 
 # arch-tag: 85c8f6d7-bb19-45ac-ae1f-44c0b85b9219

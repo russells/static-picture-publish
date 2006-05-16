@@ -150,7 +150,7 @@
             </xsl:element>
           </xsl:element>
           <xsl:if test="string-length(this/comment) != 0">
-            <div class="piccomment">
+            <div class="imagecomment-image">
               <xsl:value-of select="this/comment" />
             </div>
           </xsl:if>

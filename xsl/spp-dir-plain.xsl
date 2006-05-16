@@ -544,7 +544,7 @@ being able to display the translated html when it does the XSLT itself.
           </xsl:element>
         </xsl:element>
       </xsl:element>
-      <xsl:element name="p">
+      <xsl:element name="div">
         <xsl:attribute name="class">
           <xsl:text>thumbnail-text</xsl:text>
         </xsl:attribute>
@@ -557,6 +557,11 @@ being able to display the translated html when it does the XSLT itself.
           <xsl:value-of select="ext"/>
         </xsl:element>
       </xsl:element>
+      <xsl:if test="string-length(comment) != 0">
+        <div class="imagecomment-dir">
+          <xsl:value-of select="comment" />
+        </div>
+      </xsl:if>
       <xsl:if test="string-length(/picturedir/@javascript) != 0">
         <!-- Box for selecting a download. -->
         <span class="download-text">
@@ -570,11 +575,9 @@ being able to display the translated html when it does the XSLT itself.
             <xsl:text>-full</xsl:text>
             <xsl:value-of select="ext" />
           </xsl:attribute>
-          <xsl:text>WTF</xsl:text>
         </xsl:element>
       </xsl:if>
     </xsl:element>
-    <!-- xsl:apply-templates/ -->
   </xsl:template>
 
 </xsl:stylesheet>

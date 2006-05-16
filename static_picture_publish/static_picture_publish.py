@@ -422,7 +422,10 @@ class Picture(dict):
         else:
             s.write('  <!-- no image width -->\n')
         if self['comment']:
-            s.write('  <comment>%s</comment>\n' % entityReplace(self['comment']))
+            comment = self['comment']
+            if len(comment) > 295:
+                comment = comment[:295]+'...'
+            s.write('  <comment>%s</comment>\n' % entityReplace(comment))
         s.write(' </this>\n')
         if prevPic is not None:
             s.write(
@@ -873,6 +876,12 @@ class PictureDir(dict):
                                                                      f['thumbnail-height']))
             else:
                 s.write('      <!-- no thumbnail size -->\n')
+            if f['comment']:
+                # Make sure a long comment doesn't take up all the space.
+                comment = f['comment']
+                if len(comment) > 75:
+                    comment = comment[:75]+'...'
+                s.write('      <comment>%s</comment>\n' % entityReplace(comment))
             s.write('    </image>\n')
         s.write('  </images>\n')
         s.write('</picturedir>\n')
