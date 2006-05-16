@@ -149,6 +149,11 @@
               </xsl:attribute>
             </xsl:element>
           </xsl:element>
+          <xsl:if test="string-length(this/comment) != 0">
+            <div class="piccomment">
+              <xsl:value-of select="this/comment" />
+            </div>
+          </xsl:if>
           <div class="fullpicinfo">
             <xsl:text>Full-sized pic </xsl:text>
             <xsl:element name="a">

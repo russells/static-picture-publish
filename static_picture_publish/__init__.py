@@ -5,6 +5,6 @@
 
 __version__ = '0.1'
 
-__all__ = ['static_picture_publish', 'EXIF']
+__all__ = ['static_picture_publish', 'EXIF', 'ImageComments']
 
 # arch-tag: 00e30e83-28af-4d0a-834b-a207ba660c5c
