@@ -24,6 +24,8 @@ from Ft.Lib.Uri import OsPathToUri
 from Ft.Xml import InputSource
 from Ft.Xml.Xslt import Processor
 
+from ImageComments import getImageComment
+
 
 
 defaultExtensions = '.jpg,.jpeg,.gif,.png'
@@ -288,6 +290,7 @@ class Picture(dict):
         self['xmlPath'] = pathjoin(webDirName, self['xmlName'])
         self['htmlName'] = base + ".html"
         self['htmlPath'] = pathjoin(webDirName, self['htmlName'])
+        self['comment'] = getImageComment(pathjoin(picRoot, dirName, picName))
         # If we were supplied a path to the CSS and XSL files, then we use that.  Otherwise,
         # calculate the path by going up until we get to the top.
         if stylesheetPath:
@@ -418,6 +421,8 @@ class Picture(dict):
                     (self['image-width'],self['image-height']))
         else:
             s.write('  <!-- no image width -->\n')
+        if self['comment']:
+            s.write('  <comment>%s</comment>\n' % entityReplace(self['comment']))
         s.write(' </this>\n')
         if prevPic is not None:
             s.write(
