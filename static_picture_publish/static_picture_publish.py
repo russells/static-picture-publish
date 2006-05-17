@@ -322,21 +322,26 @@ class Picture(dict):
         modified = False
         image = None
         try:
+            # Open the image so we can read the size and stuff.
+            image = Image.open(self['picPath'])
+            self['fullImageWidth'] = image.size[0]
+            self['fullImageHeight'] = image.size[1]
+
             # Create the web image, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self['imagePath'], picStat) \
                    or not self.imageSizeCheck('image', options.image_size):
                 #print "Regenerating %s" % self['imagePath']
-                image = self.generateImage('image', options.image_size, image)
+                self.generateImage('image', options.image_size, image)
                 modified = True
             # Create the thumbnail, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self['thumbnailPath'], picStat) \
                    or not self.imageSizeCheck('thumbnail', options.thumbnail_size):
                 #print "Regenerating %s" % self['thumbnailPath']
-                image = self.generateImage('thumbnail', options.thumbnail_size, image)
+                self.generateImage('thumbnail', options.thumbnail_size, image)
                 modified = True
-                image = None            # gc
+            image = None                # gc
         except (IOError, SystemError), reason:
             print >>stderr, "%s: error processing %s: %s" % \
                   (argv[0], self['picPath'], str(reason.args))
@@ -381,19 +386,17 @@ class Picture(dict):
         imagePath = self[image_basename+'Path']
         verboseMessage("  %s => %s" % (self['picPath'], imagePath))
         starttime = time()
-        if image is None:
-            image = Image.open(self['picPath'])
-            if self['configEntry'].has_key('rotate'):
-                angle = int(self['configEntry']['rotate'])
-                print " -- Rotating %s by %d" % (imagePath, angle)
-                if angle == 90:
-                    image = image.transpose(Image.ROTATE_90)
-                elif angle == 180:
-                    image = image.transpose(Image.ROTATE_180)
-                elif angle == 270:
-                    image = image.transpose(Image.ROTATE_270)
-                else:
-                    image = image.rotate(angle)
+        if self['configEntry'].has_key('rotate'):
+            angle = int(self['configEntry']['rotate'])
+            print " -- Rotating %s by %d" % (imagePath, angle)
+            if angle == 90:
+                image = image.transpose(Image.ROTATE_90)
+            elif angle == 180:
+                image = image.transpose(Image.ROTATE_180)
+            elif angle == 270:
+                image = image.transpose(Image.ROTATE_270)
+            else:
+                image = image.rotate(angle)
         image.thumbnail(imageSize, Image.ANTIALIAS)
         self[image_basename+'-width']  = image.size[0]
         self[image_basename+'-height'] = image.size[1]
@@ -420,6 +423,9 @@ class Picture(dict):
         if self.has_key('image-width'):
             s.write('  <size width="%d" height="%d" />\n' % \
                     (self['image-width'],self['image-height']))
+        if self.has_key('fullImageWidth') and self.has_key('fullImageHeight'):
+            s.write('  <fullsize width="%d" height="%d" />\n' % \
+                    (self['fullImageWidth'], self['fullImageHeight']))
         else:
             s.write('  <!-- no image width -->\n')
         if self['comment']:
@@ -784,9 +790,11 @@ class PictureDir(dict):
         if options.regen_markup or options.regen_all \
            or not isfile(htafilename):
             htafile = open(htafilename, 'w')
-            htafile.write('<FilesMatch ".*">\n')
+            htafile.write('<IfModule mod_headers.c>\n')
+            htafile.write(' <FilesMatch ".*">\n')
             htafile.write('  Header onsuccess set Content-Disposition attachment\n')
-            htafile.write('</FilesMatch>\n')
+            htafile.write(' </FilesMatch>\n')
+            htafile.write('</IfModule>\n')
             htafile.close()
         return modified
 
@@ -897,6 +905,9 @@ class PictureDir(dict):
                 if len(comment) > 75:
                     comment = comment[:75]+'...'
                 s.write('      <comment>%s</comment>\n' % entityReplace(comment))
+            if f.has_key('fullImageWidth') and f.has_key('fullImageHeight'):
+                s.write('      <fullsize width="%d" height="%d" />\n' % \
+                        (f['fullImageWidth'], f['fullImageHeight']))
             s.write('    </image>\n')
         s.write('  </images>\n')
         s.write('</picturedir>\n')

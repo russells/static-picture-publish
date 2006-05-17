@@ -155,7 +155,14 @@
             </div>
           </xsl:if>
           <div class="fullpicinfo">
-            <xsl:text>Full size: </xsl:text>
+            <xsl:text>Full size </xsl:text>
+            <xsl:if test="string-length(this/fullsize/@width) != 0 and string-length(this/fullsize/@height) != 0">
+              <xsl:text>(</xsl:text>
+              <xsl:value-of select="this/fullsize/@width" />
+              <xsl:text>x</xsl:text>
+              <xsl:value-of select="this/fullsize/@height" />
+              <xsl:text>): </xsl:text>
+            </xsl:if>
             <xsl:element name="a">
               <xsl:attribute name="href">
                 <xsl:text>.spp-full/</xsl:text>

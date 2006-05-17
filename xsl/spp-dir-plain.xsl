@@ -566,6 +566,14 @@ being able to display the translated html when it does the XSLT itself.
         <xsl:attribute name="class">
           <xsl:text>download-link</xsl:text>
         </xsl:attribute>
+        <xsl:text>Full size (</xsl:text>
+        <xsl:if test="string-length(fullsize/@width) != 0 and string-length(fullsize/@height) != 0">
+          <xsl:value-of select="fullsize/@width" />
+          <xsl:text>x</xsl:text>
+          <xsl:value-of select="fullsize/@height" />
+          <xsl:text>)</xsl:text>
+        </xsl:if>
+        <xsl:text>: </xsl:text>
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:text>.spp-download/</xsl:text>
