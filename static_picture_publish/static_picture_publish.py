@@ -382,17 +382,10 @@ class Picture(dict):
         starttime = time()
         if image is None:
             image = Image.open(self['picPath'])
-            if self['configEntry'].has_key('rotate'):
-                angle = int(self['configEntry']['rotate'])
-                print " -- Rotating %s by %d" % (imagePath, angle)
-                if angle == 90:
-                    image = image.transpose(Image.ROTATE_90)
-                elif angle == 180:
-                    image = image.transpose(Image.ROTATE_180)
-                elif angle == 270:
-                    image = image.transpose(Image.ROTATE_270)
-                else:
-                    image = image.rotate(angle)
+            angle = self.getRotateAngle(image)
+            if angle:
+                message(" -- Rotating %s by %s" % (imagePath, self.imageRotateDict[angle]))
+                image = image.transpose(angle)
         image.thumbnail(imageSize, Image.ANTIALIAS)
         self[image_basename+'-width']  = image.size[0]
         self[image_basename+'-height'] = image.size[1]
@@ -401,6 +394,38 @@ class Picture(dict):
         verboseMessage("  generation time %s: %.2f" % (imagePath, endtime-starttime))
         modified = True
         return image
+
+
+    # Dictionaries for converting between angles, strings and PIL constants.
+    orientationDict = { 1:None, 2:None, 3:Image.ROTATE_180, 4:None,
+                        5:None, 6:Image.ROTATE_270, 7:None, 8:Image.ROTATE_90 }
+    angleDict = { '90':Image.ROTATE_90, '180':Image.ROTATE_180, '270':Image.ROTATE_270, }
+    imageRotateDict = { Image.ROTATE_90:'90', Image.ROTATE_180:'180', Image.ROTATE_270:'270', }
+
+
+    def getRotateAngle(self, image):
+        '''Find out how we should rotate the image.'''
+        angle = None
+        if self['configEntry'].has_key('rotate'):
+            # If the user specifies a valid value, use that.
+            try:
+                angleString = self['configEntry']['rotate']
+                angle = self.angleDict[angleString]
+            except KeyError, reason:
+                print >>stderr, "%s: rotate value \"%s\" for %s is not one of 90, 180 or 270" % \
+                      (argv[0], angleString, pathjoin(self['dirName'], self['picName']))
+                angle = None
+        if angle == None and hasattr(image, '_getexif'):
+            # PIL 1.1.4 and above have experimental EXIF code.
+            ex = image._getexif()
+            if ex and ex.has_key(0x112):
+                orientation = ex[0x112]
+                try:
+                    angle = self.orientationDict[orientation]
+                except KeyError, reason:
+                    print >>stderr, "%s: unknown orientation value %s in image %s" % \
+                          (argv[0], orientation, pathjoin(self['dirName'], self['picName']))
+        return angle
 
 
     def createMarkup(self, prevPic, nextPic):
