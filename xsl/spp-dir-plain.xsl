@@ -568,8 +568,8 @@ being able to display the translated html when it does the XSLT itself.
         </xsl:attribute>
         <xsl:element name="a">
           <xsl:attribute name="href">
+            <xsl:text>.spp-download/</xsl:text>
             <xsl:value-of select="name"/>
-            <xsl:text>-download</xsl:text>
             <xsl:value-of select="ext"/>
           </xsl:attribute>
           <xsl:attribute name="type">

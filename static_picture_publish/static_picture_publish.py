@@ -280,8 +280,8 @@ class Picture(dict):
         self['picNameBase'] = base
         self['picNameExt'] = ext
         self['imageName'] = picName
-        self['fullImageName'] = base + "-full" + ext
-        self['downloadImageName'] = base + "-download" + ext
+        self['fullImageName'] = pathjoin('.spp-full', picName)
+        self['downloadImageName'] = pathjoin('.spp-download', picName)
         self['imagePath'] = pathjoin(webDirName, self['imageName'])
         self['thumbnailName'] = base + "-thumb" + ext
         self['thumbnailPath'] = pathjoin(webDirName, self['thumbnailName'])
@@ -516,7 +516,8 @@ class PictureDir(dict):
     # List of files to leave in the output directory.  Normally, files we don't recognise in
     # the output will be deleted, but not if they're named in here.
     filesToKeep = [ '.htaccess', 'index.xml', 'index.html',
-                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl', 'spp.js']
+                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl', 'spp.js',
+                    '.spp-full', '.spp-download' ]
 
     def __init__(self, picRoot, webRoot, dirName='', doUp=False, stylesheetPath=None):
         '''Search through the directory, looking for pictures and
@@ -545,9 +546,13 @@ class PictureDir(dict):
         if self['dirName']=='':
             self['picPath'] = self['picRoot']
             self['webPath'] = self['webRoot']
+            self['fullLinkPath'] = pathjoin(self['webPath'], '.spp-full')
+            self['downloadLinkPath'] = pathjoin(self['webPath'], '.spp-download')
         else:
             self['picPath'] = pathjoin(self['picRoot'], self['dirName'])
             self['webPath'] = pathjoin(self['webRoot'], self['dirName'])
+            self['fullLinkPath'] = pathjoin(self['webPath'], '.spp-full')
+            self['downloadLinkPath'] = pathjoin(self['webPath'], '.spp-download')
         self['htmlPath'] = pathjoin(self['webPath'], "index.html")
         self['xmlPath'] = pathjoin(self['webPath'], "index.xml")
         # If we were supplied a path to the CSS and XSL files, then we use that.  Otherwise,
@@ -748,8 +753,9 @@ class PictureDir(dict):
             message("No pics in %s: doing nothing" % self['picPath'])
             return False
         message("%s" % self['picPath'])
-        if not isdir(self['webPath']):
-            makedirs(self['webPath'])
+        for d in (self['webPath'], self['fullLinkPath'], self['downloadLinkPath']):
+            if not isdir(d):
+                makedirs(d)
         modified = False
         for i in range(len(self['picList'])):
             pic = self['picList'][i]
@@ -774,6 +780,14 @@ class PictureDir(dict):
         if options.regen_all or options.regen_markup or modified:
             # Create our directory index
             self.createMarkup(prevDir, nextDir)
+        htafilename = pathjoin(self['downloadLinkPath'], '.htaccess')
+        if options.regen_markup or options.regen_all \
+           or not isfile(htafilename):
+            htafile = open(htafilename, 'w')
+            htafile.write('<FilesMatch ".*">\n')
+            htafile.write('  Header onsuccess set Content-Disposition attachment\n')
+            htafile.write('</FilesMatch>\n')
+            htafile.close()
         return modified
 
     numberClasses = { 2:'p2', 3:'p3', 4:'p4', 5:'p5' }
