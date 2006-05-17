@@ -155,14 +155,23 @@
             </div>
           </xsl:if>
           <div class="fullpicinfo">
-            <xsl:text>Full-sized pic </xsl:text>
+            <xsl:text>Full size: </xsl:text>
             <xsl:element name="a">
               <xsl:attribute name="href">
                 <xsl:value-of select="this/name"/>
                 <xsl:text>-full</xsl:text>
                 <xsl:value-of select="this/ext"/>
               </xsl:attribute>
-              <xsl:text>here</xsl:text>
+              <xsl:text>View</xsl:text>
+            </xsl:element>
+            <xsl:text> or </xsl:text>
+            <xsl:element name="a">
+              <xsl:attribute name="href">
+                <xsl:value-of select="this/name"/>
+                <xsl:text>-download</xsl:text>
+                <xsl:value-of select="this/ext"/>
+              </xsl:attribute>
+              <xsl:text>download</xsl:text>
             </xsl:element>
           </div>
         </div>

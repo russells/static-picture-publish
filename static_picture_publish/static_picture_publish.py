@@ -281,6 +281,7 @@ class Picture(dict):
         self['picNameExt'] = ext
         self['imageName'] = picName
         self['fullImageName'] = base + "-full" + ext
+        self['downloadImageName'] = base + "-download" + ext
         self['imagePath'] = pathjoin(webDirName, self['imageName'])
         self['thumbnailName'] = base + "-thumb" + ext
         self['thumbnailPath'] = pathjoin(webDirName, self['thumbnailName'])
@@ -467,14 +468,15 @@ class Picture(dict):
                 htmlf.write(result)
                 htmlf.close()
         if not options.no_originals:
-            self.createFullImageLink()
+            self.createImageLink(abspath(pathjoin(self['picDirName'], self['picName'])),
+                                 abspath(pathjoin(self['webDirName'], self['fullImageName'])))
+            self.createImageLink(abspath(pathjoin(self['picDirName'], self['picName'])),
+                                 abspath(pathjoin(self['webDirName'], self['downloadImageName'])))
 
 
-    def createFullImageLink(self):
+    def createImageLink(self, targetPath, symlinkPath):
         '''Create a symlink to the full image.'''
 
-        fullImagePath = abspath(pathjoin(self['picDirName'], self['picName']))
-        symlinkPath = abspath(pathjoin(self['webDirName'], self['fullImageName']))
         st = None
         try:
             st = stat(symlinkPath)
@@ -482,19 +484,18 @@ class Picture(dict):
             if reason.errno == ENOENT: pass
             else: raise
         if st is None:
-            verboseMessage("symlink: %s -> %s" % (symlinkPath, fullImagePath))
-            symlink(fullImagePath, symlinkPath)
+            verboseMessage("symlink: %s -> %s" % (symlinkPath, targetPath))
+            symlink(targetPath, symlinkPath)
         else:
             # This logic will delete relative symlinks that do point to the
             # right place, and replace them with absolute symlinks that point
             # to the same place.  The alternative is to call readlink() with
             # cwd of the symlink location, but I haven't coded that yet.
-            if not islink(symlinkPath) \
-               or abspath(readlink(symlinkPath)) != fullImagePath:
+            if not islink(symlinkPath) or abspath(readlink(symlinkPath)) != targetPath:
                 verboseMessage("symlink: %s -> %s" % \
-                               (symlinkPath, fullImagePath))
+                               (symlinkPath, targetPath))
                 unlink(symlinkPath)
-                symlink(fullImagePath, symlinkPath)
+                symlink(targetPath, symlinkPath)
 
 
     def name(self):
@@ -962,6 +963,7 @@ class PictureDir(dict):
         for z in self['picList']:
             keepList[z['imageName']] = 1
             keepList[z['fullImageName']] = 1
+            keepList[z['downloadImageName']] = 1
             keepList[z['thumbnailName']] = 1
             keepList[z['xmlName']] = 1
             keepList[z['htmlName']] = 1

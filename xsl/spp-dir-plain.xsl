@@ -562,6 +562,22 @@ being able to display the translated html when it does the XSLT itself.
           <xsl:value-of select="comment" />
         </div>
       </xsl:if>
+      <xsl:element name="div">
+        <xsl:attribute name="class">
+          <xsl:text>download-link</xsl:text>
+        </xsl:attribute>
+        <xsl:element name="a">
+          <xsl:attribute name="href">
+            <xsl:value-of select="name"/>
+            <xsl:text>-download</xsl:text>
+            <xsl:value-of select="ext"/>
+          </xsl:attribute>
+          <xsl:attribute name="type">
+            <xsl:text>application/octet-stream</xsl:text>
+          </xsl:attribute>
+          <xsl:text>download</xsl:text>
+        </xsl:element>
+      </xsl:element>
       <xsl:if test="string-length(/picturedir/@javascript) != 0">
         <!-- Box for selecting a download. -->
         <span class="download-text">
