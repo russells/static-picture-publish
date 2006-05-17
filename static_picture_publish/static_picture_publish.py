@@ -399,8 +399,9 @@ class Picture(dict):
     # Dictionaries for converting between angles, strings and PIL constants.
     orientationDict = { 1:None, 2:None, 3:Image.ROTATE_180, 4:None,
                         5:None, 6:Image.ROTATE_270, 7:None, 8:Image.ROTATE_90 }
-    angleDict = { '90':Image.ROTATE_90, '180':Image.ROTATE_180, '270':Image.ROTATE_270, }
-    imageRotateDict = { Image.ROTATE_90:'90', Image.ROTATE_180:'180', Image.ROTATE_270:'270', }
+    angleDict = { '90':Image.ROTATE_90, '180':Image.ROTATE_180, '270':Image.ROTATE_270,
+                  '-90':Image.ROTATE_270 }
+    imageRotateDict = { Image.ROTATE_90:'90', Image.ROTATE_180:'180', Image.ROTATE_270:'-90', }
 
 
     def getRotateAngle(self, image):
@@ -412,7 +413,7 @@ class Picture(dict):
                 angleString = self['configEntry']['rotate']
                 angle = self.angleDict[angleString]
             except KeyError, reason:
-                print >>stderr, "%s: rotate value \"%s\" for %s is not one of 90, 180 or 270" % \
+                print >>stderr, "%s: rotate value '%s' for %s is not one of 90, 180, 270 or -90" % \
                       (argv[0], angleString, pathjoin(self['dirName'], self['picName']))
                 angle = None
         if angle == None and hasattr(image, '_getexif'):
