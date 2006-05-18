@@ -29,6 +29,7 @@ from ImageComments import getImageComment
 
 
 defaultExtensions = '.jpg,.jpeg,.gif,.png'
+defaultImagesPerRow = 3
 
 
 class SppOption(Option):
@@ -213,7 +214,7 @@ def parseOptions():
     if options.quiet:
         options.messageLevel = 0
     if not options.row:
-        options.row = 3
+        options.row = defaultImagesPerRow
     if not options.title:
         options.title = 'Pics'
     picRoot = args[0]
@@ -280,7 +281,8 @@ class Picture(dict):
         self['picNameBase'] = base
         self['picNameExt'] = ext
         self['imageName'] = picName
-        self['fullImageName'] = base + "-full" + ext
+        self['fullImageName'] = pathjoin('.spp-full', picName)
+        self['downloadImageName'] = pathjoin('.spp-download', picName)
         self['imagePath'] = pathjoin(webDirName, self['imageName'])
         self['thumbnailName'] = base + "-thumb" + ext
         self['thumbnailPath'] = pathjoin(webDirName, self['thumbnailName'])
@@ -291,6 +293,7 @@ class Picture(dict):
         self['htmlName'] = base + ".html"
         self['htmlPath'] = pathjoin(webDirName, self['htmlName'])
         self['comment'] = getImageComment(pathjoin(picRoot, dirName, picName))
+        self['rotateDone'] = False      # Set to true when we've checked the rotate stuff.
         # If we were supplied a path to the CSS and XSL files, then we use that.  Otherwise,
         # calculate the path by going up until we get to the top.
         if stylesheetPath:
@@ -321,6 +324,13 @@ class Picture(dict):
         modified = False
         image = None
         try:
+            # Open the image so we can read the size and stuff.
+            image = Image.open(self['picPath'])
+            self['fullImageWidth'] = image.size[0]
+            self['fullImageHeight'] = image.size[1]
+            bytes = stat(self['picPath']).st_size
+            self['fullImageSize'] = self.readableSize(bytes)
+
             # Create the web image, if necessary.
             if options.regen_all \
                    or not fileIsNewer(self['imagePath'], picStat) \
@@ -335,7 +345,7 @@ class Picture(dict):
                 #print "Regenerating %s" % self['thumbnailPath']
                 image = self.generateImage('thumbnail', options.thumbnail_size, image)
                 modified = True
-                image = None            # gc
+            image = None                # gc
         except (IOError, SystemError), reason:
             print >>stderr, "%s: error processing %s: %s" % \
                   (argv[0], self['picPath'], str(reason.args))
@@ -343,6 +353,19 @@ class Picture(dict):
         for n in ['image', 'thumbnail']:
             self[n+'-image'] = None
         return modified
+
+
+    def readableSize(self, bytes):
+        if bytes >= 10485760:
+            return "%1.0f MB" % (bytes / 1048576.0)
+        elif bytes >= 1048576:
+            return "%3.1f MB" % (bytes / 1048576.0)
+        elif bytes >= 10240:
+            return "%1.0f kB" % (bytes / 1024.0)
+        elif bytes >= 1024:
+            return "%3.1f kB" % (bytes / 1024.0)
+        else:
+            return "%d bytes" % bytes
 
 
     def imageSizeCheck(self, image_basename, requiredSize):
@@ -377,15 +400,18 @@ class Picture(dict):
 
     def generateImage(self, image_basename, imageSize, image):
         '''Make an output image.'''
+
+        # Check for image rotation here, so we don't have to do it unnecessarily if we're not
+        # actually going to write an image.
+        if not self['rotateDone']:
+            angle = self.getRotateAngle(image)
+            if angle:
+                message(" -- Rotating %s: %s" % (self['picPath'], self.imageRotateDict[angle]))
+                image = image.transpose(angle)
+
         imagePath = self[image_basename+'Path']
         verboseMessage("  %s => %s" % (self['picPath'], imagePath))
         starttime = time()
-        if image is None:
-            image = Image.open(self['picPath'])
-            angle = self.getRotateAngle(image)
-            if angle:
-                message(" -- Rotating %s: %s" % (imagePath, self.imageRotateDict[angle]))
-                image = image.transpose(angle)
         image.thumbnail(imageSize, Image.ANTIALIAS)
         self[image_basename+'-width']  = image.size[0]
         self[image_basename+'-height'] = image.size[1]
@@ -393,6 +419,8 @@ class Picture(dict):
         endtime = time()
         verboseMessage("  generation time %s: %.2f" % (imagePath, endtime-starttime))
         modified = True
+        # Return the image in case we're rotated it.  This substantially reduces the run time when
+        # the output images have already been generated.
         return image
 
 
@@ -451,6 +479,11 @@ class Picture(dict):
         if self.has_key('image-width'):
             s.write('  <size width="%d" height="%d" />\n' % \
                     (self['image-width'],self['image-height']))
+        if self.has_key('fullImageWidth') and self.has_key('fullImageHeight'):
+            s.write('  <fullsize width="%d" height="%d" />\n' % \
+                    (self['fullImageWidth'], self['fullImageHeight']))
+        if self.has_key('fullImageSize'):
+            s.write('  <filesize>%s</filesize>\n' % self['fullImageSize'])
         else:
             s.write('  <!-- no image width -->\n')
         if self['comment']:
@@ -499,14 +532,15 @@ class Picture(dict):
                 htmlf.write(result)
                 htmlf.close()
         if not options.no_originals:
-            self.createFullImageLink()
+            self.createImageLink(abspath(pathjoin(self['picDirName'], self['picName'])),
+                                 abspath(pathjoin(self['webDirName'], self['fullImageName'])))
+            self.createImageLink(abspath(pathjoin(self['picDirName'], self['picName'])),
+                                 abspath(pathjoin(self['webDirName'], self['downloadImageName'])))
 
 
-    def createFullImageLink(self):
+    def createImageLink(self, targetPath, symlinkPath):
         '''Create a symlink to the full image.'''
 
-        fullImagePath = abspath(pathjoin(self['picDirName'], self['picName']))
-        symlinkPath = abspath(pathjoin(self['webDirName'], self['fullImageName']))
         st = None
         try:
             st = stat(symlinkPath)
@@ -514,19 +548,18 @@ class Picture(dict):
             if reason.errno == ENOENT: pass
             else: raise
         if st is None:
-            verboseMessage("symlink: %s -> %s" % (symlinkPath, fullImagePath))
-            symlink(fullImagePath, symlinkPath)
+            verboseMessage("symlink: %s -> %s" % (symlinkPath, targetPath))
+            symlink(targetPath, symlinkPath)
         else:
             # This logic will delete relative symlinks that do point to the
             # right place, and replace them with absolute symlinks that point
             # to the same place.  The alternative is to call readlink() with
             # cwd of the symlink location, but I haven't coded that yet.
-            if not islink(symlinkPath) \
-               or abspath(readlink(symlinkPath)) != fullImagePath:
+            if not islink(symlinkPath) or abspath(readlink(symlinkPath)) != targetPath:
                 verboseMessage("symlink: %s -> %s" % \
-                               (symlinkPath, fullImagePath))
+                               (symlinkPath, targetPath))
                 unlink(symlinkPath)
-                symlink(fullImagePath, symlinkPath)
+                symlink(targetPath, symlinkPath)
 
 
     def name(self):
@@ -547,7 +580,8 @@ class PictureDir(dict):
     # List of files to leave in the output directory.  Normally, files we don't recognise in
     # the output will be deleted, but not if they're named in here.
     filesToKeep = [ '.htaccess', 'index.xml', 'index.html',
-                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl', 'spp.js']
+                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl', 'spp.js',
+                    '.spp-full', '.spp-download' ]
 
     def __init__(self, picRoot, webRoot, dirName='', doUp=False, stylesheetPath=None):
         '''Search through the directory, looking for pictures and
@@ -576,9 +610,13 @@ class PictureDir(dict):
         if self['dirName']=='':
             self['picPath'] = self['picRoot']
             self['webPath'] = self['webRoot']
+            self['fullLinkPath'] = pathjoin(self['webPath'], '.spp-full')
+            self['downloadLinkPath'] = pathjoin(self['webPath'], '.spp-download')
         else:
             self['picPath'] = pathjoin(self['picRoot'], self['dirName'])
             self['webPath'] = pathjoin(self['webRoot'], self['dirName'])
+            self['fullLinkPath'] = pathjoin(self['webPath'], '.spp-full')
+            self['downloadLinkPath'] = pathjoin(self['webPath'], '.spp-download')
         self['htmlPath'] = pathjoin(self['webPath'], "index.html")
         self['xmlPath'] = pathjoin(self['webPath'], "index.xml")
         # If we were supplied a path to the CSS and XSL files, then we use that.  Otherwise,
@@ -779,8 +817,9 @@ class PictureDir(dict):
             message("No pics in %s: doing nothing" % self['picPath'])
             return False
         message("%s" % self['picPath'])
-        if not isdir(self['webPath']):
-            makedirs(self['webPath'])
+        for d in (self['webPath'], self['fullLinkPath'], self['downloadLinkPath']):
+            if not isdir(d):
+                makedirs(d)
         modified = False
         for i in range(len(self['picList'])):
             pic = self['picList'][i]
@@ -805,6 +844,16 @@ class PictureDir(dict):
         if options.regen_all or options.regen_markup or modified:
             # Create our directory index
             self.createMarkup(prevDir, nextDir)
+        htafilename = pathjoin(self['downloadLinkPath'], '.htaccess')
+        if options.regen_markup or options.regen_all \
+           or not isfile(htafilename):
+            htafile = open(htafilename, 'w')
+            htafile.write('<IfModule mod_headers.c>\n')
+            htafile.write(' <FilesMatch ".*">\n')
+            htafile.write('  Header onsuccess set Content-Disposition attachment\n')
+            htafile.write(' </FilesMatch>\n')
+            htafile.write('</IfModule>\n')
+            htafile.close()
         return modified
 
     numberClasses = { 2:'p2', 3:'p3', 4:'p4', 5:'p5' }
@@ -914,6 +963,11 @@ class PictureDir(dict):
                 if len(comment) > 75:
                     comment = comment[:75]+'...'
                 s.write('      <comment>%s</comment>\n' % entityReplace(comment))
+            if f.has_key('fullImageWidth') and f.has_key('fullImageHeight'):
+                s.write('      <fullsize width="%d" height="%d" />\n' % \
+                        (f['fullImageWidth'], f['fullImageHeight']))
+            if f.has_key('fullImageHeight'):
+                s.write('      <filesize>%s</filesize>\n' % f['fullImageSize'])
             s.write('    </image>\n')
         s.write('  </images>\n')
         s.write('</picturedir>\n')
@@ -939,7 +993,7 @@ class PictureDir(dict):
                 processor = Processor.Processor()
                 processor.appendStylesheet(STY)
                 result = processor.run(SRC, topLevelParams={ 'imagePageExtension':'.html',
-                                                             'nTableColumns': 4})
+                                                             'nTableColumns': options.row})
                 htmlf = file(self['htmlPath'], 'w+')
                 htmlf.write(result)
                 htmlf.close()
@@ -994,6 +1048,7 @@ class PictureDir(dict):
         for z in self['picList']:
             keepList[z['imageName']] = 1
             keepList[z['fullImageName']] = 1
+            keepList[z['downloadImageName']] = 1
             keepList[z['thumbnailName']] = 1
             keepList[z['xmlName']] = 1
             keepList[z['htmlName']] = 1

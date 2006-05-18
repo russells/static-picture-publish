@@ -73,6 +73,11 @@ a {
   padding-top: 10px;
 }
 
+.download-link
+{
+  font-size: 70%;
+}
+
 .page-title
 {
   font-size: 1.9em;
