@@ -315,6 +315,9 @@ Rotate the output images (thumbnail and web-sized version) by I<X> degrees
 counterclockwise.  The original is not affected by this value, and is
 presented un-rotated.
 
+I<X> can only be the values I<90>, I<180>, I<270>, I<-90>, I<left>,
+I<upsidedown> or I<right>.
+
 =item name=I<NAME>
 
 (B<Unimplemented>) Specify the name to use for this entry in the output.  All

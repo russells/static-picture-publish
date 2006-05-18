@@ -38,20 +38,6 @@ being able to display the translated html when it does the XSLT itself.
   <xsl:template match="/picturedir">
     <html>
       <head>
-        <xsl:element name="META">
-          <xsl:attribute name="http-equiv">Content-Script-Type</xsl:attribute>
-          <xsl:attribute name="content">text/javascript</xsl:attribute>
-        </xsl:element>
-        <xsl:if test="string-length(@javascript) != 0">
-          <xsl:element name="script">
-            <xsl:attribute name="type">
-              <xsl:text>text/javascript</xsl:text>
-            </xsl:attribute>
-            <xsl:attribute name="src">
-              <xsl:value-of select="@javascript"/>
-            </xsl:attribute>
-          </xsl:element>
-        </xsl:if>
         <title>
           <xsl:value-of select="@name"/>
         </title>
@@ -116,28 +102,6 @@ being able to display the translated html when it does the XSLT itself.
         </div>
       </body>
     </html>
-  </xsl:template>
-
-
-  <xsl:template name="doDownloads">
-    <xsl:if test="string-length(/picturedir/@javascript) != 0">
-      <table class="downloads-table">
-        <tr>
-          <td width="33%" class="download-table-cell">
-            <button class="download-button" type="submit"
-                    onclick="select_all_images()">Select all images</button>
-          </td>
-          <td width="33%" class="download-table-cell">
-            <button class="download-button" type="submit"
-                    onclick="unselect_all_images()">Unselect all images</button>
-          </td>
-          <td width="33%" class="download-table-cell">
-            <button class="download-button" type="submit"
-                    onclick="download_selected_images()">Download selected images</button>
-          </td>
-        </tr>
-      </table>
-    </xsl:if>
   </xsl:template>
 
 
@@ -471,9 +435,6 @@ being able to display the translated html when it does the XSLT itself.
 
       <hr class="table-separator images-table" />
       <span class="thumbnail-list-title">Images</span>
-      <xsl:if test="count(image) &gt; $repeatDirsAfterNImages">
-        <xsl:call-template name="doDownloads" />
-      </xsl:if>
       <table class="thumbnail-table">
         <xsl:attribute name="summary">
           <xsl:text>Thumbnail list</xsl:text>
@@ -506,7 +467,6 @@ being able to display the translated html when it does the XSLT itself.
           </tr>
         </xsl:for-each>
       </table>
-      <xsl:call-template name="doDownloads" />
     </xsl:if>
   </xsl:template>
 
@@ -638,21 +598,6 @@ being able to display the translated html when it does the XSLT itself.
         <!-- end of download anchor -->
 
       </xsl:element>
-      <xsl:if test="string-length(/picturedir/@javascript) != 0">
-        <!-- Box for selecting a download. -->
-        <span class="download-text">
-          <xsl:text>Select for download: </xsl:text>
-        </span>
-        <xsl:element name="input">
-          <xsl:attribute name="type">checkbox</xsl:attribute>
-          <xsl:attribute name="name">image-select</xsl:attribute>
-          <xsl:attribute name="value">
-            <xsl:value-of select="name" />
-            <xsl:text>-full</xsl:text>
-            <xsl:value-of select="ext" />
-          </xsl:attribute>
-        </xsl:element>
-      </xsl:if>
     </xsl:element>
   </xsl:template>
 

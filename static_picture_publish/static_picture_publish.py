@@ -140,14 +140,6 @@ layout_opts.add_option(
     help='CSS style to use in HTML or XML output. (Default "plain").'
     ' The file "spp-<style>.css" or equivalent will be used, and renamed "spp.css".')
 layout_opts.add_option(
-    '--javascript',
-    action='store',
-    help='Javascript file to use in HTML or XML output. (Default inbuilt)')
-layout_opts.add_option(
-    '--with-javascript',
-    action='store_true',
-    help='Use javascript in output.  (Default no)')
-layout_opts.add_option(
     '--row',
     type='int',
     action='store',
@@ -204,10 +196,6 @@ def parseOptions():
         options.xsl_image_file = "xsl/spp-image-%s.xsl" % options.xsl_image
     else:
         options.xsl_image_file = "xsl/spp-image-plain.xsl"
-    if options.javascript:
-        options.javascript_file = "javascript/spp-%s.js" % options.javascript
-    else:
-        options.javascript_file = "javascript/spp-plain.js"
     options.messageLevel = 1
     if options.verbose:
         options.messageLevel = 2
@@ -404,6 +392,7 @@ class Picture(dict):
         # Check for image rotation here, so we don't have to do it unnecessarily if we're not
         # actually going to write an image.
         if not self['rotateDone']:
+            self['rotateDone'] = True
             angle = self.getRotateAngle(image)
             if angle:
                 message(" -- Rotating %s: %s" % (self['picPath'], self.imageRotateDict[angle]))
@@ -580,7 +569,7 @@ class PictureDir(dict):
     # List of files to leave in the output directory.  Normally, files we don't recognise in
     # the output will be deleted, but not if they're named in here.
     filesToKeep = [ '.htaccess', 'index.xml', 'index.html',
-                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl', 'spp.js',
+                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl',
                     '.spp-full', '.spp-download' ]
 
     def __init__(self, picRoot, webRoot, dirName='', doUp=False, stylesheetPath=None):
@@ -625,8 +614,6 @@ class PictureDir(dict):
             childStylesheetPath = pathjoin('..',stylesheetPath)
             self['xslPath'] = pathjoin(stylesheetPath, 'spp-dir.xsl')
             self['cssPath'] = pathjoin(stylesheetPath, 'spp.css')
-            if options.with_javascript:
-                self['javascriptPath'] = pathjoin(stylesheetPath, 'spp.js')
         else:
             # This looks very inefficient, but it will only happen once, at the root of the
             # tree.  All the subdirectory instances will be supplied the childStylesheetPath
@@ -635,19 +622,13 @@ class PictureDir(dict):
             if self['dirName'] == '':
                 self['xslPath'] = 'spp-dir.xsl'
                 self['cssPath'] = 'spp.css'
-                if options.with_javascript:
-                    self['javascriptPath'] = 'spp.js'
             else:
                 self['xslPath'] = '../spp-dir.xsl'
                 self['cssPath'] = '../spp.css'
-                if options.with_javascript:
-                    self['javascriptPath'] = '../spp.js'
                 ht = pathsplit(self['dirName'])[0]
                 while ht != '':
                     self['xslPath'] = '../'+self['xslPath']
                     self['cssPath'] = '../'+self['cssPath']
-                    if options.with_javascript:
-                        self['javascriptPath'] = '../'+self['javascriptPath']
                     ht = pathsplit(ht)[0]
 
         self['subdirList'] = []
@@ -888,8 +869,6 @@ class PictureDir(dict):
             '[ <!ATTLIST xsl:stylesheet id ID #REQUIRED> ]>\n' \
             '<picturedir name="%s" path="%s" css="%s"' % \
             (dname, dpath, self['cssPath']))
-        if options.with_javascript:
-            s.write(' javascript="%s"' % self['javascriptPath'])
         s.write('>\n')
         # xsl:import must be before xsl:param.  But the param here has
         # precedence because there's an import tree.  Weird, but true.
@@ -1258,9 +1237,6 @@ def go():
         sppCopyFile(options.css_file,       "spp.css",       "css", stylesheetPath=stylesheetPath)
         sppCopyFile(options.xsl_dir_file,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
         sppCopyFile(options.xsl_image_file, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
-        if options.with_javascript:
-            sppCopyFile(options.javascript_file,"spp.js", "javascript",
-                        stylesheetPath=stylesheetPath)
     # Now create thumbnails and markup.
     pd.go()
     pd.deleteUnused()

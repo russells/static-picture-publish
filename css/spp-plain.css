@@ -103,8 +103,7 @@ a {
 .links-table,
 .dirnav-table,
 .dir-table,
-.thumbnail-table,
-.downloads-table
+.thumbnail-table
 {
   width: 100%;
 /*
@@ -196,28 +195,10 @@ p.dir-text,
   border-color: black;
 }
 
-.download-table-cell
-{
-  text-align: center;
-  padding: 5px;
-  padding-top: 10px;
-}
-
 .download-text
 {
   font-size: 75%;
 }
-
-/*
-.download-button
-{
-  color: black;
-  background: #eee;
-  font-size: 1.1em;
-  border-color: black;
-  border-style: solid;
-}
-*/
 
 .footer {
   margin-top: 1em;
