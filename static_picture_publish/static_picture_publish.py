@@ -29,6 +29,7 @@ from ImageComments import getImageComment
 
 
 defaultExtensions = '.jpg,.jpeg,.gif,.png'
+defaultImagesPerRow = 3
 
 
 class SppOption(Option):
@@ -213,7 +214,7 @@ def parseOptions():
     if options.quiet:
         options.messageLevel = 0
     if not options.row:
-        options.row = 3
+        options.row = defaultImagesPerRow
     if not options.title:
         options.title = 'Pics'
     picRoot = args[0]
