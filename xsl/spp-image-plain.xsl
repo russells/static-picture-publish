@@ -74,6 +74,9 @@
                       <xsl:value-of select="/picinfo/this/name"/>
                       <xsl:value-of select="/picinfo/this/ext"/>
                     </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:text>Back to the index of pictures</xsl:text>
+                    </xsl:attribute>
                     <xsl:text>Index</xsl:text>
                   </xsl:element>
                 </xsl:when>
@@ -83,6 +86,9 @@
                       <xsl:text>.#</xsl:text>
                       <xsl:value-of select="/picinfo/this/name"/>
                       <xsl:value-of select="/picinfo/this/ext"/>
+                    </xsl:attribute>
+                    <xsl:attribute name="title">
+                      <xsl:text>Back to the index of pictures</xsl:text>
                     </xsl:attribute>
                     <xsl:text>Index</xsl:text>
                   </xsl:element>
@@ -126,12 +132,16 @@
           <xsl:value-of select="this/ext"/>
         </span>
         <div class="picinfo">
+
+          <!-- start of image anchor -->
           <xsl:element name="a">
             <xsl:attribute name="href">
               <xsl:text>.spp-full/</xsl:text>
               <xsl:value-of select="this/name"/>
               <xsl:value-of select="this/ext"/>
             </xsl:attribute>
+
+            <!-- start of image -->
             <xsl:element name="img">
               <xsl:attribute name="src">
                 <xsl:value-of select="this/name"/>
@@ -147,8 +157,26 @@
               <xsl:attribute name="height">
                 <xsl:value-of select="this/size/@height" />
               </xsl:attribute>
+              <xsl:attribute name="title">
+                <xsl:text>View full sized image</xsl:text>
+                <xsl:if test="string-length(this/filesize) != 0">
+                  <xsl:text>, </xsl:text>
+                  <xsl:value-of select="this/filesize" />
+                </xsl:if>
+                <xsl:if test="string-length(this/fullsize/@width) != 0 and string-length(this/fullsize/@height) != 0">
+                  <xsl:text>, </xsl:text>
+                  <xsl:value-of select="this/fullsize/@width" />
+                  <xsl:text>x</xsl:text>
+                  <xsl:value-of select="this/fullsize/@height" />
+                  <xsl:text> pixels</xsl:text>
+                </xsl:if>
+              </xsl:attribute>
             </xsl:element>
+            <!-- end of image -->
+
           </xsl:element>
+          <!-- end of image anchor -->
+
           <xsl:if test="string-length(this/comment) != 0">
             <div class="imagecomment-image">
               <xsl:value-of select="this/comment" />
@@ -167,6 +195,20 @@
                 <xsl:value-of select="this/name"/>
                 <xsl:value-of select="this/ext"/>
               </xsl:attribute>
+              <xsl:attribute name="title">
+                <xsl:text>View full sized image</xsl:text>
+                <xsl:if test="string-length(this/filesize) != 0">
+                  <xsl:text>, </xsl:text>
+                  <xsl:value-of select="this/filesize" />
+                </xsl:if>
+                <xsl:if test="string-length(this/fullsize/@width) != 0 and string-length(this/fullsize/@height) != 0">
+                  <xsl:text>, </xsl:text>
+                  <xsl:value-of select="this/fullsize/@width" />
+                  <xsl:text>x</xsl:text>
+                  <xsl:value-of select="this/fullsize/@height" />
+                  <xsl:text> pixels</xsl:text>
+                </xsl:if>
+              </xsl:attribute>
               <xsl:text>View</xsl:text>
             </xsl:element>
             <xsl:text> or </xsl:text>
@@ -175,6 +217,20 @@
                 <xsl:text>.spp-download/</xsl:text>
                 <xsl:value-of select="this/name"/>
                 <xsl:value-of select="this/ext"/>
+              </xsl:attribute>
+              <xsl:attribute name="title">
+                <xsl:text>Download full sized image</xsl:text>
+                <xsl:if test="string-length(this/filesize) != 0">
+                  <xsl:text>, </xsl:text>
+                  <xsl:value-of select="this/filesize" />
+                </xsl:if>
+                <xsl:if test="string-length(this/fullsize/@width) != 0 and string-length(this/fullsize/@height) != 0">
+                  <xsl:text>, </xsl:text>
+                  <xsl:value-of select="this/fullsize/@width" />
+                  <xsl:text>x</xsl:text>
+                  <xsl:value-of select="this/fullsize/@height" />
+                  <xsl:text> pixels</xsl:text>
+                </xsl:if>
               </xsl:attribute>
               <xsl:text>download</xsl:text>
             </xsl:element>

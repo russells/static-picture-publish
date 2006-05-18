@@ -18,7 +18,7 @@ being able to display the translated html when it does the XSLT itself.
 
   <xsl:template match="*"/>
 
-  <xsl:param name="nTableColumns">4</xsl:param>
+  <xsl:param name="nTableColumns">3</xsl:param>
   <xsl:param name="imagePageExtension">.xml</xsl:param>
   <xsl:param name="repeatDirsAfterNImages">9</xsl:param>
 
@@ -182,6 +182,10 @@ being able to display the translated html when it does the XSLT itself.
               <xsl:value-of select="thumbnail/@width" />
             </xsl:attribute>
           </xsl:if>
+          <xsl:attribute name="title">
+            <xsl:text>Go to folder: </xsl:text>
+            <xsl:value-of select="name" />
+          </xsl:attribute>
         </xsl:element>
       </xsl:element>
     </xsl:if>
@@ -405,6 +409,10 @@ being able to display the translated html when it does the XSLT itself.
                     <xsl:value-of select="thumbnail/@width" />
                   </xsl:attribute>
                 </xsl:if>
+                <xsl:attribute name="title">
+                  <xsl:text>Go to folder: </xsl:text>
+                  <xsl:value-of select="name" />
+                </xsl:attribute>
               </xsl:element>
             </xsl:element>
           </div>
@@ -428,6 +436,10 @@ being able to display the translated html when it does the XSLT itself.
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="$linkname"/>
+          </xsl:attribute>
+          <xsl:attribute name="title">
+            <xsl:text>Go to folder: </xsl:text>
+            <xsl:value-of select="name" />
           </xsl:attribute>
           <xsl:value-of select="name"/>
         </xsl:element>
@@ -513,11 +525,15 @@ being able to display the translated html when it does the XSLT itself.
             <xsl:value-of select="ext"/>
           </xsl:attribute>
         </xsl:element>
+
+        <!-- start of image anchor -->
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:value-of select="name"/>
             <xsl:value-of select="$imagePageExtension"/>
           </xsl:attribute>
+
+          <!-- start of image -->
           <xsl:element name="img">
             <xsl:attribute name="src">
               <xsl:value-of select="name"/>
@@ -541,9 +557,18 @@ being able to display the translated html when it does the XSLT itself.
                 <xsl:value-of select="size/@height" />
               </xsl:attribute>
             </xsl:if>
+            <xsl:attribute name="title">
+              <xsl:text>Click for larger image</xsl:text>
+            </xsl:attribute>
           </xsl:element>
+          <!-- end of image -->
+
         </xsl:element>
+        <!-- end of image anchor -->
+
       </xsl:element>
+
+      <!-- start of image name anchor -->
       <xsl:element name="div">
         <xsl:attribute name="class">
           <xsl:text>thumbnail-text</xsl:text>
@@ -553,26 +578,34 @@ being able to display the translated html when it does the XSLT itself.
             <xsl:value-of select="name"/>
             <xsl:value-of select="$imagePageExtension"/>
           </xsl:attribute>
+          <xsl:attribute name="title">
+            <xsl:text>Click for larger image</xsl:text>
+          </xsl:attribute>
           <xsl:value-of select="name"/>
           <xsl:value-of select="ext"/>
         </xsl:element>
       </xsl:element>
+      <!-- end of image name anchor -->
+
       <xsl:if test="string-length(comment) != 0">
         <div class="imagecomment-dir">
           <xsl:value-of select="comment" />
         </div>
       </xsl:if>
+
       <xsl:element name="div">
         <xsl:attribute name="class">
           <xsl:text>download-link</xsl:text>
         </xsl:attribute>
         <xsl:text>Full size </xsl:text>
-        <xsl:if test="string-length(filesize)">
+        <xsl:if test="string-length(filesize) != 0">
           <xsl:text>(</xsl:text>
           <xsl:value-of select="filesize" />
           <xsl:text>)</xsl:text>
         </xsl:if>
         <xsl:text>: </xsl:text>
+
+        <!-- start of download anchor -->
         <xsl:element name="a">
           <xsl:attribute name="href">
             <xsl:text>.spp-download/</xsl:text>
@@ -582,8 +615,24 @@ being able to display the translated html when it does the XSLT itself.
           <xsl:attribute name="type">
             <xsl:text>application/octet-stream</xsl:text>
           </xsl:attribute>
+          <xsl:attribute name="title">
+            <xsl:text>Click to download full-sized image</xsl:text>
+            <xsl:if test="string-length(filesize) != 0">
+              <xsl:text>, </xsl:text>
+              <xsl:value-of select="filesize" />
+            </xsl:if>
+            <xsl:if test="string-length(fullsize/@width) != 0 and string-length(fullsize/@height) != 0">
+              <xsl:text>, </xsl:text>
+              <xsl:value-of select="fullsize/@width" />
+              <xsl:text>x</xsl:text>
+              <xsl:value-of select="fullsize/@height" />
+              <xsl:text> pixels</xsl:text>
+            </xsl:if>
+          </xsl:attribute>
           <xsl:text>download</xsl:text>
         </xsl:element>
+        <!-- end of download anchor -->
+
       </xsl:element>
       <xsl:if test="string-length(/picturedir/@javascript) != 0">
         <!-- Box for selecting a download. -->
