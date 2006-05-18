@@ -26,8 +26,6 @@ setup(name='static-picture-publish',
                    ['css/spp-plain.css'] ),
                   ('lib/python2.3/static_picture_publish/xsl',
                    ['xsl/spp-dir-plain.xsl', 'xsl/spp-image-plain.xsl'] ),
-                  ('lib/python2.3/static_picture_publish/javascript',
-                   ['javascript/spp-plain.js'] )
                   ]
       )
 
