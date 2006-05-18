@@ -440,15 +440,20 @@ class Picture(dict):
                        self.angleStrings)
                 angle = None
         if angle == None and hasattr(image, '_getexif'):
-            # PIL 1.1.4 and above have experimental EXIF code.
-            ex = image._getexif()
-            if ex and ex.has_key(0x112):
-                orientation = ex[0x112]
-                try:
-                    angle = self.orientationDict[orientation]
-                except KeyError, reason:
-                    print >>stderr, "%s: unknown orientation value %s in image %s" % \
-                          (argv[0], str(orientation), pathjoin(self['dirName'], self['picName']))
+            # PIL 1.1.4 and above have experimental EXIF code, but it seems a bit flaky still.
+            try:
+                ex = image._getexif()
+            except Exception, reason:
+                print >>stderr, "Error reading EXIF data for %s: %s" % \
+                      (self['picName'], str(reason.args))
+            else:
+                if ex and ex.has_key(0x112):
+                    orientation = ex[0x112]
+                    try:
+                        angle = self.orientationDict[orientation]
+                    except KeyError, reason:
+                        print >>stderr, "%s: unknown orientation value %s in image %s" % \
+                              (argv[0], str(orientation), pathjoin(self['dirName'], self['picName']))
         return angle
 
 
