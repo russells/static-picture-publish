@@ -201,6 +201,10 @@ being able to display the translated html when it does the XSLT itself.
           <xsl:value-of select="name" />
           <xsl:value-of select="$directoryLinkEnding" />
         </xsl:attribute>
+        <xsl:attribute name="title">
+          <xsl:text>Go to folder: </xsl:text>
+          <xsl:value-of select="name" />
+        </xsl:attribute>
         <xsl:value-of select="$linkText" />
       </xsl:element>
       <xsl:if test="string-length($postLinkText) != 0">
@@ -558,7 +562,7 @@ being able to display the translated html when it does the XSLT itself.
               </xsl:attribute>
             </xsl:if>
             <xsl:attribute name="title">
-              <xsl:text>Click for larger image</xsl:text>
+              <xsl:text>View larger image</xsl:text>
             </xsl:attribute>
           </xsl:element>
           <!-- end of image -->
