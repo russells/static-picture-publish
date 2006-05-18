@@ -326,6 +326,8 @@ class Picture(dict):
             image = Image.open(self['picPath'])
             self['fullImageWidth'] = image.size[0]
             self['fullImageHeight'] = image.size[1]
+            bytes = stat(self['picPath']).st_size
+            self['fullImageSize'] = self.readableSize(bytes)
 
             # Create the web image, if necessary.
             if options.regen_all \
@@ -349,6 +351,19 @@ class Picture(dict):
         for n in ['image', 'thumbnail']:
             self[n+'-image'] = None
         return modified
+
+
+    def readableSize(self, bytes):
+        if bytes >= 10485760:
+            return "%1.0f MB" % (bytes / 1048576.0)
+        elif bytes >= 1048576:
+            return "%3.1f MB" % (bytes / 1048576.0)
+        elif bytes >= 10240:
+            return "%1.0f kB" % (bytes / 1024.0)
+        elif bytes >= 1024:
+            return "%3.1f kB" % (bytes / 1024.0)
+        else:
+            return "%d bytes" % bytes
 
 
     def imageSizeCheck(self, image_basename, requiredSize):
@@ -426,6 +441,8 @@ class Picture(dict):
         if self.has_key('fullImageWidth') and self.has_key('fullImageHeight'):
             s.write('  <fullsize width="%d" height="%d" />\n' % \
                     (self['fullImageWidth'], self['fullImageHeight']))
+        if self.has_key('fullImageSize'):
+            s.write('  <filesize>%s</filesize>\n' % self['fullImageSize'])
         else:
             s.write('  <!-- no image width -->\n')
         if self['comment']:
@@ -908,6 +925,8 @@ class PictureDir(dict):
             if f.has_key('fullImageWidth') and f.has_key('fullImageHeight'):
                 s.write('      <fullsize width="%d" height="%d" />\n' % \
                         (f['fullImageWidth'], f['fullImageHeight']))
+            if f.has_key('fullImageHeight'):
+                s.write('      <filesize>%s</filesize>\n' % f['fullImageSize'])
             s.write('    </image>\n')
         s.write('  </images>\n')
         s.write('</picturedir>\n')
