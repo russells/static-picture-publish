@@ -573,9 +573,14 @@ class PictureDir(dict):
 
     # List of files to leave in the output directory.  Normally, files we don't recognise in
     # the output will be deleted, but not if they're named in here.
-    filesToKeep = [ '.htaccess', 'index.xml', 'index.html',
-                    'spp.css', 'spp-dir.xsl', 'spp-image.xsl',
-                    '.spp-full', '.spp-download' ]
+    filesToKeep = { '.htaccess':1, 'index.xml':1, 'index.html':1,
+                    'spp.css':1, 'spp-dir.xsl':1, 'spp-image.xsl':1,
+                    }
+    # List of special subdirs to keep.  These subdirs are in the output tree, but not in the source
+    # tree.
+    subdirsToKeep = { '.spp-full':1, '.spp-download':1 }
+    # List of files to keep in the sppSubdirsToKeep list.
+    subdirFilesToKeep = { '.htaccess':1 }
 
     def __init__(self, picRoot, webRoot, dirName='', doUp=False, stylesheetPath=None):
         '''Search through the directory, looking for pictures and
@@ -1023,53 +1028,66 @@ class PictureDir(dict):
         # First, do the same thing in our subdirectories.
         for d in self['subdirList']:
             d.deleteUnused()
-        # Now, construct the list of files and directories we want to keep.
-        keepList = {}
-        for z in self.filesToKeep:
-            keepList[z] = 1
+
+        # Now, construct the list of files and directories in this directory that we want to keep.
+        filesToKeep = copy(self.filesToKeep)
+        subdirFilesToKeep = copy(self.subdirFilesToKeep)
+        # Keep all the subdirs with pics in them.
         for z in self['subdirDict'].keys():
-            keepList[z] = 1
+            filesToKeep[z] = 1
+        # Loop through our pics and find out what files they have want to keep.
         for z in self['picList']:
-            keepList[z['imageName']] = 1
-            keepList[z['fullImageName']] = 1
-            keepList[z['downloadImageName']] = 1
-            keepList[z['thumbnailName']] = 1
-            keepList[z['xmlName']] = 1
-            keepList[z['htmlName']] = 1
+            filesToKeep[z['imageName']] = 1
+            filesToKeep[z['thumbnailName']] = 1
+            filesToKeep[z['xmlName']] = 1
+            filesToKeep[z['htmlName']] = 1
+            # In the .spp-full and .spp-download directories, there is one symlink for each of the
+            # pics we have, so we make sure we keep them.
+            subdirFilesToKeep[z['imageName']] = 1
+
         # Get the list of things that are in the output directory.
         lst = listdir(self['webPath'])
         for l in lst:
-            if not l in keepList:
-                p = pathjoin(self['webPath'], l)
-                try:
-                    if isdir(p):
-                        if options.delete:
-                            self.deleteDir(p)
-                        else:
-                            message("I want to delete directory %s" % (p))
-                    else:
-                        if options.delete:
-                            unlink(p)
-                        else:
-                            message("I want to delete %s" % (p))
-                except OSError,reason:
-                    print >>stderr, "%s: error deleting %s: %s" % (argv[0], p, str(reason.args))
+            p = pathjoin(self['webPath'], l)
+            if isdir(p) and l in self.subdirsToKeep:
+                sublst = listdir(p)
+                for sl in sublst:
+                    if not sl in subdirFilesToKeep:
+                        self.deleteSomething(pathjoin(p, sl))
+            elif not l in filesToKeep:
+                self.deleteSomething(p)
+
+
+    def deleteSomething(self, p):
+        try:
+            if isdir(p):
+                self.deleteDir(p)
+            else:
+                self.deleteNonDir(p)
+        except Exception, reason:
+            print >>stderr, "%s: error deleting %s: %s" % (argv[0], p, str(reason.args))
 
 
     def deleteDir(self, d):
         '''Recursively delete a whole directory tree.'''
-        lst = listdir(d)
-        for e in lst:
-            p = pathjoin(d,e)
-            try:
-                if isdir(p):
-                    self.deleteDir(p)
-                else:
-                    unlink(p)
-            except OSError,reason:
-                print >>stderr, "%s: error deleting %s: %s" % (argv[0], p, str(reason.args))
-        message("Removing directory %s" % d)
-        rmdir(d)
+        if options.delete:
+            lst = listdir(d)
+            for e in lst:
+                p = pathjoin(d,e)
+                self.deleteSomething(p)
+            message("Removing directory %s" % d)
+            rmdir(d)
+        else:
+            message("I want to delete dir  %s" % d)
+
+
+    def deleteNonDir(self, p):
+        '''Delete one file'''
+        if options.delete:
+            unlink(p)
+        else:
+            message("I want to delete file %s" % p)
+
 
 
 # Characters that can be included in shell commands without escaping.
