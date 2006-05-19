@@ -121,12 +121,23 @@ The easiest way to do this would seem to be to allow specification of a base
 URL for the full-sized stuff, give that URL to the XSL, and have it prepended
 to the correct links.
 
-** Use .comment/*.xml files.
+** Use .comment/*.xml files.  DONE.
 
 GNOME (and perhaps others, is this a freedesktop thing?) store picture comments
 in a file called .comments/$IMAGENAME.xml, which is gzip or zlib compressed.
 
-** Put thumbnail and image sizes into html.
+This is not a freedesktop thing, lots of programs have their own storage
+system.
+
+** Use other types of image comments.
+
+*** JPEG images can contain a comment.
+
+*** gqview stores image comments in a different structure from gthumb.
+
+*** nautilus has a different storage again.
+
+** Put thumbnail and image sizes into html.  DONE.
 
   <img width=128 height=96 src="a.jpg">
 
@@ -142,13 +153,21 @@ like this:
 We're already opening the images to check their sizes, so there's not much
 overhead in recording the sizes.
 
-** Folder images.  Done, not complete.  DONE.
+** Folder images.  Done, not complete.
 
 Allow one image from a folder to be used as the icon for that folder in its
 containing folder.  The containing folder will have to ask each sub-folder what
 its icon will be.  Default to the first image, like gallery does?
 
 Still need to choose a random image from the dir instead of the first one.
+(This bit is done.)
+
+Need to be able to pick an image from somewhere other than the images contained
+directly in that folder.  This was we can have images for 2005, say, all stored
+in sub-folders of 2005, and select an image from one of the sub-folders as the
+icon for the 2005 folder.  We'll probably have to store the icon separate from
+the real image thumbnail, say in an image in each folder called index.jpg, or
+something.
 
 ** Encapsulate folder images in a folder border.
 
@@ -187,6 +206,9 @@ if ext.lower() in options.extensions:
 
 Unused directories are currently deleted, but not unused images in still-used
 directories.
+
+This was done, but some recent changes (storing symlinks in .spp-full and
+.spp-download) may have partially broken this.
 
 ** Add an [include] section.  DONE.
 
@@ -243,6 +265,9 @@ But add an option to force them to be copied in.  (I didn't do this bit.)
 ** Use EXIF data.
 
 Date/time in particular.
+
+EXIF is being used for image rotation, and that's about all.  Now that it's
+available, we can pick out other interesting stuff and put it in the html.
 
 ** Rationalise how the XML and HTML is generated.
 
