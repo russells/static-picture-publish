@@ -252,5 +252,19 @@ hr.images-table
   background-color: #eee;
 }
 
+.folder-tl,
+.folder-t,
+.folder-tr,
+.folder-l,
+.folder-p,
+.folder-r,
+.folder-bl,
+.folder-b,
+.folder-br { margin: 0; padding: 0; }
+
+.folder-tl { width: 50 } .folder-t  {  } .folder-tr { width: 8 }
+.folder-l  { width: 8  } .folder-p  {  } .folder-r  { width: 8 }
+.folder-bl { width: 8  } .folder-b  {  } .folder-br { width: 8 }
+
 /* arch-tag: 4b8b1694-44b0-45df-b825-8418b0f04072
 */
