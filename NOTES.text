@@ -25,4 +25,34 @@ http://www.rgagnon.com/jsdetails/js-0034.html
 Might be a bit old.
 
 
+* folder images:
+
+** This works:
+
+  <table align="center" border="0" cellpadding="0" cellspacing="0">
+    <tr>
+      <td><img src="tl1.gif" /></td>
+      <td style='background-image:url("t.gif"); background-repeat: repeat-x;'><img src="tl2.gif" /></td>
+      <td><img src="tr.gif"></td>
+    </tr>
+    <tr>
+      <td style='background-image:url("l.gif"); background-repeat: repeat-y;'></td>
+      <td><a href="4/"><img src="1/zzz-thumb.jpg" alt="4/" height="85" title="Go to folder: 4" width="128"></a></td>
+      <td style='background-image:url("r.gif"); background-repeat: repeat-y;'></td>
+    </tr>
+    <tr>
+      <td><img src="bl.gif"></td>
+      <td style='background-image:url("b.gif"); background-repeat: repeat-x;'></td>
+      <td><img src="br.gif"></td>
+    </tr>
+  </table>
+
+** Need to get XSLT to generate this gumph.
+
+Use the stylesheetPath parameter, pass it in the same as (or instead of) the
+cssPath and xslPath parameters.
+
+** Use GIF images, not PNGs, as IE doesn't display transparent PNGs correctly.
+
+
 # arch-tag: 74cf4b9c-7504-4009-b7f6-97279278bab8
