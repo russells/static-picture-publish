@@ -107,11 +107,15 @@ being able to display the translated html when it does the XSLT itself.
 
   <!-- Output a table with links to a directory. -->
   <xsl:template name="singleDirnavTemplate">
-    <xsl:param name="linkTarget" />
+    <xsl:param name="preLink" />
+    <xsl:param name="link" /> <!-- Directory name -->
+    <xsl:param name="postLink" />
     <xsl:param name="thumbnail" />
-    <xsl:param name="preLinkText" />
-    <xsl:param name="linkText" />
-    <xsl:param name="postLinkText" />
+    <xsl:param name="thumbnail-width" />
+    <xsl:param name="thumbnail-height" />
+    <xsl:param name="preText" />
+    <xsl:param name="text" /> <!-- Use dir name if unset -->
+    <xsl:param name="postText" />
 
     <xsl:element name="table">
       <xsl:attribute name="align">center</xsl:attribute>
@@ -164,7 +168,8 @@ being able to display the translated html when it does the XSLT itself.
         <xsl:element name="td">
           <xsl:element name="a">
             <xsl:attribute name="href">
-              <xsl:value-of select="$linkTarget" />
+              <xsl:value-of select="$link" />
+              <xsl:value-of select="$directoryLinkEnding" />
             </xsl:attribute>
             <xsl:element name="img">
               <xsl:attribute name="src">
@@ -214,80 +219,6 @@ being able to display the translated html when it does the XSLT itself.
   </xsl:template>
 
 
-  <!-- Output a link for navigating to a related directory. -->
-  <xsl:template name="nextprevDirnavTemplate">
-
-    <!-- We supply the text as a parameter because sometimes we want the
-    arrows before the directory name and sometimes afterwards.  There's no
-    way to tell this reliable from the directory or link name. -->
-    <xsl:param name="preLinkText" />
-    <xsl:param name="linkText" />
-    <xsl:param name="postLinkText" />
-
-    <!-- Add the thumbnail if it's available -->
-    <xsl:if test="string-length(thumbnail) != 0">
-      <xsl:element name="a">
-        <xsl:attribute name="href">
-          <xsl:text>../</xsl:text>
-          <xsl:value-of select="name" />
-          <xsl:value-of select="$directoryLinkEnding" />
-        </xsl:attribute>
-        <xsl:element name="img">
-          <xsl:attribute name="src">
-            <xsl:text>../</xsl:text>
-            <xsl:value-of select="name" />
-            <xsl:text>/</xsl:text>
-            <xsl:value-of select="thumbnail" />
-          </xsl:attribute>
-          <xsl:attribute name="alt">
-            <xsl:text>../</xsl:text>
-            <xsl:value-of select="name" />
-            <xsl:text>/</xsl:text>
-            <xsl:value-of select="thumbnail" />
-          </xsl:attribute>
-          <xsl:if test="string-length(thumbnail/@height) != 0">
-            <xsl:attribute name="height">
-              <xsl:value-of select="thumbnail/@height" />
-            </xsl:attribute>
-          </xsl:if>
-          <xsl:if test="string-length(thumbnail/@width) != 0">
-            <xsl:attribute name="width">
-              <xsl:value-of select="thumbnail/@width" />
-            </xsl:attribute>
-          </xsl:if>
-          <xsl:attribute name="title">
-            <xsl:text>Go to folder: </xsl:text>
-            <xsl:value-of select="name" />
-          </xsl:attribute>
-        </xsl:element>
-      </xsl:element>
-    </xsl:if>
-
-    <!-- Text -->
-    <p class="dir-text">
-      <xsl:if test="string-length($preLinkText) != 0">
-        <xsl:value-of select="$preLinkText" />
-      </xsl:if>
-      <xsl:element name="a">
-        <xsl:attribute name="href">
-          <xsl:text>../</xsl:text>
-          <xsl:value-of select="name" />
-          <xsl:value-of select="$directoryLinkEnding" />
-        </xsl:attribute>
-        <xsl:attribute name="title">
-          <xsl:text>Go to folder: </xsl:text>
-          <xsl:value-of select="name" />
-        </xsl:attribute>
-        <xsl:value-of select="$linkText" />
-      </xsl:element>
-      <xsl:if test="string-length($postLinkText) != 0">
-        <xsl:value-of select="$postLinkText" />
-      </xsl:if>
-    </p>
-
-  </xsl:template>
-
-
   <!-- Create the directory navigation table. -->
   <xsl:template name="dirnavTemplate">
 
@@ -305,26 +236,28 @@ being able to display the translated html when it does the XSLT itself.
                     <xsl:choose>
                       <xsl:when test="string-length(thumbnail) != 0">
                         <xsl:text>../</xsl:text>
+                        <xsl:value-of select="name" />
+                        <xsl:text>/</xsl:text>
                         <xsl:value-of select="thumbnail" />
                       </xsl:when>
                       <xsl:otherwise>
                         <xsl:value-of select="/picturedir/@stylesheetPath" />
-                        <xsl:text>/empty-folder.gif</xsl:text>
+                        <xsl:text>empty-folder.gif</xsl:text>
                       </xsl:otherwise>
                     </xsl:choose>
                   </xsl:variable>
                   <xsl:call-template name="singleDirnavTemplate">
-                    <xsl:with-param name="linkTarget">
+                    <xsl:with-param name="link">
                       <xsl:text>../</xsl:text>
                       <xsl:value-of select="name" />
                     </xsl:with-param>
                     <xsl:with-param name="thumbnail">
                       <xsl:value-of select="$thumbnail" />
                     </xsl:with-param>
-                    <xsl:with-param name="preLinkText">
+                    <xsl:with-param name="preText">
                       <xsl:text>&lt;&lt; </xsl:text>
                     </xsl:with-param>
-                    <xsl:with-param name="linkText">
+                    <xsl:with-param name="text">
                       <xsl:value-of select="name" />
                     </xsl:with-param>
                   </xsl:call-template>
@@ -338,17 +271,22 @@ being able to display the translated html when it does the XSLT itself.
 
           <!-- Navigate up -->
           <td width="33%" class="dirnav-table-cell">
-            <p class="dir-text">
-              <xsl:text>[</xsl:text>
-              <xsl:element name="a">
-                <xsl:attribute name="href">
-                  <xsl:text>..</xsl:text>
-                  <xsl:value-of select="$directoryLinkEnding" />
-                </xsl:attribute>
+            <xsl:call-template name="singleDirnavTemplate">
+              <xsl:with-param name="link">..</xsl:with-param>
+              <xsl:with-param name="thumbnail">
+                <xsl:value-of select="/picturedir/@stylesheetPath" />
+                <xsl:text>empty-folder.gif</xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="preText">
+                <xsl:text>[</xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="text">
                 <xsl:text>Go up one folder</xsl:text>
-              </xsl:element>
-              <xsl:text>]</xsl:text>
-            </p>
+              </xsl:with-param>
+              <xsl:with-param name="postText">
+                <xsl:text>]</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
           </td>
 
           <!-- Navigate to next -->
@@ -356,11 +294,29 @@ being able to display the translated html when it does the XSLT itself.
             <xsl:choose>
               <xsl:when test="count(next) != 0">
                 <xsl:for-each select="next[position()=1]">
-                  <xsl:call-template name="nextprevDirnavTemplate">
-                    <xsl:with-param name="linkText">
+                  <xsl:variable name="thumbnail">
+                    <xsl:choose>
+                      <xsl:when test="string-length(thumbnail) != 0">
+                        <xsl:text>../</xsl:text>
+                        <xsl:value-of select="name" />
+                        <xsl:text>/</xsl:text>
+                        <xsl:value-of select="thumbnail" />
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:value-of select="/picturedir/@stylesheetPath" />
+                        <xsl:text>empty-folder.gif</xsl:text>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:variable>
+                  <xsl:call-template name="singleDirnavTemplate">
+                    <xsl:with-param name="link">
+                      <xsl:text>../</xsl:text>
                       <xsl:value-of select="name" />
                     </xsl:with-param>
-                    <xsl:with-param name="postLinkText">
+                    <xsl:with-param name="thumbnail">
+                      <xsl:value-of select="$thumbnail" />
+                    </xsl:with-param>
+                    <xsl:with-param name="postText">
                       <xsl:text> &gt;&gt;</xsl:text>
                     </xsl:with-param>
                   </xsl:call-template>
