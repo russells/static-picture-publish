@@ -579,6 +579,7 @@ class PictureDir(dict):
                     'l.gif':1, 'r.gif':1,
                     'bl.gif':1, 'b.gif':1, 'br.gif':1,
                     'empty-folder.gif':1,
+                    'folder-pics.gif':1,
                     }
     # List of special subdirs to keep.  These subdirs are in the output tree, but not in the source
     # tree.
@@ -1266,7 +1267,7 @@ def go():
         for f in ('tl1.gif','tl2.gif','t.gif','tr.gif',
                   'l.gif','r.gif',
                   'bl.gif','b.gif','br.gif',
-                  'empty-folder.gif'):
+                  'empty-folder.gif', 'folder-pics.gif'):
             sppCopyFile(f, f, "images")
     # Now create thumbnails and markup.
     pd.go()

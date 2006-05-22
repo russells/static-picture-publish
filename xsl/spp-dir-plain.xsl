@@ -242,7 +242,7 @@ being able to display the translated html when it does the XSLT itself.
                       </xsl:when>
                       <xsl:otherwise>
                         <xsl:value-of select="/picturedir/@stylesheetPath" />
-                        <xsl:text>empty-folder.gif</xsl:text>
+                        <xsl:text>folder-pics.gif</xsl:text>
                       </xsl:otherwise>
                     </xsl:choose>
                   </xsl:variable>
@@ -275,7 +275,7 @@ being able to display the translated html when it does the XSLT itself.
               <xsl:with-param name="link">..</xsl:with-param>
               <xsl:with-param name="thumbnail">
                 <xsl:value-of select="/picturedir/@stylesheetPath" />
-                <xsl:text>empty-folder.gif</xsl:text>
+                <xsl:text>folder-pics.gif</xsl:text>
               </xsl:with-param>
               <xsl:with-param name="preText">
                 <xsl:text>[</xsl:text>
@@ -304,7 +304,7 @@ being able to display the translated html when it does the XSLT itself.
                       </xsl:when>
                       <xsl:otherwise>
                         <xsl:value-of select="/picturedir/@stylesheetPath" />
-                        <xsl:text>empty-folder.gif</xsl:text>
+                        <xsl:text>folder-pics.gif</xsl:text>
                       </xsl:otherwise>
                     </xsl:choose>
                   </xsl:variable>
