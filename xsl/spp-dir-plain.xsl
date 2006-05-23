@@ -107,9 +107,7 @@ being able to display the translated html when it does the XSLT itself.
 
   <!-- Output a table with links to a directory. -->
   <xsl:template name="singleDirnavTemplate">
-    <xsl:param name="preLink" />
     <xsl:param name="link" /> <!-- Directory name -->
-    <xsl:param name="postLink" />
     <xsl:param name="thumbnail" />
     <xsl:param name="thumbnail-width" />
     <xsl:param name="thumbnail-height" />
@@ -216,6 +214,29 @@ being able to display the translated html when it does the XSLT itself.
       </tr>
       <!-- end of table -->
     </xsl:element>
+
+    <!-- Text -->
+    <p class="dir-text">
+      <xsl:if test="string-length($preText) != 0">
+        <xsl:value-of select="$preText" />
+      </xsl:if>
+      <xsl:comment> Just before the a </xsl:comment>
+      <xsl:element name="a">
+        <xsl:attribute name="href">
+          <xsl:value-of select="$link" />
+          <xsl:value-of select="$directoryLinkEnding" />
+        </xsl:attribute>
+        <xsl:attribute name="title">
+          <xsl:text>Go to folder: </xsl:text>
+          <xsl:value-of select="$link" />
+        </xsl:attribute>
+        <xsl:value-of select="$text" />
+      </xsl:element>
+      <xsl:comment> Just after the a </xsl:comment>
+      <xsl:if test="string-length($postText) != 0">
+        <xsl:value-of select="$postText" />
+      </xsl:if>
+    </p>
   </xsl:template>
 
 
@@ -315,6 +336,9 @@ being able to display the translated html when it does the XSLT itself.
                     </xsl:with-param>
                     <xsl:with-param name="thumbnail">
                       <xsl:value-of select="$thumbnail" />
+                    </xsl:with-param>
+                    <xsl:with-param name="text">
+                      <xsl:value-of select="name" />
                     </xsl:with-param>
                     <xsl:with-param name="postText">
                       <xsl:text> &gt;&gt;</xsl:text>
