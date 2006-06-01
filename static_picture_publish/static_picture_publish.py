@@ -1267,7 +1267,7 @@ def go():
         for f in ('tl1.gif','tl2.gif','t.gif','tr.gif',
                   'l.gif','r.gif',
                   'bl.gif','b.gif','br.gif',
-                  'empty-folder.gif', 'folder-pics.gif'):
+                  'folder-pics.gif'):
             sppCopyFile(f, f, "images")
     # Now create thumbnails and markup.
     pd.go()
