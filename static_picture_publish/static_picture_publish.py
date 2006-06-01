@@ -575,6 +575,11 @@ class PictureDir(dict):
     # the output will be deleted, but not if they're named in here.
     filesToKeep = { '.htaccess':1, 'index.xml':1, 'index.html':1,
                     'spp.css':1, 'spp-dir.xsl':1, 'spp-image.xsl':1,
+                    'tl1.gif':1, 'tl2.gif':1, 't.gif':1, 'tr.gif':1,
+                    'l.gif':1, 'r.gif':1,
+                    'bl.gif':1, 'b.gif':1, 'br.gif':1,
+                    'empty-folder.gif':1,
+                    'folder-pics.gif':1,
                     }
     # List of special subdirs to keep.  These subdirs are in the output tree, but not in the source
     # tree.
@@ -620,26 +625,21 @@ class PictureDir(dict):
         self['xmlPath'] = pathjoin(self['webPath'], "index.xml")
         # If we were supplied a path to the CSS and XSL files, then we use that.  Otherwise,
         # calculate the path by going up until we get to the top.
-        if stylesheetPath:
-            childStylesheetPath = pathjoin('..',stylesheetPath)
-            self['xslPath'] = pathjoin(stylesheetPath, 'spp-dir.xsl')
-            self['cssPath'] = pathjoin(stylesheetPath, 'spp.css')
-        else:
+        self['stylesheetPath'] = stylesheetPath
+        if not self['stylesheetPath']:
             # This looks very inefficient, but it will only happen once, at the root of the
             # tree.  All the subdirectory instances will be supplied the childStylesheetPath
             # parameter, so won't have to do this search.
-            childStylesheetPath = None
-            if self['dirName'] == '':
-                self['xslPath'] = 'spp-dir.xsl'
-                self['cssPath'] = 'spp.css'
-            else:
-                self['xslPath'] = '../spp-dir.xsl'
-                self['cssPath'] = '../spp.css'
+            self['stylesheetPath'] = ''
+            if not self['dirName'] == '':
                 ht = pathsplit(self['dirName'])[0]
                 while ht != '':
-                    self['xslPath'] = '../'+self['xslPath']
-                    self['cssPath'] = '../'+self['cssPath']
+                    self['stylesheetPath'] = pathjoin('..', self['stylesheetPath'])
                     ht = pathsplit(ht)[0]
+
+        self['xslPath'] = pathjoin(self['stylesheetPath'], 'spp-dir.xsl')
+        self['cssPath'] = pathjoin(self['stylesheetPath'], 'spp.css')
+        childStylesheetPath = pathjoin('..', self['stylesheetPath'])
 
         self['subdirList'] = []
         self['subdirDict'] = {}
@@ -872,13 +872,17 @@ class PictureDir(dict):
             else:
                 dname = entityReplace(self['dirBasename'])
                 dpath = entityReplace(self['dirName'])
+        if self['stylesheetPath']:
+            spath = self['stylesheetPath']
+        else:
+            spath = ''
         s.write(
             '<?xml version="1.0"?>\n' \
             '<?xml-stylesheet type="text/xsl" href="#stylesheet"?>\n' \
             '<!DOCTYPE picturedir ' \
             '[ <!ATTLIST xsl:stylesheet id ID #REQUIRED> ]>\n' \
-            '<picturedir name="%s" path="%s" css="%s"' % \
-            (dname, dpath, self['cssPath']))
+            '<picturedir name="%s" path="%s" css="%s" stylesheetPath="%s"' % \
+            (dname, dpath, self['cssPath'], spath))
         s.write('>\n')
         # xsl:import must be before xsl:param.  But the param here has
         # precedence because there's an import tree.  Weird, but true.
@@ -1260,6 +1264,11 @@ def go():
         sppCopyFile(options.css_file,       "spp.css",       "css", stylesheetPath=stylesheetPath)
         sppCopyFile(options.xsl_dir_file,   "spp-dir.xsl",   "xsl", stylesheetPath=stylesheetPath)
         sppCopyFile(options.xsl_image_file, "spp-image.xsl", "xsl", stylesheetPath=stylesheetPath)
+        for f in ('tl1.gif','tl2.gif','t.gif','tr.gif',
+                  'l.gif','r.gif',
+                  'bl.gif','b.gif','br.gif',
+                  'empty-folder.gif', 'folder-pics.gif'):
+            sppCopyFile(f, f, "images")
     # Now create thumbnails and markup.
     pd.go()
     pd.deleteUnused()

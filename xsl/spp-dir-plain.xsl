@@ -105,77 +105,138 @@ being able to display the translated html when it does the XSLT itself.
   </xsl:template>
 
 
-  <!-- Output a link for navigating to a related directory. -->
-  <xsl:template name="nextprevDirnavTemplate">
+  <!-- Output a table with links to a directory. -->
+  <xsl:template name="singleDirnavTemplate">
+    <xsl:param name="link" /> <!-- Directory name -->
+    <xsl:param name="thumbnail" />
+    <xsl:param name="thumbnail-width" />
+    <xsl:param name="thumbnail-height" />
+    <xsl:param name="preText" />
+    <xsl:param name="text" />
+    <xsl:param name="postText" />
 
-    <!-- We supply the text as a parameter because sometimes we want the
-    arrows before the directory name and sometimes afterwards.  There's no
-    way to tell this reliable from the directory or link name. -->
-    <xsl:param name="preLinkText" />
-    <xsl:param name="linkText" />
-    <xsl:param name="postLinkText" />
-
-    <!-- Add the thumbnail if it's available -->
-    <xsl:if test="string-length(thumbnail) != 0">
-      <xsl:element name="a">
-        <xsl:attribute name="href">
-          <xsl:text>../</xsl:text>
-          <xsl:value-of select="name" />
-          <xsl:value-of select="$directoryLinkEnding" />
-        </xsl:attribute>
-        <xsl:element name="img">
-          <xsl:attribute name="src">
-            <xsl:text>../</xsl:text>
-            <xsl:value-of select="name" />
-            <xsl:text>/</xsl:text>
-            <xsl:value-of select="thumbnail" />
-          </xsl:attribute>
-          <xsl:attribute name="alt">
-            <xsl:text>../</xsl:text>
-            <xsl:value-of select="name" />
-            <xsl:text>/</xsl:text>
-            <xsl:value-of select="thumbnail" />
-          </xsl:attribute>
-          <xsl:if test="string-length(thumbnail/@height) != 0">
-            <xsl:attribute name="height">
-              <xsl:value-of select="thumbnail/@height" />
+    <xsl:element name="table">
+      <xsl:attribute name="align">center</xsl:attribute>
+      <xsl:attribute name="cellpadding">0</xsl:attribute>
+      <xsl:attribute name="cellspacing">0</xsl:attribute>
+      <tr> <!-- top row -->
+        <!-- top left cell -->
+        <td>
+          <xsl:element name="img">
+            <xsl:attribute name="src">
+              <xsl:value-of select="/picturedir/@stylesheetPath" />
+              <xsl:text>tl1.gif</xsl:text>
             </xsl:attribute>
-          </xsl:if>
-          <xsl:if test="string-length(thumbnail/@width) != 0">
-            <xsl:attribute name="width">
-              <xsl:value-of select="thumbnail/@width" />
+          </xsl:element>
+        </td>
+        <!-- top middle cell -->
+        <xsl:element name="td">
+          <xsl:attribute name="style">
+            <xsl:text>background-image: url(</xsl:text>
+            <xsl:value-of select="/picturedir/@stylesheetPath" />
+            <xsl:text>t.gif); background-repeat: repeat-x;</xsl:text>
+          </xsl:attribute>
+          <xsl:element name="img">
+            <xsl:attribute name="src">
+              <xsl:value-of select="/picturedir/@stylesheetPath" />
+              <xsl:text>tl2.gif</xsl:text>
             </xsl:attribute>
-          </xsl:if>
-          <xsl:attribute name="title">
-            <xsl:text>Go to folder: </xsl:text>
-            <xsl:value-of select="name" />
+          </xsl:element>
+        </xsl:element>
+        <!-- top right cell -->
+        <td>
+          <xsl:element name="img">
+            <xsl:attribute name="src">
+              <xsl:value-of select="/picturedir/@stylesheetPath" />
+              <xsl:text>tr.gif</xsl:text>
+            </xsl:attribute>
+          </xsl:element>
+        </td>
+      </tr>
+      <tr>
+        <!-- left cell -->
+        <xsl:element name="td">
+          <xsl:attribute name="style">
+            <xsl:text>background-image: url(</xsl:text>
+            <xsl:value-of select="/picturedir/@stylesheetPath" />
+            <xsl:text>l.gif); background-repeat: repeat-y;</xsl:text>
           </xsl:attribute>
         </xsl:element>
-      </xsl:element>
-    </xsl:if>
+        <!-- middle cell, with thumbnail -->
+        <xsl:element name="td">
+          <xsl:element name="a">
+            <xsl:attribute name="href">
+              <xsl:value-of select="$link" />
+              <xsl:value-of select="$directoryLinkEnding" />
+            </xsl:attribute>
+            <xsl:element name="img">
+              <xsl:attribute name="src">
+                <xsl:value-of select="$thumbnail" />
+              </xsl:attribute>
+            </xsl:element>
+          </xsl:element>
+        </xsl:element>
+        <!-- right cell -->
+        <xsl:element name="td">
+          <xsl:attribute name="style">
+            <xsl:text>background-image: url(</xsl:text>
+            <xsl:value-of select="/picturedir/@stylesheetPath" />
+            <xsl:text>r.gif); background-repeat: repeat-y;</xsl:text>
+          </xsl:attribute>
+        </xsl:element>
+      </tr>
+      <tr>
+        <!-- bottom left cell -->
+        <xsl:element name="td">
+          <xsl:attribute name="style">
+            <xsl:text>background-image: url(</xsl:text>
+            <xsl:value-of select="/picturedir/@stylesheetPath" />
+            <xsl:text>bl.gif); background-repeat: repeat-y;</xsl:text>
+          </xsl:attribute>
+        </xsl:element>
+        <!-- bottom middle cell -->
+        <xsl:element name="td">
+          <xsl:attribute name="style">
+            <xsl:text>background-image: url(</xsl:text>
+            <xsl:value-of select="/picturedir/@stylesheetPath" />
+            <xsl:text>b.gif); background-repeat: repeat-x;</xsl:text>
+          </xsl:attribute>
+        </xsl:element>
+        <!-- top right cell -->
+        <td>
+          <xsl:element name="img">
+            <xsl:attribute name="src">
+              <xsl:value-of select="/picturedir/@stylesheetPath" />
+              <xsl:text>br.gif</xsl:text>
+            </xsl:attribute>
+          </xsl:element>
+        </td>
+      </tr>
+      <!-- end of table -->
+    </xsl:element>
 
     <!-- Text -->
     <p class="dir-text">
-      <xsl:if test="string-length($preLinkText) != 0">
-        <xsl:value-of select="$preLinkText" />
+      <xsl:if test="string-length($preText) != 0">
+        <xsl:value-of select="$preText" />
       </xsl:if>
+      <xsl:comment> Just before the a </xsl:comment>
       <xsl:element name="a">
         <xsl:attribute name="href">
-          <xsl:text>../</xsl:text>
-          <xsl:value-of select="name" />
+          <xsl:value-of select="$link" />
           <xsl:value-of select="$directoryLinkEnding" />
         </xsl:attribute>
         <xsl:attribute name="title">
           <xsl:text>Go to folder: </xsl:text>
-          <xsl:value-of select="name" />
+          <xsl:value-of select="$link" />
         </xsl:attribute>
-        <xsl:value-of select="$linkText" />
+        <xsl:value-of select="$text" />
       </xsl:element>
-      <xsl:if test="string-length($postLinkText) != 0">
-        <xsl:value-of select="$postLinkText" />
+      <xsl:comment> Just after the a </xsl:comment>
+      <xsl:if test="string-length($postText) != 0">
+        <xsl:value-of select="$postText" />
       </xsl:if>
     </p>
-
   </xsl:template>
 
 
@@ -192,11 +253,32 @@ being able to display the translated html when it does the XSLT itself.
             <xsl:choose>
               <xsl:when test="count(prev) != 0">
                 <xsl:for-each select="prev[position()=1]">
-                  <xsl:call-template name="nextprevDirnavTemplate">
-                    <xsl:with-param name="preLinkText">
+                  <xsl:variable name="thumbnail">
+                    <xsl:choose>
+                      <xsl:when test="string-length(thumbnail) != 0">
+                        <xsl:text>../</xsl:text>
+                        <xsl:value-of select="name" />
+                        <xsl:text>/</xsl:text>
+                        <xsl:value-of select="thumbnail" />
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:value-of select="/picturedir/@stylesheetPath" />
+                        <xsl:text>folder-pics.gif</xsl:text>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:variable>
+                  <xsl:call-template name="singleDirnavTemplate">
+                    <xsl:with-param name="link">
+                      <xsl:text>../</xsl:text>
+                      <xsl:value-of select="name" />
+                    </xsl:with-param>
+                    <xsl:with-param name="thumbnail">
+                      <xsl:value-of select="$thumbnail" />
+                    </xsl:with-param>
+                    <xsl:with-param name="preText">
                       <xsl:text>&lt;&lt; </xsl:text>
                     </xsl:with-param>
-                    <xsl:with-param name="linkText">
+                    <xsl:with-param name="text">
                       <xsl:value-of select="name" />
                     </xsl:with-param>
                   </xsl:call-template>
@@ -210,17 +292,22 @@ being able to display the translated html when it does the XSLT itself.
 
           <!-- Navigate up -->
           <td width="33%" class="dirnav-table-cell">
-            <p class="dir-text">
-              <xsl:text>[</xsl:text>
-              <xsl:element name="a">
-                <xsl:attribute name="href">
-                  <xsl:text>..</xsl:text>
-                  <xsl:value-of select="$directoryLinkEnding" />
-                </xsl:attribute>
+            <xsl:call-template name="singleDirnavTemplate">
+              <xsl:with-param name="link">..</xsl:with-param>
+              <xsl:with-param name="thumbnail">
+                <xsl:value-of select="/picturedir/@stylesheetPath" />
+                <xsl:text>folder-pics.gif</xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="preText">
+                <xsl:text>[</xsl:text>
+              </xsl:with-param>
+              <xsl:with-param name="text">
                 <xsl:text>Go up one folder</xsl:text>
-              </xsl:element>
-              <xsl:text>]</xsl:text>
-            </p>
+              </xsl:with-param>
+              <xsl:with-param name="postText">
+                <xsl:text>]</xsl:text>
+              </xsl:with-param>
+            </xsl:call-template>
           </td>
 
           <!-- Navigate to next -->
@@ -228,11 +315,32 @@ being able to display the translated html when it does the XSLT itself.
             <xsl:choose>
               <xsl:when test="count(next) != 0">
                 <xsl:for-each select="next[position()=1]">
-                  <xsl:call-template name="nextprevDirnavTemplate">
-                    <xsl:with-param name="linkText">
+                  <xsl:variable name="thumbnail">
+                    <xsl:choose>
+                      <xsl:when test="string-length(thumbnail) != 0">
+                        <xsl:text>../</xsl:text>
+                        <xsl:value-of select="name" />
+                        <xsl:text>/</xsl:text>
+                        <xsl:value-of select="thumbnail" />
+                      </xsl:when>
+                      <xsl:otherwise>
+                        <xsl:value-of select="/picturedir/@stylesheetPath" />
+                        <xsl:text>folder-pics.gif</xsl:text>
+                      </xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:variable>
+                  <xsl:call-template name="singleDirnavTemplate">
+                    <xsl:with-param name="link">
+                      <xsl:text>../</xsl:text>
                       <xsl:value-of select="name" />
                     </xsl:with-param>
-                    <xsl:with-param name="postLinkText">
+                    <xsl:with-param name="thumbnail">
+                      <xsl:value-of select="$thumbnail" />
+                    </xsl:with-param>
+                    <xsl:with-param name="text">
+                      <xsl:value-of select="name" />
+                    </xsl:with-param>
+                    <xsl:with-param name="postText">
                       <xsl:text> &gt;&gt;</xsl:text>
                     </xsl:with-param>
                   </xsl:call-template>
@@ -278,7 +386,39 @@ being able to display the translated html when it does the XSLT itself.
         <xsl:for-each select="dir[ position() mod $nTableColumns = 1 ]">
           <tr class="dir-table-row">
             <xsl:for-each select=". | following-sibling::dir[position()&lt;$nTableColumns]">
-              <xsl:call-template name="dirtemplate" />
+              <td width="33%" class="dir-table-cell">
+              <xsl:variable name="thisThumbnail">
+                <xsl:choose>
+                  <xsl:when test="string-length(thumbnail) != 0">
+                    <xsl:value-of select="name" />
+                    <xsl:text>/</xsl:text>
+                    <xsl:value-of select="thumbnail" />
+                  </xsl:when>
+                  <xsl:otherwise>
+                    <xsl:value-of select="/picturedir/@stylesheetPath" />
+                    <xsl:text>folder-pics.gif</xsl:text>
+                  </xsl:otherwise>
+                </xsl:choose>
+              </xsl:variable>
+              <!-- <xsl:call-template name="dirtemplate" /> -->
+              <xsl:call-template name="singleDirnavTemplate">
+                <xsl:with-param name="link">
+                  <xsl:value-of select="name" />
+                </xsl:with-param>
+                <xsl:with-param name="text">
+                  <xsl:value-of select="name" />
+                </xsl:with-param>
+                <xsl:with-param name="thumbnail">
+                  <xsl:value-of select="$thisThumbnail" />
+                </xsl:with-param>
+                <xsl:with-param name="thumbnail-width">
+                  <xsl:value-of select="thumbnail/@width" />
+                </xsl:with-param>
+                <xsl:with-param name="thumbnail-height">
+                  <xsl:value-of select="thumbnail/@height" />
+                </xsl:with-param>
+              </xsl:call-template>
+              </td>
             </xsl:for-each>
             <!-- If we just did the last row, and we require extra cells, -->
             <!-- then fill in the table with blank cells -->
@@ -329,91 +469,6 @@ being able to display the translated html when it does the XSLT itself.
         </xsl:with-param>
       </xsl:call-template>
     </xsl:if>
-  </xsl:template>
-
-
-  <xsl:template name="dirtemplate">
-
-    <!-- Set the name of the link to the subdir. -->
-    <xsl:variable name="linkname">
-      <xsl:choose>
-        <xsl:when test="$imagePageExtension = '.xml'">
-          <xsl:value-of select="name"/>
-          <xsl:text>/index.xml</xsl:text>
-        </xsl:when>
-        <xsl:otherwise>
-          <xsl:value-of select="name"/>
-          <xsl:text>/</xsl:text>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-
-    <!-- Set the name of the directory's thumbnail. -->
-    <xsl:variable name="thumbnailstuff">
-      <xsl:choose>
-        <!-- If we were given a thumbnail, use that. -->
-        <xsl:when test="string-length(thumbnail) != 0">
-          <div class="dir-image">
-            <xsl:element name="a">
-              <xsl:attribute name="href">
-                <xsl:value-of select="$linkname" />
-              </xsl:attribute>
-              <xsl:element name="img">
-                <xsl:attribute name="src">
-                  <xsl:value-of select="name" />
-                  <xsl:text>/</xsl:text>
-                  <xsl:value-of select="thumbnail" />
-                </xsl:attribute>
-                <xsl:attribute name="alt">
-                  <xsl:value-of select="$linkname" />
-                </xsl:attribute>
-                <xsl:if test="string-length(thumbnail/@height) != 0">
-                  <xsl:attribute name="height">
-                    <xsl:value-of select="thumbnail/@height" />
-                  </xsl:attribute>
-                </xsl:if>
-                <xsl:if test="string-length(thumbnail/@width) != 0">
-                  <xsl:attribute name="width">
-                    <xsl:value-of select="thumbnail/@width" />
-                  </xsl:attribute>
-                </xsl:if>
-                <xsl:attribute name="title">
-                  <xsl:text>Go to folder: </xsl:text>
-                  <xsl:value-of select="name" />
-                </xsl:attribute>
-              </xsl:element>
-            </xsl:element>
-          </div>
-        </xsl:when>
-        <!-- Else, there's no thumbnail. -->
-        <xsl:otherwise>
-          <xsl:comment> No thumbnail </xsl:comment>
-        </xsl:otherwise>
-      </xsl:choose>
-    </xsl:variable>
-
-    <xsl:element name="td">
-      <xsl:attribute name="class">
-        <xsl:text>dir-table-cell</xsl:text>
-      </xsl:attribute>
-      <xsl:attribute name="width">
-        <xsl:value-of select="format-number(1 div $nTableColumns, '#%')" />
-      </xsl:attribute>
-      <xsl:copy-of select="$thumbnailstuff" />
-      <p class="dir-text">
-        <xsl:element name="a">
-          <xsl:attribute name="href">
-            <xsl:value-of select="$linkname"/>
-          </xsl:attribute>
-          <xsl:attribute name="title">
-            <xsl:text>Go to folder: </xsl:text>
-            <xsl:value-of select="name" />
-          </xsl:attribute>
-          <xsl:value-of select="name"/>
-        </xsl:element>
-      </p>
-    </xsl:element>
-    <!-- <xsl:apply-templates/ -->
   </xsl:template>
 
 
