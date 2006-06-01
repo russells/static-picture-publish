@@ -173,6 +173,16 @@ being able to display the translated html when it does the XSLT itself.
               <xsl:attribute name="src">
                 <xsl:value-of select="$thumbnail" />
               </xsl:attribute>
+              <xsl:if test="string-length($thumbnail-width) != 0">
+                <xsl:attribute name="width">
+                  <xsl:value-of select="$thumbnail-width" />
+                </xsl:attribute>
+              </xsl:if>
+              <xsl:if test="string-length($thumbnail-height) != 0">
+                <xsl:attribute name="height">
+                  <xsl:value-of select="$thumbnail-height" />
+                </xsl:attribute>
+              </xsl:if>
             </xsl:element>
           </xsl:element>
         </xsl:element>
