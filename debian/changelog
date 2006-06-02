@@ -1,3 +1,9 @@
+static-picture-publish (0.1-4) unstable; urgency=low
+
+  * Upstream (!) changed.
+
+ -- Russell Steicke <russells@adelie.cx>  Fri, 2 Jun 2006 11:01:19 +0800
+
 static-picture-publish (0.1-3) unstable; urgency=low
 
   * Upstream (!) changed.
