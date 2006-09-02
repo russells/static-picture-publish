@@ -1,3 +1,9 @@
+static-picture-publish (0.1-5) unstable; urgency=low
+
+  * Changed location of python package to survive python version upgrade.
+
+ -- Russell Steicke <russells@adelie.cx>  Sat, 2 Sep 2006 19:24:49 +0800
+
 static-picture-publish (0.1-4) unstable; urgency=low
 
   * Upstream (!) changed.
