@@ -18,7 +18,7 @@ of the web directory.  Subdirectories of I<picroot> will be duplicated in
 I<webRoot>, containing thumbnails and smaller versions of images in
 I<picRoot>, along with XML and HTML web pages to enable viewing them.
 
-B<static-picture-publish> produces XML output initially, then process that
+B<static-picture-publish> produces XML output initially, then processes that
 with B<xsltproc> to produce HTML.  (This is only necessary because Internet
 Explorer 6, while it can process XML and XSLT, does strange things when
 given a relative path to the XSL stylesheet.  Firefox and Mozilla Seamonkey
@@ -74,7 +74,7 @@ Print more information about actions.
 =item --extensions=I<EXTENSIONS>
 
 Specify a comma-separated list of file extensions to process.  These files
-must be recoginsed by the Python Imaging Library.  The extensions are
+must be recognised by the Python Imaging Library.  The extensions are
 compared case-folded.  The default list is B<.jpg,.jpeg,.gif,.png>.  If
 specified, the list is replaced, not extended.
 
@@ -201,8 +201,8 @@ read if they exist.
 
 =head2 Format
 
-The format of the file is like the INI format.  It can contain these
-sections:
+The format of the file is like the INI format.  (Also see the section "Example
+config file", below.)  It can contain these sections:
 
 =over
 
@@ -283,25 +283,25 @@ slightly strange.
 =item *
 
 Firstly, if there is no config file in this directory, or there is a config
-file but it has no C<[include]> or C<[exclude]> sections, then all entries
-are included.
+file but it has no C<[include]> or C<[exclude]> sections, then all images and
+folders are included.
 
 =item *
 
 If there is an C<[include]> section, the default action is to not include
-an entry.
+an image or folder.
 
 =item *
 
-If the item is mentioned in the C<[include]> section, it is only included
-if the value of the C<include> key is C<True>.  As above, this will be the
-case if there is no C<include> key at all.
+If the image or folder is mentioned in the C<[include]> section, it is only
+included if the value of the C<include> key is C<True>.  As above, this will be
+the case if there is no C<include> key at all.
 
 =item *
 
-If the item is mentioned in the C<exclude> section, it is only included if
-the value of the C<exclude> key is C<False>.  This will not normally be the
-case, unless the C<exclude> key is mentioned explicitly.
+If the image or folder is mentioned in the C<exclude> section, it is only
+included if the value of the C<exclude> key is C<False>.  This will not
+normally be the case, unless the C<exclude> key is mentioned explicitly.
 
 =back
 
@@ -318,6 +318,10 @@ presented un-rotated.
 I<X> can only be the values I<90>, I<180>, I<270>, I<-90>, I<left>,
 I<upsidedown> or I<right>.
 
+Note that B<static-picture-publish> will read EXIF data from the images, so if
+your image was taken with a digital camera it will be rotated correctly without
+you having to specify this value.
+
 =item name=I<NAME>
 
 (B<Unimplemented>) Specify the name to use for this entry in the output.  All
@@ -325,20 +329,42 @@ references to the image or folder will use I<NAME>.
 
 =back
 
-=head2 Example config file
+=head2 Example config files
+
+The common reason to include a config file is to exclude just a couple of
+images:
+
+ [include]
+ * : True
+ Embarrassing_pic_1.jpg  : False
+ And_this_one.jpg        : False
+
+A longer example:
 
  [include]
  a.jpg : include=1
  b.jpg : rotate=90
  c.jpg : rotate=-90 false
  d.jpg : True
+ *     : True
 
  [exclude]
  d.jpg : True
 
+ [folder order]
+ Things  : 1
+ Stuff   : 2
+
 With this config file, F<a.jpg> and F<b.jpg> will be included, but F<c.jpg>
 and F<d.jpg> will not.  In addition, F<b.jpg> will be rotated by 90 degrees
 counter-clockwise.
+
+Any image or folder not mentioned in the C<[include]> or C<[exclude]> sections
+will be included because of the "C<* : True>" entry in the C<[include]>
+section.
+
+The folder F<Things> will be included in the output before the folder F<Stuff>,
+even though they would normally sort by name in the opposite order.
 
 =head1 IMAGE COMMENTS
 
