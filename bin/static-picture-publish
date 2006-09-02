@@ -1,5 +1,15 @@
 #!/usr/bin/env python2.3
 
+# Suppress certain warnings for Tom.
+import warnings
+warnings.filterwarnings('ignore', category=FutureWarning)
+
+# We install static-picture-publish in /usr/lib/site-python, so it survives
+# python version changes.
+import sys
+if '/usr/lib/site-python' not in sys.path:
+    sys.path.append('/usr/lib/site-python')
+
 from static_picture_publish import static_picture_publish
 static_picture_publish.go()
 
