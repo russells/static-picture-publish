@@ -173,6 +173,9 @@ something.
 
 Needs eight images, and some CSS to place and stretch them.
 
+** Handle NEF images.
+
+PIL plugin?  Or run ufraw-batch on each image?
 
 * Code
 
