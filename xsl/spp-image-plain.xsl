@@ -253,6 +253,4 @@
 
 </xsl:stylesheet>
 
-<!-- arch-tag: 2d073797-f8f7-4165-b5a6-32a6141b0669
--->
 

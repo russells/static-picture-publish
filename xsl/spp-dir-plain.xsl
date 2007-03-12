@@ -668,6 +668,4 @@ being able to display the translated html when it does the XSLT itself.
 
 </xsl:stylesheet>
 
-<!-- arch-tag: ca508c04-650d-4965-bb7f-b40d0538b849
--->
 

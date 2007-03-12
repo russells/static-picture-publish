@@ -13,4 +13,3 @@ if '/usr/lib/site-python' not in sys.path:
 from static_picture_publish import static_picture_publish
 static_picture_publish.go()
 
-# arch-tag: 485ce90d-0878-4218-a8a9-3e2c5113501e

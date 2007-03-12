@@ -11,5 +11,3 @@ rm -f pod*.tmp
 find . -type f -name  \*~ -print0 | xargs -0 rm -f
 find . -type f -name .\*~ -print0 | xargs -0 rm -f
 
-# arch-tag: 0f004074-fd68-45fc-a447-1cb0faa5f7f9
-

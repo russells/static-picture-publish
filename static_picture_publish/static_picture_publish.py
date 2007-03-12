@@ -1284,5 +1284,4 @@ if __name__ == '__main__':
 # py-indent-offset:4 ***
 # fill-column:100 ***
 # End: ***
-# arch-tag: dbd38a8f-6259-49ca-a125-6b5cd1f48bdb
 

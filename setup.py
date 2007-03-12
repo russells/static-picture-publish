@@ -42,4 +42,3 @@ setup(name='static-picture-publish',
                   ]
       )
 
-# arch-tag: a7b4fe07-d658-43fc-962d-bb9456914ec8

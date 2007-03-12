@@ -49,4 +49,3 @@ def getImageComment(imageName):
 # py-indent-offset:4 ***
 # fill-column:100 ***
 # End: ***
-# arch-tag: d33b8f10-07b2-4fd2-8fc5-be4211746043

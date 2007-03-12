@@ -16,4 +16,3 @@ pod2html --header \
 
 gzip -c man/static-picture-publish.1 > man/static-picture-publish.1.gz
 
-# arch-tag: 14f661c3-3082-4200-a5de-2dba3a8c4327

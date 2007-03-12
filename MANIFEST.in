@@ -8,5 +8,3 @@ include man/static-picture-publish.1.gz
 include css/spp.css
 include xsl/spp-*.xsl
 
-# arch-tag: b35cc1c7-e9fd-48da-a19e-a5edda38c2ad
-
