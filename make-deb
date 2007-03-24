@@ -23,15 +23,15 @@ rm -rf $_DEB_BUILD_DIR
 mkdir -p $_DEB_BUILD_DIR
 
 # Here, we assume that the source tree does not contain any files whose names
-# will be escaped by tla.
-tla inventory -s \
+# will need to be escaped.
+git ls-tree --name-only -r HEAD \
    | tar cf - -T - \
    | ( cd $_DEB_BUILD_DIR  &&  tar xvf - )
 
 cd $_DEB_BUILD_DIR
 ./make-man
 
-tla logs --merges --full > tla-logs-list
+git log --no-color > git-log-list
 
 fakeroot dpkg-buildpackage -uc -us
 
