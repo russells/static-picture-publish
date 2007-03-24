@@ -159,8 +159,9 @@ other_opts = OptionGroup(opt, "Other options")
 other_opts.add_option(
     '--delete',
     action='store_true',
-    help="Delete unused files in the output directory.  Files and directories we have generated"
-    " (or were generated on previous runs) and files called .htaccess will be kept.")
+    help="Delete unused files in the output directory.  Files and directories we have "
+    "generated (or were generated on previous runs) and files called .htaccess will be "
+    "kept.")
 other_opts.add_option(
     '--xsltproc',
     action='store_true',
@@ -382,7 +383,8 @@ class Picture(dict):
             self[image_basename+'-height'] = None
             self[image_basename+'-image'] = None
             flag = False
-        #print "%s: size:%s required:%s flag:%s" % (imagePath, str(smallimage.size), str(requiredSize), str(flag))
+        #print "%s: size:%s required:%s flag:%s" % (imagePath, str(smallimage.size),
+        #str(requiredSize), str(flag))
         return flag
 
 
@@ -408,22 +410,24 @@ class Picture(dict):
         endtime = time()
         verboseMessage("  generation time %s: %.2f" % (imagePath, endtime-starttime))
         modified = True
-        # Return the image in case we're rotated it.  This substantially reduces the run time when
-        # the output images have already been generated.
+        # Return the image in case we're rotated it.  This substantially reduces the run time
+        # when the output images have already been generated.
         return image
 
 
     # Dictionaries for converting between angles, strings and PIL constants.  Currently we only
-    # handle the three simple rotation cases, although the others could be easily handled with a
-    # combination of rotate and flip.  There probably aren't any digital cameras that need the other
-    # cases.
+    # handle the three simple rotation cases, although the others could be easily handled with
+    # a combination of rotate and flip.  There probably aren't any digital cameras that need
+    # the other cases.
     orientationDict = { 1:None, 2:None, 3:Image.ROTATE_180, 4:None,
                         5:None, 6:Image.ROTATE_270, 7:None, 8:Image.ROTATE_90 }
     angleDict = { '90':Image.ROTATE_90, '180':Image.ROTATE_180, '270':Image.ROTATE_270,
                   '-90':Image.ROTATE_270,
-                  'left':Image.ROTATE_90, 'right':Image.ROTATE_270, 'upsidedown':Image.ROTATE_180 }
+                  'left':Image.ROTATE_90, 'right':Image.ROTATE_270,
+                  'upsidedown':Image.ROTATE_180 }
     angleStrings = "90, 180, 270, -90, left, right or upsidedown"
-    imageRotateDict = { Image.ROTATE_90:'left', Image.ROTATE_180:'upsidedown', Image.ROTATE_270:'right', }
+    imageRotateDict = { Image.ROTATE_90:'left', Image.ROTATE_180:'upsidedown',
+                        Image.ROTATE_270:'right', }
 
 
     def getRotateAngle(self, image):
@@ -453,7 +457,8 @@ class Picture(dict):
                         angle = self.orientationDict[orientation]
                     except KeyError, reason:
                         print >>stderr, "%s: unknown orientation value %s in image %s" % \
-                              (argv[0], str(orientation), pathjoin(self['dirName'], self['picName']))
+                              (argv[0], str(orientation),
+                               pathjoin(self['dirName'], self['picName']))
         return angle
 
 
@@ -513,9 +518,11 @@ class Picture(dict):
                 system(cmd)
             else:
                 verboseMessage('Creating %s' % pathjoin(self['webDirName'], self['htmlName']))
-                styuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], self['xslPath'])))
+                styuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'],
+                                                      self['xslPath'])))
                 verboseMessage("stylesheet URI: %s" % styuri)
-                srcuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], self['xmlName'])))
+                srcuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'],
+                                                      self['xmlName'])))
                 verboseMessage("source     URI: %s" % srcuri)
                 STY = InputSource.DefaultFactory.fromUri(styuri)
                 SRC = InputSource.DefaultFactory.fromUri(srcuri)
@@ -529,7 +536,8 @@ class Picture(dict):
             self.createImageLink(abspath(pathjoin(self['picDirName'], self['picName'])),
                                  abspath(pathjoin(self['webDirName'], self['fullImageName'])))
             self.createImageLink(abspath(pathjoin(self['picDirName'], self['picName'])),
-                                 abspath(pathjoin(self['webDirName'], self['downloadImageName'])))
+                                 abspath(pathjoin(self['webDirName'],
+                                                  self['downloadImageName'])))
 
 
     def createImageLink(self, targetPath, symlinkPath):
@@ -581,8 +589,8 @@ class PictureDir(dict):
                     'empty-folder.gif':1,
                     'folder-pics.gif':1,
                     }
-    # List of special subdirs to keep.  These subdirs are in the output tree, but not in the source
-    # tree.
+    # List of special subdirs to keep.  These subdirs are in the output tree, but not in the
+    # source tree.
     subdirsToKeep = { '.spp-full':1, '.spp-download':1 }
     # List of files to keep in the sppSubdirsToKeep list.
     subdirFilesToKeep = { '.htaccess':1 }
@@ -656,7 +664,8 @@ class PictureDir(dict):
             if isdir(subPath):
                 # If it's a directory, recursively create an instance and process that
                 # directory.
-                p = PictureDir(self['picRoot'], self['webRoot'], dirName=pathjoin(self['dirName'],l),
+                p = PictureDir(self['picRoot'], self['webRoot'],
+                               dirName=pathjoin(self['dirName'],l),
                                doUp=True, stylesheetPath=childStylesheetPath)
                 if p.hasPics():
                     self['subdirList'].append(p)
@@ -968,7 +977,8 @@ class PictureDir(dict):
         s.close()
         x.close()
         if not options.no_html:
-            verboseMessage('Creating %s' % pathjoin(self['webRoot'],self['dirName'],'index.html'))
+            verboseMessage('Creating %s' % pathjoin(self['webRoot'],self['dirName'],
+                                                    'index.html'))
             if options.xsltproc:
                 cmd = 'cd %s && xsltproc ' \
                       '--param imagePageExtension \'".html"\' ' \
@@ -977,7 +987,8 @@ class PictureDir(dict):
                 verboseMessage('Command: %s' % cmd)
                 system(cmd)
             else:
-                styuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], self['xslPath'])))
+                styuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'],
+                                                      self['xslPath'])))
                 verboseMessage("stylesheet URI: %s" % styuri)
                 srcuri = OsPathToUri(abspath(pathjoin(webRoot, self['dirName'], 'index.xml')))
                 verboseMessage("source     URI: %s" % srcuri)
@@ -1033,7 +1044,8 @@ class PictureDir(dict):
         for d in self['subdirList']:
             d.deleteUnused()
 
-        # Now, construct the list of files and directories in this directory that we want to keep.
+        # Now, construct the list of files and directories in this directory that we want to
+        # keep.
         filesToKeep = copy(self.filesToKeep)
         subdirFilesToKeep = copy(self.subdirFilesToKeep)
         # Keep all the subdirs with pics in them.
@@ -1045,8 +1057,8 @@ class PictureDir(dict):
             filesToKeep[z['thumbnailName']] = 1
             filesToKeep[z['xmlName']] = 1
             filesToKeep[z['htmlName']] = 1
-            # In the .spp-full and .spp-download directories, there is one symlink for each of the
-            # pics we have, so we make sure we keep them.
+            # In the .spp-full and .spp-download directories, there is one symlink for each of
+            # the pics we have, so we make sure we keep them.
             subdirFilesToKeep[z['imageName']] = 1
 
         # Get the list of things that are in the output directory.
@@ -1282,6 +1294,6 @@ if __name__ == '__main__':
 # Local variables: ***
 # mode:python ***
 # py-indent-offset:4 ***
-# fill-column:100 ***
+# fill-column:95 ***
 # End: ***
 

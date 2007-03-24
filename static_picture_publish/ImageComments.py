@@ -47,5 +47,5 @@ def getImageComment(imageName):
 # Local variables: ***
 # mode:python ***
 # py-indent-offset:4 ***
-# fill-column:100 ***
+# fill-column:95 ***
 # End: ***
