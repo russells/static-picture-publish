@@ -1,8 +1,7 @@
 0.1
 
-The first line of this file is the version number of makediary.  This
-number must match the number in setup.py.  (setup.py doesn't exist yet for
-this project.)
+The first line of this file is the version number of static-picture-publish.
+This number must match the number in setup.py.
 
 Everything else is ignored.
 

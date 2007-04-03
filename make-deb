@@ -5,8 +5,8 @@
 
 set -e -x
 
-# Check for things that indicate we are in the makediary source
-# directory.
+# Check for things that indicate we are in the static-picture-publish
+# source directory.
 [ -f VERSION ]
 [ -f setup.py ]
 [ -d static_picture_publish ]
