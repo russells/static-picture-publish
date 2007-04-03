@@ -4,4 +4,9 @@
 *.pyc
 *.pyo
 ,tmp
+MANIFEST
+build
+dist
 dist-deb
+pod2htmd.tmp
+pod2htmi.tmp
