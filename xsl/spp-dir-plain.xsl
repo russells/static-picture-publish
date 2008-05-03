@@ -230,7 +230,6 @@ being able to display the translated html when it does the XSLT itself.
       <xsl:if test="string-length($preText) != 0">
         <xsl:value-of select="$preText" />
       </xsl:if>
-      <xsl:comment> Just before the a </xsl:comment>
       <xsl:element name="a">
         <xsl:attribute name="href">
           <xsl:value-of select="$link" />
@@ -242,7 +241,6 @@ being able to display the translated html when it does the XSLT itself.
         </xsl:attribute>
         <xsl:value-of select="$text" />
       </xsl:element>
-      <xsl:comment> Just after the a </xsl:comment>
       <xsl:if test="string-length($postText) != 0">
         <xsl:value-of select="$postText" />
       </xsl:if>
