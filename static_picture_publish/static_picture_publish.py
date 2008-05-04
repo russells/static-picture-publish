@@ -116,7 +116,7 @@ markup_opts.add_option(
 markup_opts.add_option(
     '-N','--no-html',
     action='store_true',
-    help='Don\'t create HTML from XML (Unimplemented)')
+    help='Don\'t create HTML from XML')
 markup_opts.add_option(
     '-r','--regen-all',
     action='store_true',
@@ -124,12 +124,12 @@ markup_opts.add_option(
 markup_opts.add_option(
     '-S', '--subdir',
     action='store_true',
-    help='Run as if in a subdirectory of the output directory (Unimplemented)')
+    help='Run as if in a subdirectory of the output directory')
 markup_opts.add_option(
     '-t','--title',
     type='string',
     action='store',
-    help='Set the HTML title (Unimplemented)')
+    help='Set the HTML title')
 opt.add_option_group(markup_opts)
 
 layout_opts = OptionGroup(opt, "Layout options")
