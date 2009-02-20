@@ -2,7 +2,7 @@
 
 from xml.sax.handler import ContentHandler
 from xml.sax import parse as xml_sax_parse
-from os.path import basename, dirname, isfile, join
+from os.path import basename, dirname, expanduser, isfile, join
 from gzip import GzipFile
 
 __all__ = ['getImageComment']
@@ -28,14 +28,21 @@ class GthumbContentHandler(ContentHandler):
 
 def getGthumbComment(imageName):
     dirName = dirname(imageName)
-    xmlName = join(dirName, '.comments', basename(imageName)+'.xml')
-    if isfile(xmlName):
-        gf = GzipFile(xmlName)
-        h = GthumbContentHandler()
-        xml_sax_parse(gf, h)
-        return h.note
+    if dirName[0] == '/':
+        relativeDirName = dirName[1:]
     else:
-        return None
+        relativeDirName = dirName
+    xmlName1 = join(dirName, '.comments', basename(imageName)+'.xml')
+    xmlName2 = expanduser(join('~/.gnome2/gthumb/comments',
+                               relativeDirName, basename(imageName)+'.xml'))
+    for name in (xmlName1, xmlName2):
+        if isfile(name):
+            #print "Found %s" % name
+            gf = GzipFile(name)
+            h = GthumbContentHandler()
+            xml_sax_parse(gf, h)
+            return h.note
+    return None
 
 
 def getImageComment(imageName):
