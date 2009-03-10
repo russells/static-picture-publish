@@ -447,9 +447,12 @@ class Picture(dict):
             # PIL 1.1.4 and above have experimental EXIF code, but it seems a bit flaky still.
             try:
                 ex = image._getexif()
+            except KeyError, reason:
+                verboseMessage("%s contains no EXIF data" % (self['picName']))
+                pass
             except Exception, reason:
                 print >>stderr, "Error reading EXIF data for %s: %s" % \
-                      (self['picName'], str(reason.args))
+                      (self['picName'], str(reason))
             else:
                 if ex and ex.has_key(0x112):
                     orientation = ex[0x112]
