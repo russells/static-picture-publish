@@ -335,7 +335,9 @@ class Picture(dict):
                 image = self.generateImage('thumbnail', options.thumbnail_size, image)
                 modified = True
             image = None                # gc
-        except (IOError, SystemError), reason:
+        # Should we handle Exception here, instead of listing the ones that have been seen so
+        # far?  If we get one more to add to this list, then do that instead.
+        except (IOError, SystemError, IndexError), reason:
             print >>stderr, "%s: error processing %s: %s" % \
                   (argv[0], self['picPath'], str(reason.args))
         self.createMarkup(prevPic, nextPic)
