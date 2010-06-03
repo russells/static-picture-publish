@@ -1,84 +1,110 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
-	"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-
-	<title>russells/static-picture-publish @ GitHub</title>
-	
-	<style type="text/css">
-		body {
-  		margin-top: 1.0em;
-  		background-color: #8aedd5;
-		  font-family: "Helvetica,Arial,FreeSans";
-  		color: #000000;
-    }
-    #container {
-      margin: 0 auto;
-      width: 700px;
-    }
-		h1 { font-size: 3.8em; color: #75122a; margin-bottom: 3px; }
-		h1 .small { font-size: 0.4em; }
-		h1 a { text-decoration: none }
-		h2 { font-size: 1.5em; color: #75122a; }
-    h3 { text-align: center; color: #75122a; }
-    a { color: #75122a; }
-    .description { font-size: 1.2em; margin-bottom: 30px; margin-top: 30px; font-style: italic;}
-    .download { float: right; }
-		pre { background: #000; color: #fff; padding: 15px;}
-    hr { border: 0; width: 80%; border-bottom: 1px solid #aaa}
-    .footer { text-align:center; padding-top:30px; font-style: italic; }
-	</style>
-	
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-15">
+<title>static-picture-publish</title>
+<link rel="stylesheet" type="text/css" href="a.css">
 </head>
 
 <body>
-  <a href="http://github.com/russells/static-picture-publish"><img style="position: absolute; top: 0; right: 0; border: 0;" src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
 
-  <div id="container">
+<h1>static-picture-publish</h1>
 
-    <div class="download">
-      <a href="http://github.com/russells/static-picture-publish/zipball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/zip.png"></a>
-      <a href="http://github.com/russells/static-picture-publish/tarball/master">
-        <img border="0" width="90" src="http://github.com/images/modules/download/tar.png"></a>
-    </div>
+<h2>What?</h2>
 
-    <h1><a href="http://github.com/russells/static-picture-publish">static-picture-publish</a>
-      <span class="small">by <a href="http://github.com/russells">russells</a></span></h1>
+<p><b>This is <i>unreleased</i> software, despite the link you've followed
+here.  I'm still working on version 0.1.</b></p>
 
-    <div class="description">
-      Statically publish a directory tree of pictures.
-    </div>
+<p>Creates static HTML (and XML) web pages with thumbnails from your image
+directories.  The content is static so that you can turn off all the active
+parts of your web server (PHP, CGI, etc) and just serve the files.</p>
 
-    <h2>Dependencies</h2>
-<p>python-imaging, </p>
-<h2>License</h2>
-<p>GPL, public domain after 10 years.</p>
-<h2>Authors</h2>
-<p>Russell Steicke (russells@adelie.cx)<br/><br/>      </p>
-<h2>Contact</h2>
-<p> (russells@adelie.cx)<br/>      </p>
+<p>It copies the directory structure from the source, and creates smaller
+versions and thumbnails in the new structure.  In addition it creates <span
+class="filename">index.xml</span> and <span
+class="filename">index.html</span> files in each directory, and copies in
+<span class="filename">spp.css</span>, <span class="filename"
+>spp-dir.xsl</span> and <span class="filename" >spp-image.xsl</span> in the
+top level of the destination directory.</p>
 
+<p>If your source directory structure is this:</p>
+<pre>
+/home/russells/photos
+  a.jpg
+  2006/
+    b.jpg
+</pre>
 
-    <h2>Download</h2>
-    <p>
-      You can download this project in either
-      <a href="http://github.com/russells/static-picture-publish/zipball/master">zip</a> or
-      <a href="http://github.com/russells/static-picture-publish/tarball/master">tar</a> formats.
-    </p>
-    <p>You can also clone the project with <a href="http://git-scm.com">Git</a>
-      by running:
-      <pre>$ git clone git://github.com/russells/static-picture-publish</pre>
-    </p>
+<p>you'll end up with this in the destination directory:</p>
+<pre>
+/var/www/photos
+  spp.css
+  spp-dir.xsl
+  spp-image.xsl
+  index.xml
+  index.html
+  a-thumb.jpg
+  a.jpg
+  a-full.jpg -> /home/russells/photos/a.jpg
+  a.html
+  a.xml
+  2006/
+    index.xml
+    index.html
+    b-thumb.jpg
+    b.jpg
+    b-full.jpg -> /home/russells/photos/2006/b.jpg
+    b.html
+</pre>
 
-    <div class="footer">
-      get the source code on GitHub : <a href="http://github.com/russells/static-picture-publish">russells/static-picture-publish</a>
-    </div>
+<p>The files in the destination directory (<span class="filename"
+>a.jpg</span> and <span class="filename" >b.jpg</span> are smaller copies
+of the source files.  (I could have done this the other way around, with
+<span class="filename" >a.jpg</span> being the small file, and <span
+class="filename" >a-small.jpg</span> or something being the smaller file,
+but I just didn't.)</p>
 
-  </div>
+<p>The <span class="filename" >index.xml</span> files refer to <span
+class="filename" >spp.css</span> and <span class="filename"
+>spp-dir.xsl</span> files.  The <span class="filename" >a.xml</span> etc
+files refer to <span class="filename" >spp.css</span> and <span
+class="filename" >spp-image.xsl</span>.</p>
 
-  
-</body>
-</html>
+<p>The <span class="filename" >index.html</span> and <span class="filename"
+>a.html</span> etc files refer to <span class="filename" >spp.css</span>
+only.</p>
+
+<p>All references to stylesheets are relative, so you can put the
+destination tree anywhere.</p>
+
+<p>There are both XML and HTML files because Internet Explorer 6 acts
+strangely when given a relative URL to an XSL stylesheet: if the URL to the
+CSS stylesheet is also relative, it then tries to load that CSS stylesheet
+relative to the location of the XSL sytlesheet.  Firefox handles this ok.
+As a compromise, if you view an XML file, all links in there will be to
+other XML files.  All links in HTML files are to other HTML files or to
+bare directory names.</p>
+
+<h2>How?</h2>
+
+<p><a class="fancy-link"
+href="static-picture-publish.1.html">Documentation</a> is available.</p>
+
+<p>The simplest case, publishing a tree of images into a web directory:</p>
+
+<pre>
+static-picture-publish /home/russells/photos /var/www/photos
+</pre>
+
+<h2>Where?</h2>
+
+<a href="http://github.com/russells/static-picture-publish">Github</a>
+
+<hr>
+<address></address>
+<div class="last-modified">
+<font size=-2>
+<!-- hhmts start -->Last modified: Thu Jun  3 21:39:25 WST 2010 <!-- hhmts end -->
+</font>
+</div>
+</body></html>

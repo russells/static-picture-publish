@@ -1,0 +1,462 @@
+<?xml version="1.0" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>static-picture-publish - create a web dir structure from an image dir.</title>
+<link rel="stylesheet" href="a.css" type="text/css" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<link rev="made" href="mailto:root@localhost" />
+</head>
+
+<body>
+
+
+<!-- INDEX BEGIN -->
+<div name="index">
+<p><a name="__index__"></a></p>
+
+<ul>
+
+	<li><a href="#name">NAME</a></li>
+	<li><a href="#synopsis">SYNOPSIS</a></li>
+	<li><a href="#description">DESCRIPTION</a></li>
+	<li><a href="#options">OPTIONS</a></li>
+	<ul>
+
+		<li><a href="#general_options">General options</a></li>
+		<li><a href="#image_options">Image options</a></li>
+		<li><a href="#markup_options">Markup options</a></li>
+		<li><a href="#layout_options">Layout options</a></li>
+		<li><a href="#other_options">Other options</a></li>
+	</ul>
+
+	<li><a href="#per_directory_config_file">PER-DIRECTORY CONFIG FILE</a></li>
+	<ul>
+
+		<li><a href="#format">Format</a></li>
+		<li><a href="#_include__and__exclude__processing">[include] and [exclude] processing</a></li>
+		<li><a href="#key_value_pairs">key-value pairs</a></li>
+		<li><a href="#example_config_files">Example config files</a></li>
+	</ul>
+
+	<li><a href="#image_comments">IMAGE COMMENTS</a></li>
+	<li><a href="#examples">EXAMPLES</a></li>
+	<li><a href="#bugs">BUGS</a></li>
+	<li><a href="#author">AUTHOR</a></li>
+	<li><a href="#copyright">COPYRIGHT</a></li>
+	<li><a href="#version">VERSION</a></li>
+</ul>
+
+</div>
+<!-- INDEX END -->
+
+<p>
+</p>
+<h1><a name="name">NAME</a></h1>
+<p>static-picture-publish - create a web dir structure from an image dir.</p>
+<p>
+</p>
+<h1><a name="synopsis">SYNOPSIS</a></h1>
+<p><strong>static-picture-publish --help</strong></p>
+<p><strong>static-picture-publish --version</strong></p>
+<p><strong>static-picture-publish</strong> <em>[options]</em> <em>picRoot</em> <em>webRoot</em></p>
+<p>
+</p>
+<h1><a name="description">DESCRIPTION</a></h1>
+<p>Create a web directory structure from an image directory structure.
+<em>picRoot</em> is the root of the image directory, and <em>webRoot</em> is the root
+of the web directory.  Subdirectories of <em>picroot</em> will be duplicated in
+<em>webRoot</em>, containing thumbnails and smaller versions of images in
+<em>picRoot</em>, along with XML and HTML web pages to enable viewing them.</p>
+<p><strong>static-picture-publish</strong> produces XML output initially, then processes that
+with <strong>xsltproc</strong> to produce HTML.  (This is only necessary because Internet
+Explorer 6, while it can process XML and XSLT, does strange things when
+given a relative path to the XSL stylesheet.  Firefox and Mozilla Seamonkey
+can view the XML files well.)</p>
+<p>If you start viewing the XML files (eg by opening index.xml in the web root
+directory with a web browser), then all the links will take you to XML
+files, which need to be processed correctly by your web browser.  If you
+start viewing HTML files (by opening index.html, perhaps implicitly as a
+DirectoryIndex file served by apache), then all the links will take you to
+HTML files.</p>
+<p>
+</p>
+<h1><a name="options">OPTIONS</a></h1>
+<p>
+</p>
+<h2><a name="general_options">General options</a></h2>
+<dl>
+<dt><strong><a name="help" class="item">--help</a></strong></dt>
+
+<dd>
+<p>Print a help message, describing the program options.</p>
+</dd>
+<dt><strong><a name="version" class="item">--version</a></strong></dt>
+
+<dd>
+<p>Print the program version and exit.</p>
+</dd>
+<dt><strong><a name="q" class="item">-q</a></strong></dt>
+
+<dt><strong><a name="quiet" class="item">--quiet</a></strong></dt>
+
+<dd>
+<p>Run silently, without printing any normal output.</p>
+</dd>
+<dt><strong><a name="v" class="item">-v</a></strong></dt>
+
+<dt><strong><a name="verbose" class="item">--verbose</a></strong></dt>
+
+<dd>
+<p>Print more information about actions.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="image_options">Image options</a></h2>
+<dl>
+<dt><strong><a name="c" class="item">-c</a></strong></dt>
+
+<dt><strong><a name="copy" class="item">--copy</a></strong></dt>
+
+<dd>
+<p>(Unimplemented) Copy the originals instead of symlinking them.</p>
+</dd>
+<dt><strong><a name="eextensions" class="item">-e<em>EXTENSIONS</em></a></strong></dt>
+
+<dt><strong><a name="extensions_extensions" class="item">--extensions=<em>EXTENSIONS</em></a></strong></dt>
+
+<dd>
+<p>Specify a comma-separated list of file extensions to process.  These files
+must be recognised by the Python Imaging Library.  The extensions are
+compared case-folded.  The default list is <strong>.jpg,.jpeg,.gif,.png</strong>.  If
+specified, the list is replaced, not extended.</p>
+</dd>
+<dt><strong><a name="n" class="item">-n</a></strong></dt>
+
+<dt><strong><a name="no_originals" class="item">--no-originals</a></strong></dt>
+
+<dd>
+<p>(Unimplemented) Don't symlink or copy originals.</p>
+</dd>
+<dt><strong><a name="simage_size" class="item">-s<em>IMAGE_SIZE</em></a></strong></dt>
+
+<dt><strong><a name="image_size_image_size" class="item">--image-size=<em>IMAGE_SIZE</em></a></strong></dt>
+
+<dd>
+<p>Set maximum dimension for images.  (Default 640x640 pixels)</p>
+</dd>
+<dt><strong><a name="zthumbnail_size" class="item">-z<em>THUMBNAIL_SIZE</em></a></strong></dt>
+
+<dt><strong><a name="thumbnail_size_thumbnail_size" class="item">--thumbnail-size=<em>THUMBNAIL_SIZE</em></a></strong></dt>
+
+<dd>
+<p>Set maximum dimension for thumbnails.  (Default 128x128 pixels)</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="markup_options">Markup options</a></h2>
+<dl>
+<dt><strong><a name="g" class="item">-g</a></strong></dt>
+
+<dt><strong><a name="regen_markup" class="item">--regen-markup</a></strong></dt>
+
+<dd>
+<p>Force regeneration of HTML or XML output.</p>
+</dd>
+<dt><strong><a name="n" class="item">-N</a></strong></dt>
+
+<dt><strong><a name="no_html" class="item">--no-html</a></strong></dt>
+
+<dd>
+<p>Don't create HTML from XML.  (Unimplemented)</p>
+</dd>
+<dt><strong><a name="r" class="item">-r</a></strong></dt>
+
+<dt><strong><a name="regen_all" class="item">--regen-all</a></strong></dt>
+
+<dd>
+<p>Force regeneration of all output.</p>
+</dd>
+<dt><strong><a name="s" class="item">-S</a></strong></dt>
+
+<dt><strong><a name="subdir" class="item">--subdir</a></strong></dt>
+
+<dd>
+<p>Run as if in a subdirectory of the output directory.  This is used to
+(re-)generate only a part of the output tree, so you don't have to process
+the whole thing again if you've just changed on part.  This option requires
+the stylesheet files (<em class="file">spp.css</em>, <em class="file">spp-dir.xsl</em> and <em class="file">spp-image.xsl</em>) to
+already be in place.  They won't be copied in, and it's an error if they
+can't be found by searching up the output directory tree.</p>
+<p>This option also forces the creation of an &quot;Up&quot; link in the top-most
+processed folder, which is not normally created.</p>
+</dd>
+<dt><strong><a name="ttitle" class="item">-t<em>TITLE</em></a></strong></dt>
+
+<dt><strong><a name="title_title" class="item">--title=<em>TITLE</em></a></strong></dt>
+
+<dd>
+<p>Set the HTML title.  This will appear on all pages as &quot;<strong>Title - name</strong>&quot;,
+where <strong>Title</strong> is what you set here, and <strong>name</strong> is the name of the folder
+or image you are viewing.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="layout_options">Layout options</a></h2>
+<dl>
+<dt><strong><a name="css_css" class="item">--css=<em>CSS</em></a></strong></dt>
+
+<dd>
+<p>CSS file to use in HTML or XML output. (Default inbuilt.)  The CSS file
+will be copied into <em>webRoot</em> and renamed to <em class="file">spp.css</em>.</p>
+</dd>
+<dt><strong><a name="row_row" class="item">--row=ROW</a></strong></dt>
+
+<dd>
+<p>Number of images per row in HTML. (Default 3.)</p>
+</dd>
+<dt><strong><a name="xsl_dir_xsl_dir" class="item">--xsl-dir=<em>XSL_DIR</em></a></strong></dt>
+
+<dd>
+<p>XSLT file to use for directory XML output. (Default inbuilt.)  The file
+will be copied into <em>webRoot</em> and renamed to <em class="file">spp-dir.xsl</em>.</p>
+</dd>
+<dt><strong><a name="xsl_image_xsl_image" class="item">--xsl-image=<em>XSL_IMAGE</em></a></strong></dt>
+
+<dd>
+<p>XSLT file to use for image XML output. (Default inbuilt.)  The file will be
+copied into <em>webRoot</em> and renamed to <em class="file">spp-image.xsl</em>.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="other_options">Other options</a></h2>
+<dl>
+<dt><strong><a name="delete" class="item">--delete</a></strong></dt>
+
+<dd>
+<p>Delete unused files and directories in the output.  Files that have been
+generated by <strong>static-picture-publish</strong> (on this run or on previous runs)
+will be kept, as well as any file called <em class="file">.htaccess</em>.</p>
+<p>Using this options, you can rearrange your picture directories, and the web
+copies will be kept up to date automatically after you run
+<strong>.static-picture-publish</strong> again, without accumulating old copies of
+pictures and directories.</p>
+</dd>
+<dt><strong><a name="xsltproc" class="item">--xsltproc</a></strong></dt>
+
+<dd>
+<p>To generate HTML, use the <strong>xsltproc</strong> program instead of the python XML
+libraries.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h1><a name="per_directory_config_file">PER-DIRECTORY CONFIG FILE</a></h1>
+<p>If <strong>static-picture-publish</strong> finds a <em class="file">.static-picture-publish</em> or
+<em class="file">.static-picture-publish.txt</em> file in the <em>picRoot</em> or a subdirectory of
+that, it is taken as a configuration file to specify how the contents of
+that directory are to be processed.  Both files can exist, and both will be
+read if they exist.</p>
+<p>
+</p>
+<h2><a name="format">Format</a></h2>
+<p>The format of the file is like the INI format.  (Also see the section &quot;Example
+config file&quot;, below.)  It can contain these sections:</p>
+<dl>
+<dt><strong><a name="folder" class="item">[folder]</a></strong></dt>
+
+<dd>
+<p>The <a href="#folder"><code>[folder]</code></a> section can contain one key, <code>[thumbnail]</code>, which is the
+name of an image in the directory.  The thumbnail of that image will be
+used as the icon for that directory in its parent directory.  It this
+secion of key is missing, a random image from the directory will be used as
+the thumbnail.</p>
+</dd>
+<dt><strong><a name="include" class="item">[include]</a></strong></dt>
+
+<dd>
+<p>If the <a href="#include"><code>[include]</code></a> section exists, only files and directories that are
+mentioned in here will be included in the output.  The value of the entry
+is a space separated list of <code>key=value</code> items.  The possible keys are
+explained below.</p>
+<p>A key without a value results in that key having a value of <code>True</code>.</p>
+<p>If there exists a key with no value, and the key is one of <code>1</code>, <code>on</code>,
+<code>true</code> or <code>yes</code> (boolean true, without regard to case), that results in
+the key <a href="#include"><code>include</code></a> having the value <code>True</code>.</p>
+<p>If there exists a key with no value, and the key is one of <code>0</code>, <code>off</code>,
+<code>false</code> or <code>no</code> (boolean false, without regard to case), that results in
+the key <a href="#include"><code>include</code></a> having the value <code>False</code>.</p>
+<p>If there is no <a href="#include"><code>include</code></a> key, or no key with a boolean name and no value,
+then it is as if the section had a key-value pair of <code>include=True</code>.</p>
+<p>The <a href="#include"><code>[include]</code></a> section can contain one special key: <code>*</code>.  The value of
+this key is a boolean that specifies the default <a href="#include"><code>include</code></a> value for
+entries.  The rationale for this is that if you wish to rotate just one
+entry, that is done in the <a href="#include"><code>[include]</code></a> section, and having that section
+makes the default rule to exclude anything not mentioned there, so you'd
+then have to mention every file in the <a href="#include"><code>[include]</code></a> section.  Instead, you
+can change the default with a <code>*</code> key.</p>
+</dd>
+<dt><strong><a name="exclude" class="item">[exclude]</a></strong></dt>
+
+<dd>
+<p>If the <a href="#exclude"><code>[exclude]</code></a> section exists, files and directories mentioned in
+there can be excluded.  Like above, the value is a space separated list of
+<code>key=value</code> items.  Keys without values are handled as for the
+<a href="#include"><code>[include]</code></a> section, except that the key that is affected by default is
+<a href="#exclude"><code>exclude</code></a>.</p>
+</dd>
+<dt><strong><a name="folder_order" class="item">[folder order]</a></strong></dt>
+
+<dd>
+<p>Keys in this section are folder names, and each value is the position in
+the output folder list for that folder.  The list is <strong>not</strong> checked to see
+that the indexes are within the number of folders available, which means
+that if you miscalculate the folder numbers the program may abort.  The way
+this list is used is that first the list of folders is sorted into lexical
+order (locale-dependent), then each folder mentioned in <a href="#folder_order"><code>[folder order]</code></a>
+is put in the output list in that position, then the remaining folders are
+put in the output list by &quot;filling in the gaps&quot; in order.</p>
+</dd>
+<dt><strong><a name="image_order" class="item">[image order]</a></strong></dt>
+
+<dd>
+<p>This section is handled in the same way as the <a href="#folder_order"><code>[folder order]</code></a> section
+above, but for images.</p>
+</dd>
+<dt><strong><a name="names" class="item">[names]</a></strong></dt>
+
+<dd>
+<p>(<strong>Unimplemented</strong>) This section contains a list of <code>original name = output
+name</code> pairs.  All other references to the name are to the output name.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="_include__and__exclude__processing">[include] and [exclude] processing</a></h2>
+<p>The way that the <a href="#include"><code>[include]</code></a> and <a href="#exclude"><code>[exclude]</code></a> sections are handled is
+slightly strange.</p>
+<ul>
+<li>
+<p>Firstly, if there is no config file in this directory, or there is a config
+file but it has no <a href="#include"><code>[include]</code></a> or <a href="#exclude"><code>[exclude]</code></a> sections, then all images and
+folders are included.</p>
+</li>
+<li>
+<p>If there is an <a href="#include"><code>[include]</code></a> section, the default action is to not include
+an image or folder.</p>
+</li>
+<li>
+<p>If the image or folder is mentioned in the <a href="#include"><code>[include]</code></a> section, it is only
+included if the value of the <a href="#include"><code>include</code></a> key is <code>True</code>.  As above, this will be
+the case if there is no <a href="#include"><code>include</code></a> key at all.</p>
+</li>
+<li>
+<p>If the image or folder is mentioned in the <a href="#exclude"><code>exclude</code></a> section, it is only
+included if the value of the <a href="#exclude"><code>exclude</code></a> key is <code>False</code>.  This will not
+normally be the case, unless the <a href="#exclude"><code>exclude</code></a> key is mentioned explicitly.</p>
+</li>
+</ul>
+<p>
+</p>
+<h2><a name="key_value_pairs">key-value pairs</a></h2>
+<dl>
+<dt><strong><a name="rotate_x" class="item">rotate=<em>X</em></a></strong></dt>
+
+<dd>
+<p>Rotate the output images (thumbnail and web-sized version) by <em>X</em> degrees
+counterclockwise.  The original is not affected by this value, and is
+presented un-rotated.</p>
+<p><em>X</em> can only be the values <em>90</em>, <em>180</em>, <em>270</em>, <em>-90</em>, <em>left</em>,
+<em>upsidedown</em> or <em>right</em>.</p>
+<p>Note that <strong>static-picture-publish</strong> will read EXIF data from the images, so if
+your image was taken with a digital camera it will be rotated correctly without
+you having to specify this value.</p>
+</dd>
+<dt><strong><a name="name_name" class="item">name=<em>NAME</em></a></strong></dt>
+
+<dd>
+<p>(<strong>Unimplemented</strong>) Specify the name to use for this entry in the output.  All
+references to the image or folder will use <em>NAME</em>.</p>
+</dd>
+</dl>
+<p>
+</p>
+<h2><a name="example_config_files">Example config files</a></h2>
+<p>The common reason to include a config file is to exclude just a couple of
+images:</p>
+<pre>
+ [include]
+ * : True
+ Embarrassing_pic_1.jpg  : False
+ And_this_one.jpg        : False</pre>
+<p>A longer example:</p>
+<pre>
+ [include]
+ a.jpg : include=1
+ b.jpg : rotate=90
+ c.jpg : rotate=-90 false
+ d.jpg : True
+ *     : True</pre>
+<pre>
+ [exclude]
+ d.jpg : True</pre>
+<pre>
+ [folder order]
+ Things  : 1
+ Stuff   : 2</pre>
+<p>With this config file, <em class="file">a.jpg</em> and <em class="file">b.jpg</em> will be included, but <em class="file">c.jpg</em>
+and <em class="file">d.jpg</em> will not.  In addition, <em class="file">b.jpg</em> will be rotated by 90 degrees
+counter-clockwise.</p>
+<p>Any image or folder not mentioned in the <a href="#include"><code>[include]</code></a> or <a href="#exclude"><code>[exclude]</code></a> sections
+will be included because of the &quot;<code>* : True</code>&quot; entry in the <a href="#include"><code>[include]</code></a>
+section.</p>
+<p>The folder <em class="file">Things</em> will be included in the output before the folder <em class="file">Stuff</em>,
+even though they would normally sort by name in the opposite order.</p>
+<p>
+</p>
+<h1><a name="image_comments">IMAGE COMMENTS</a></h1>
+<p><strong>static-picture-publish</strong> will use image comments that are saved by
+<strong>gthumb</strong>.  These are stored in files named like <em class="file">.comment/a.jpg.xml</em> for
+example for an image called <em class="file">a.jpg</em>.  The &quot;Notes&quot; text from this file will
+be used as a comment for the image in both the directory and image views.
+It will be truncated to 75 characters in directory view and 295 characters
+in image view.</p>
+<p>Comments saved by other programs (<strong>gqview</strong> and <strong>nautilus</strong> in particular)
+will be added when I get to it.</p>
+<p>Storage of this information should really be a freedesktop.org standard.</p>
+<p>
+</p>
+<h1><a name="examples">EXAMPLES</a></h1>
+<p>Publish pictures from <em class="file">/home/joe/pics</em> to <em class="file">/var/www/pics</em>, specifying the
+thumbnail size.</p>
+<pre>
+ static-picture-publish -z 100x100 /home/joe/pics /var/www/pics</pre>
+<p>
+</p>
+<h1><a name="bugs">BUGS</a></h1>
+<p>Some, probably...</p>
+<p>
+</p>
+<h1><a name="author">AUTHOR</a></h1>
+<p>Russell Steicke &lt;<a href="mailto:russells@adelie.cx">russells@adelie.cx</a>&gt;</p>
+<p>
+</p>
+<h1><a name="copyright">COPYRIGHT</a></h1>
+<p>Copyright (C) 2008 Russell Steicke.  Released under the terms of the GNU
+General Public License, but dedicated to the public domain at the beginning
+of the tenth calendar year after publishing (ie the start of 2018 for
+version 0.1, released in 2008).</p>
+<p>This is free software; see the source for copying conditions.  There is NO
+warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.</p>
+<p>
+</p>
+<h1><a name="version">VERSION</a></h1>
+<p>0.1</p>
+
+</body>
+
+</html>
